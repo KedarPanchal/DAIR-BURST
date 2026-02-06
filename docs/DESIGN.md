@@ -19,16 +19,28 @@ title: BURST Class Diagram
 ---
 classDiagram
     class RotationPolicy {
-        #Gmpq rotation_error
-        +RotationPolicy(Gmpq max_rotation_error)
         +Gmpq operator() (Gmpq rotation)*
     }
     <<interface>> RotationPolicy
+    
+    class PRRotationPolicy 
+    PRRotationPolicy --|> RotationPolicy
+
+    class SeededPRRotationPolicy {
+        -const unsigned int seed
+        +SeededPRRotationPolicy(unsigned int seed)
+    }
+    SeededPRRotationPolicy --|> RotationPolicy
 
     class MovementPolicy {
-        +Point_2 operator(Gmpq angle, ConfigurationGeometry configuration_environment)*
+        +Point_2 operator() (Gmpq angle, ConfigurationGeometry configuration_environment)*
+        +Segment_2 generateTrajectory(Point_2 origin, Gmpq angle, ConfigurationGeometry configuration_environment)*
     }
     <<interface>> MovementPolicy
+
+    class LinearMovementPolicy {
+    }
+    LinearMovementPolicy --|> MovementPolicy
 
     class Renderable {
         +void render()*
@@ -37,28 +49,55 @@ classDiagram
 
     class Robot~RotationPolicy, MovementPolicy~ {
         -Gmpq radius
-        +Robot(Gmpq robot_radius)
+        -Gmpq max_rotation_error
+        -Gmpq x_position
+        -Gmpq y_position
+        -ConfigurationGeometry* configuration_environment
+
+        +Robot(Gmpq robot_radius, Gmpq max_rotation_error)
+        -setConfigurationEnvironment(ConfigurationGeometry* configuration_environment)
         +Gmpq getRadius()
-        +Point_2 shootRay(Gmpq angle, ConfigurationGeometry configuration_environment)
+        +Gmpq getMinRotationError(Gmpq rotation)
+        +Gmpq getMaxRotationError(Gmpq rotation)
+        +Point_2 shootRay(Gmpq angle)
+        +Polygon_2 generateStadium(Gmpq angle)
+        +Polygon_2 generateCCR(Gmpq angle)
     }
-    Robot --> Renderable
+    Robot --|> Renderable
+    MovementPolicy --* Robot
+    RotationPolicy --* Robot
 
     class WallGeometry {
         -Polygon_2 wall_shape
         +WallGeometry(std::initializer_list<Point_2> edge_endpoints)
-        +ConfigurationGeometry generateConfigurationGeometry(Gmpq robot_radius)
+        +void generateConfigurationGeometry(Robot robot)
     }
-    WallGeometry --> Renderable
+    WallGeometry --|> Renderable
 
     class ConfigurationGeometry {
-        -Polygon_2 configuration_shape
+        #Polygon_2 configuration_shape
+        -ConfigurationGeometry(std::initializer_list<Point_2> edge_endpoints)
         +Segment getEdge(Point_2 point)
         +Segment getEdge(Segment_2 segment)
     }
-    ConfigurationGeometry --> Renderable
+    <<abstract>> ConfigurationGeometry
+    ConfigurationGeometry --|> Renderable
     WallGeometry "1" -- "1" ConfigurationGeometry : creates
+    Robot "1" -- "1" ConfigurationGeometry : uses
+    Robot ..> ConfigurationGeometry
+
+    class ConfigurationGeometryImpl
+    ConfigurationGeometryImpl --|> ConfigurationGeometry
 ```
+
+> <p style="color: cyan; font-weight: bold;">NOTE:</p>
+> The class diagram above explicitly uses CGAL types.
+>
+> Certain functions may be added or removed as the implementation progresses.
 
 ## Considerations
 
-CGAL is GPLv3, so BURST will need to be GPLv3 if we go ahead and use CGAL.
+* The above diagram omits the use of smart pointers for clarity.
+* CGAL is GPLv3, so BURST will need to be GPLv3 if we go ahead and use CGAL.
+* Alternatively, we could use the Shapely Python library for computational geometry.
+This is BSD-3 licensed but is slower and more inaccurate than CGAL.
