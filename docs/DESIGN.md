@@ -37,7 +37,7 @@ classDiagram
     SeededPRRotationPolicy ..|> RotationPolicy
 
     class FixedRotationPolicy {
-        -Gmpq fixed_rotation
+        -const Gmpq fixed_rotation
         +FixedRotationPolicy(Gmpq fixed_rotation)
     }
     FixedRotationPolicy ..|> RotationPolicy
@@ -60,8 +60,7 @@ classDiagram
     <<interface>> Renderable
 
     class Robot~RotationPolicy, MovementPolicy~ {
-        -Gmpq radius
-        -Gmpq max_rotation_error
+        -const Gmpq radius
         -Gmpq x_position
         -Gmpq y_position
         -ConfigurationGeometry* configuration_environment
@@ -78,14 +77,14 @@ classDiagram
     RotationPolicy --* Robot
 
     class WallGeometry {
-        -Polygon_2 wall_shape
+        -const Polygon_2 wall_shape
         +WallGeometry(std::initializer_list<Point_2> edge_endpoints)
         +void generateConfigurationGeometry(Robot robot)
     }
     WallGeometry ..|> Renderable
 
     class ConfigurationGeometry {
-        #Polygon_2 configuration_shape
+        #const Polygon_2 configuration_shape
         -ConfigurationGeometry(std::initializer_list<Point_2> edge_endpoints)
         +Segment getEdge(Point_2 point)
         +Segment getEdge(Segment_2 segment)
