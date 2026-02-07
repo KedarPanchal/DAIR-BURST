@@ -20,10 +20,12 @@ title: BURST Class Diagram
 classDiagram
     direction TD
     class RotationModel {
-        +const Gmpq max_rotation_error
+        #const Gmpq max_rotation_error
+
+        +RotationModel(Gmpq max_rotation_error)
         +Gmpq operator() (Gmpq rotation)*
-        +Gmpq getMinRotationError(Gmpq rotation)*
-        +Gmpq getMaxRotationError(Gmpq rotation)*
+        +Gmpq getMinRotationError(Gmpq rotation)
+        +Gmpq getMaxRotationError(Gmpq rotation)
     }
     <<abstract>> RotationModel
     
@@ -32,18 +34,16 @@ classDiagram
 
     class SeededPRRotationModel {
         -const unsigned int seed
-        +SeededPRRotationModel(unsigned int seed)
+
+        +SeededPRRotationModel(Gmpq max_rotation_error, unsigned int seed)
     }
     SeededPRRotationModel ..|> RotationModel
 
     class FixedRotationModel {
-        -const Gmpq fixed_rotation
-        +FixedRotationModel(Gmpq fixed_rotation)
+        -const Gmpq fixed_rotation_scale
+        +FixedRotationModel(Gmpq max_rotation_error, Gmpq fixed_rotation_scale)
     }
     FixedRotationModel ..|> RotationModel
-
-    class TDoERotationModel
-    TDoERotationModel ..|> RotationModel
 
     class MovementModel {
         +Point_2 operator() (Gmpq angle, ConfigurationGeometry configuration_environment)*
@@ -59,18 +59,24 @@ classDiagram
     }
     <<interface>> Renderable
 
-    class Robot~RotationModel, MovementModel~ {
+    class Robot {
         -const Gmpq radius
         -Gmpq x_position
         -Gmpq y_position
         -ConfigurationGeometry* configuration_environment
+        -RotationModel* rotation_model
+        -MovementModel* movement_model
 
         +Robot(Gmpq robot_radius, Gmpq max_rotation_error)
-        ~setConfigurationEnvironment(ConfigurationGeometry* configuration_environment)
+        +Robot(Gmpq robot_radius, Gmpq max_rotation_error, unsigned int rotation_seed)
+        +Robot(Gmpq robot_radius, Gmpq max_rotation_error, Gmpq fixed_rotation_scale)
+        +Robot(Gmpq robot_radius, Gmpq max_rotation_error, RotationModel* rotation_model, MovementModel* movement_model)
+        +void setConfigurationEnvironment(ConfigurationGeometry* configuration_environment)
         +Gmpq getRadius()
         +Point_2 shootRay(Gmpq angle)
         +Polygon_2 generateStadium(Gmpq angle)
         +Polygon_2 generateCCR(Gmpq angle)
+        +void move(Gmpq angle)
     }
     Robot ..|> Renderable
     MovementModel --* Robot
@@ -78,16 +84,18 @@ classDiagram
 
     class WallGeometry {
         -const Polygon_2 wall_shape
+
         +WallGeometry(std::initializer_list<Point_2> edge_endpoints)
-        +void generateConfigurationGeometry(Robot robot)
+        +void generateConfigurationGeometry(Robot& robot)
     }
     WallGeometry ..|> Renderable
 
     class ConfigurationGeometry {
         #const Polygon_2 configuration_shape
-        -ConfigurationGeometry(std::initializer_list<Point_2> edge_endpoints)
-        +Segment getEdge(Point_2 point)
-        +Segment getEdge(Segment_2 segment)
+
+        #ConfigurationGeometry(std::initializer_list<Point_2> edge_endpoints)
+        +Segment getEdge(Point_2 intersection_point)
+        +Segment getEdge(Segment_2 intersection_segment)
     }
     <<abstract>> ConfigurationGeometry
     ConfigurationGeometry ..|> Renderable
