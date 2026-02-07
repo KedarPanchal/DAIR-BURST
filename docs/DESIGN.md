@@ -19,47 +19,47 @@ title: BURST Class Diagram
 ---
 classDiagram
     direction TD
-    class RotationPolicy {
+    class RotationModel {
         +const Gmpq max_rotation_error
         +Gmpq operator() (Gmpq rotation)*
         +Gmpq getMinRotationError(Gmpq rotation)*
         +Gmpq getMaxRotationError(Gmpq rotation)*
     }
-    <<abstract>> RotationPolicy
+    <<abstract>> RotationModel
     
-    class PRRotationPolicy 
-    PRRotationPolicy ..|> RotationPolicy
+    class PRRotationModel 
+    PRRotationModel ..|> RotationModel
 
-    class SeededPRRotationPolicy {
+    class SeededPRRotationModel {
         -const unsigned int seed
-        +SeededPRRotationPolicy(unsigned int seed)
+        +SeededPRRotationModel(unsigned int seed)
     }
-    SeededPRRotationPolicy ..|> RotationPolicy
+    SeededPRRotationModel ..|> RotationModel
 
-    class FixedRotationPolicy {
+    class FixedRotationModel {
         -const Gmpq fixed_rotation
-        +FixedRotationPolicy(Gmpq fixed_rotation)
+        +FixedRotationModel(Gmpq fixed_rotation)
     }
-    FixedRotationPolicy ..|> RotationPolicy
+    FixedRotationModel ..|> RotationModel
 
-    class TDoERotationPolicy
-    TDoERotationPolicy ..|> RotationPolicy
+    class TDoERotationModel
+    TDoERotationModel ..|> RotationModel
 
-    class MovementPolicy {
+    class MovementModel {
         +Point_2 operator() (Gmpq angle, ConfigurationGeometry configuration_environment)*
         +Segment_2 generateTrajectory(Point_2 origin, Gmpq angle, ConfigurationGeometry configuration_environment)*
     }
-    <<interface>> MovementPolicy
+    <<interface>> MovementModel
 
-    class LinearMovementPolicy
-    LinearMovementPolicy ..|> MovementPolicy
+    class LinearMovementModel
+    LinearMovementModel ..|> MovementModel
 
     class Renderable {
         +void render()*
     }
     <<interface>> Renderable
 
-    class Robot~RotationPolicy, MovementPolicy~ {
+    class Robot~RotationModel, MovementModel~ {
         -const Gmpq radius
         -Gmpq x_position
         -Gmpq y_position
@@ -73,8 +73,8 @@ classDiagram
         +Polygon_2 generateCCR(Gmpq angle)
     }
     Robot ..|> Renderable
-    MovementPolicy --* Robot
-    RotationPolicy --* Robot
+    MovementModel --* Robot
+    RotationModel --* Robot
 
     class WallGeometry {
         -const Polygon_2 wall_shape
@@ -109,31 +109,31 @@ classDiagram
 
 The `Renderable` interface is implemented by any class that can be visualized.
 
-### RotationPolicy
+### RotationModel
 
-The `RotationPolicy` abstract class defines a functor that has a predefined maximum rotation error.
+The `RotationModel` abstract class defines a functor that has a predefined maximum rotation error.
 When the functor is called, it returns a new angle within the range:
 
 ```
 [rotation - max_rotation_error, rotation + max_rotation_error]
 ```
 
-There are 4 implementations of `RotationPolicy`:
-* `PRRotationPolicy` - a policy that generates a pseudorandom rotation error.
-* `SeededPRRotationPolicy` - a policy that generates a pseudorandom rotation error based on a seed.
-* `FixedRotationPolicy` - a policy that always returns the same rotation error.
-* `TDoERotationPolicy` - a policy that generates rotation errors based on the time signature changes in Dream Theater's "The Dance of Eternity".
+There are 4 implementations of `RotationModel`:
+* `PRRotationModel` - a policy that generates a pseudorandom rotation error.
+* `SeededPRRotationModel` - a policy that generates a pseudorandom rotation error based on a seed.
+* `FixedRotationModel` - a policy that always returns the same rotation error.
+* `TDoERotationModel` - a policy that generates rotation errors based on the time signature changes in Dream Theater's "The Dance of Eternity".
   * This is a fun implementation that I'll add if I have time, but it's not a priority.
 
-### MovementPolicy
+### MovementModel
 
-The `MovementPolicy` interface defines a functor that generates:
+The `MovementModel` interface defines a functor that generates:
 
 * An endpoint for movement given an angle and a robot's configuration space.
 * A trajectory for movement given an origin, angle, and robot's configuration space.
 
-Currently, there's 1 implementation of `MovementPolicy`:
-* `LinearMovementPolicy` - a policy that generates a straight line trajectory.
+Currently, there's 1 implementation of `MovementModel`:
+* `LinearMovementModel` - a policy that generates a straight line trajectory.
 
 > <p style="color: cyan; font-weight: bold;">NOTE:</p>
 > More implementations may be defined that create curved or nonlinear trajectories.
@@ -149,7 +149,7 @@ The robot owns a configuration space (`ConfigurationGeometry`).
 This configuration space is the total space the center of the robot can occupy without overlapping with any wall.
 The robot utilizes this configuration space to perform raycasts and compute what regions it has covered.
 
-The robot also owns a `RotationPolicy` and a `MovementPolicy` that determines how it rotates and moves, respectively.
+The robot also owns a `RotationModel` and a `MovementModel` that determines how it rotates and moves, respectively.
 
 ### WallGeometry
 
