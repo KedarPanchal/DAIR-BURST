@@ -21,8 +21,22 @@ namespace BURST::geometry {
     // This is because ConfigurationGeometry should never be instantiated directly
     namespace {
         class ConfigurationGeometryImpl : public ConfigurationGeometry {
+        private:
+            const Polygon_2 configuration_shape;
+
         public:
-            ConfigurationGeometryImpl(std::initializer_list<Point_2> edge_endpoints);
+            ConfigurationGeometryImpl(std::initializer_list<Point_2> edge_endpoints) : configuration_shape{Polygon_2(edge_endpoints.begin(), edge_endpoints.end())} {}
+
+            std::optional<Segment_2> getEdge(Point_2 intersection_point) const override;
+            std::optional<Segment_2> getEdge(Segment_2 intersection_segment) const noexcept override {
+                for (auto edge_it = this->configuration_shape.edges_begin(); edge_it != this->configuration_shape.edges_end(); edge_it++) {
+                    if (edge_it->has_on(intersection_segment.source()) && edge_it->has_on(intersection_segment.target())) {
+                        return std::optional<Segment_2>{*edge_it};
+                    }
+                }
+                return std::nullopt;
+            }
+
             void render() const override;
         };
     }

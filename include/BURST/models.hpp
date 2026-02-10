@@ -59,7 +59,7 @@ namespace BURST::models {
         const precise_float fixed_rotation_scale;
     
     public:
-        FixedRotationModel(precise_float max_rotation_error, precise_float fixed_rotation_scale);
+        FixedRotationModel(precise_float max_rotation_error, precise_float fixed_rotation_scale = precise_float(1, 1));
 
         precise_float operator() (precise_float rotation) const override;
 
