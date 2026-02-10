@@ -23,7 +23,6 @@ namespace BURST::geometry {
         class ConfigurationGeometryImpl : public ConfigurationGeometry {
         public:
             ConfigurationGeometryImpl(std::initializer_list<Point_2> edge_endpoints);
-
             void render() const override;
         };
     }
@@ -36,8 +35,9 @@ namespace BURST::geometry {
         const Polygon_2 wall_shape;
 
     public:
-        WallGeometry(std::initializer_list<Point_2> edge_endpoints);
-        void generateConfigurationGeometry(Robot& robot) const;
+        WallGeometry(std::initializer_list<Point_2> edge_endpoints): wall_shape{Polygon_2(edge_endpoints.begin(), edge_endpoints.end())} {}
+        void generateConfigurationGeometry(Robot& robot) const {
+        }
 
         void render() const override;
     };

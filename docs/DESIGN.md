@@ -20,19 +20,19 @@ title: BURST Class Diagram
 classDiagram
     direction TD
     class RotationModel {
-        #const Gmpq max_rotation_error
-
-        +RotationModel(Gmpq max_rotation_error)
         +Gmpq operator() (Gmpq rotation)*
-        +Gmpq getMinRotationError(Gmpq rotation)
-        +Gmpq getMaxRotationError(Gmpq rotation)
+        +Gmpq getMinRotationError(Gmpq rotation)*
+        +Gmpq getMaxRotationError(Gmpq rotation)*
     }
-    <<abstract>> RotationModel
+    <<interface>> RotationModel
     
-    class PRRotationModel 
+    class PRRotationModel {
+        -const Gmpq max_rotation_error
+    }
     PRRotationModel ..|> RotationModel
 
     class SeededPRRotationModel {
+        -const Gmpq max_rotation_error
         -const unsigned int seed
 
         +SeededPRRotationModel(Gmpq max_rotation_error, unsigned int seed)
@@ -40,6 +40,7 @@ classDiagram
     SeededPRRotationModel ..|> RotationModel
 
     class FixedRotationModel {
+        -const Gmpq max_rotation_error
         -const Gmpq fixed_rotation_scale
         +FixedRotationModel(Gmpq max_rotation_error, Gmpq fixed_rotation_scale)
     }
@@ -91,18 +92,17 @@ classDiagram
     WallGeometry ..|> Renderable
 
     class ConfigurationGeometry {
-        #const Polygon_2 configuration_shape
-
-        #ConfigurationGeometry(std::initializer_list<Point_2> edge_endpoints)
-        +Segment getEdge(Point_2 intersection_point)
-        +Segment getEdge(Segment_2 intersection_segment)
+        +Segment getEdge(Point_2 intersection_point)*
+        +Segment getEdge(Segment_2 intersection_segment)*
     }
-    <<abstract>> ConfigurationGeometry
+    <<interface>> ConfigurationGeometry
     ConfigurationGeometry ..|> Renderable
     WallGeometry "1" ..> "1" ConfigurationGeometry : creates
     Robot "1" ..> "1" ConfigurationGeometry : owns
 
-    class ConfigurationGeometryImpl
+    class ConfigurationGeometryImpl {
+        #const Polygon_2 configuration_shape
+    }
     ConfigurationGeometryImpl --|> ConfigurationGeometry
 ```
 

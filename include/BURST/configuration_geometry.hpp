@@ -19,17 +19,10 @@ namespace BURST::geometry {
      * ConfigurationGeometry represents the geometry of the robot's configuration space.
      */
     class ConfigurationGeometry : public Renderable {
-    protected:
-        ConfigurationGeometry(std::initializer_list<Point_2> edge_endpoints);
-        const Polygon_2 configuration_shape;
-    
     public:
-        Segment_2 getEdge(Point_2 intersection_point) const;
-        Segment_2 getEdge(Segment_2 intersection_segment) const;
-
+        virtual Segment_2 getEdge(Point_2 intersection_point) const = 0;
+        virtual Segment_2 getEdge(Segment_2 intersection_segment) const = 0;
         virtual void render() const override = 0;
-
-        friend class WallGeometry;
     };
     
 }
