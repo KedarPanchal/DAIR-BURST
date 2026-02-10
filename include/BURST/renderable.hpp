@@ -1,6 +1,10 @@
 #ifndef RENDERABLE_HPP
 #define RENDERABLE_HPP
 
+#include <CGAL/Graphics_scene.h>
+
+using scene = CGAL::Graphics_scene;
+
 namespace BURST {
     
     /*
@@ -8,7 +12,7 @@ namespace BURST {
      */
     class Renderable {
     public:
-        virtual void render() const = 0;
+        virtual void render(scene& scene) const = 0;
     };
 }
 

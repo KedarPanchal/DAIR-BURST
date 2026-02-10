@@ -56,7 +56,7 @@ classDiagram
     LinearMovementModel ..|> MovementModel
 
     class Renderable {
-        +void render()*
+        +void render(Graphics_scene& scene)*
     }
     <<interface>> Renderable
 
