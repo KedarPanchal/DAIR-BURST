@@ -6,6 +6,7 @@
 #include <variant>
 #include <vector>
 
+#include <CGAL/Polygon_2_algorithms.h>
 #include <CGAL/intersections.h>
 #include <CGAL/draw_polygon_2.h>
 
@@ -80,13 +81,16 @@ namespace BURST::geometry {
     public:
         template <typename Iter>
         static std::optional<WallGeometry> create(Iter begin, Iter end) noexcept {
-            Polygon_2 wall_polygon{begin, end};
-            if (!wall_polygon.is_clockwise_oriented() && !wall_polygon.is_counterclockwise_oriented()) {
-                // The polygon is degenerate, so we can't create a wall geometry
-                // Panic and cry and return nullopt
-                return std::nullopt;
-            }
+            // Can't make a polygon with 2 or fewer points
+            if (std::distance(begin, end) <= 2) return std::nullopt;
 
+            // Check for self-intersection and overall simplicity of the polygon
+            if (!CGAL::is_simple_2(begin, end)) return std::nullopt;
+
+            // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
+            if (CGAL::orientation_2(begin, end) == CGAL::COLLINEAR) return std::nullopt;
+
+            Polygon_2 wall_polygon{begin, end};
             return std::optional<WallGeometry>{WallGeometry{std::move(wall_polygon)}};
         }
         static std::optional<WallGeometry> create(std::initializer_list<Point_2> points) noexcept {
@@ -149,14 +153,14 @@ namespace BURST::geometry {
                     return std::nullopt;
                 }
             }
-            
+            // Check if the vertices are more than 2, simple, and not collinear
+            // Return nullopt if these conditions fail
+            if (configuration_vertices.size() <= 2) return std::nullopt;
+            if (!CGAL::is_simple_2(configuration_vertices.begin(), configuration_vertices.end())) return std::nullopt;
+            if (CGAL::orientation_2(configuration_vertices.begin(), configuration_vertices.end()) == CGAL::COLLINEAR) return std::nullopt;
+
             // Generate a configuration geometry from the vertices and set it as the robot's configuration environment
             Polygon_2 config_polygon{configuration_vertices.begin(), configuration_vertices.end()};
-            if (!config_polygon.is_clockwise_oriented() && !config_polygon.is_counterclockwise_oriented()) {
-                // The configuration polygon is degenerate, so we can't create a configuration geometry
-                // Panic and cry and return nullopt
-                return std::nullopt;
-            }
             std::unique_ptr<ConfigurationGeometry> config_geometry = WallGeometry::ConfigurationGeometryImpl::create(configuration_vertices.begin(), configuration_vertices.end());
             robot.setConfigurationEnvironment(std::move(config_geometry));
 
