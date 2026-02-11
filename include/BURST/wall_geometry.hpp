@@ -2,6 +2,7 @@
 #define WALL_GEOMETRY_HPP
 
 #include <optional>
+#include <initializer_list>
 #include <variant>
 #include <vector>
 
@@ -88,6 +89,10 @@ namespace BURST::geometry {
 
             return std::optional<WallGeometry>{WallGeometry{std::move(wall_polygon)}};
         }
+        static std::optional<WallGeometry> create(std::initializer_list<Point_2> points) noexcept {
+            return WallGeometry::create(points.begin(), points.end());
+        }
+
         std::optional<std::monostate> generateConfigurationGeometry(Robot& robot) const noexcept {
             /*
              * Algorithm -- this may not work with holed polygons (figure this out later)

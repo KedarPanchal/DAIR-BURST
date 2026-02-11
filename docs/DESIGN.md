@@ -89,6 +89,7 @@ classDiagram
         -WallGeometry(const Polygon_2& wall_shape)
         -WallGeometry(Polygon_2&& wall_shape)
         +WallGeometry create~Iter~(Iter begin, Iter end)
+        +WallGeometry create(std::initializer_list<Point_2> points)
         +void generateConfigurationGeometry(Robot& robot)
     }
     WallGeometry ..|> Renderable
