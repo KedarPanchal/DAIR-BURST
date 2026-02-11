@@ -1,0 +1,29 @@
+#ifndef TYPES_HPP
+#define TYPES_HPP
+
+#include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
+#include <CGAL/Polygon_2.h>
+#include <CGAL/Vector_2.h>
+#include <CGAL/Aff_transformation_2.h>
+#include <CGAL/Graphics_scene.h>
+
+// Kernel
+using Kernel = CGAL::Exact_predicates_exact_constructions_kernel_with_sqrt;
+
+// Scalar/numeric types
+using fscalar = Kernel::FT;
+using rscalar = Kernel::RT;
+
+// Geometric types
+using Point_2 = Kernel::Point_2;
+using Segment_2 = Kernel::Segment_2;
+using Polygon_2 = CGAL::Polygon_2<Kernel>;
+using Vector_2 = CGAL::Vector_2<Kernel>;
+
+// Transformation types
+using Transformation = CGAL::Aff_transformation_2<Kernel>;
+
+// Rendering types
+using scene = CGAL::Graphics_scene;
+
+#endif

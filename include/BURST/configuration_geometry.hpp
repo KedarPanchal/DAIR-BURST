@@ -7,13 +7,8 @@
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Graphics_scene.h>
 
+#include "types.hpp"
 #include "renderable.hpp"
-
-using Kernel = CGAL::Exact_predicates_exact_constructions_kernel_with_sqrt;
-using Point_2 = Kernel::Point_2;
-using Segment_2 = Kernel::Segment_2;
-using Polygon_2 = CGAL::Polygon_2<Kernel>;
-using scene = CGAL::Graphics_scene;
 
 namespace BURST::geometry {
 

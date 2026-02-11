@@ -20,35 +20,35 @@ title: BURST Class Diagram
 classDiagram
     direction TD
     class RotationModel {
-        +FT operator() (FT rotation)*
-        +FT getMinRotationError(FT rotation)*
-        +FT getMaxRotationError(FT rotation)*
+        +fscalar operator() (fscalar rotation)*
+        +fscalar getMinRotationError(fscalar rotation)*
+        +fscalar getMaxRotationError(fscalar rotation)*
     }
     <<interface>> RotationModel
     
     class PRRotationModel {
-        -const FT max_rotation_error
+        -const fscalar max_rotation_error
     }
     PRRotationModel ..|> RotationModel
 
     class SeededPRRotationModel {
-        -const FT max_rotation_error
+        -const fscalar max_rotation_error
         -const unsigned int seed
 
-        +SeededPRRotationModel(FT max_rotation_error, unsigned int seed)
+        +SeededPRRotationModel(fscalar max_rotation_error, unsigned int seed)
     }
     SeededPRRotationModel ..|> RotationModel
 
     class FixedRotationModel {
-        -const FT max_rotation_error
-        -const FT fixed_rotation_scale
-        +FixedRotationModel(FT max_rotation_error, FT fixed_rotation_scale)
+        -const fscalar max_rotation_error
+        -const fscalar fixed_rotation_scale
+        +FixedRotationModel(fscalar max_rotation_error, fscalar fixed_rotation_scale)
     }
     FixedRotationModel ..|> RotationModel
 
     class MovementModel {
-        +Point_2 operator() (FT angle, ConfigurationGeometry configuration_environment)*
-        +Segment_2 generateTrajectory(Point_2 origin, FT angle, ConfigurationGeometry configuration_environment)*
+        +Point_2 operator() (fscalar angle, ConfigurationGeometry configuration_environment)*
+        +Segment_2 generateTrajectory(Point_2 origin, fscalar angle, ConfigurationGeometry configuration_environment)*
     }
     <<interface>> MovementModel
 
@@ -61,23 +61,23 @@ classDiagram
     <<interface>> Renderable
 
     class Robot {
-        -const FT radius
-        -FT x_position
-        -FT y_position
+        -const fscalar radius
+        -fscalar x_position
+        -fscalar y_position
         -ConfigurationGeometry* configuration_environment
         -RotationModel* rotation_model
         -MovementModel* movement_model
 
-        +Robot(FT robot_radius, FT max_rotation_error)
-        +Robot(FT robot_radius, FT max_rotation_error, unsigned int rotation_seed)
-        +Robot(FT robot_radius, FT max_rotation_error, FT fixed_rotation_scale)
-        +Robot(FT robot_radius, FT max_rotation_error, RotationModel* rotation_model, MovementModel* movement_model)
+        +Robot(fscalar robot_radius, fscalar max_rotation_error)
+        +Robot(fscalar robot_radius, fscalar max_rotation_error, unsigned int rotation_seed)
+        +Robot(fscalar robot_radius, fscalar max_rotation_error, fscalar fixed_rotation_scale)
+        +Robot(fscalar robot_radius, fscalar max_rotation_error, RotationModel* rotation_model, MovementModel* movement_model)
         +void setConfigurationEnvironment(ConfigurationGeometry* configuration_environment)
-        +FT getRadius()
-        +Point_2 shootRay(FT angle)
-        +Polygon_2 generateStadium(FT angle)
-        +Polygon_2 generateCCR(FT angle)
-        +void move(FT angle)
+        +fscalar getRadius()
+        +Point_2 shootRay(fscalar angle)
+        +Polygon_2 generateStadium(fscalar angle)
+        +Polygon_2 generateCCR(fscalar angle)
+        +void move(fscalar angle)
     }
     Robot ..|> Renderable
     MovementModel --* Robot

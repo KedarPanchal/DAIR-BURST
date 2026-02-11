@@ -1,9 +1,7 @@
 #ifndef RENDERABLE_HPP
 #define RENDERABLE_HPP
 
-#include <CGAL/Graphics_scene.h>
-
-using scene = CGAL::Graphics_scene;
+#include "types.hpp"
 
 namespace BURST {
     
