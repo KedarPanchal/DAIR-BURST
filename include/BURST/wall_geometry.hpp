@@ -54,7 +54,7 @@ namespace BURST::geometry {
             }
 
         public:
-            std::optional<Segment_2> getEdge(Point_2 intersection_point) const override {
+            std::optional<Segment_2> getEdge(Point_2 intersection_point) const noexcept override {
                 for (auto edge_it = this->configuration_shape.edges_begin(); edge_it != this->configuration_shape.edges_end(); edge_it++) {
                     // TODO: For now, the first edge containing the point is returned
                     // This doesn't handle corners
@@ -77,7 +77,7 @@ namespace BURST::geometry {
                 return std::nullopt;
             }
 
-            void render(scene& scene) const override {
+            void render(scene& scene) const noexcept override {
                 CGAL::add_to_graphics_scene(this->configuration_shape, scene); 
             }
 
@@ -100,7 +100,7 @@ namespace BURST::geometry {
 
             return std::optional<WallGeometry>{WallGeometry{std::move(wall_polygon)}};
         }
-        std::optional<std::monostate> generateConfigurationGeometry(Robot& robot) const {
+        std::optional<std::monostate> generateConfigurationGeometry(Robot& robot) const noexcept {
             /*
              * Algorithm -- this may not work with holed polygons (figure this out later)
              * 1. For each edge of the wall_shape polygon, identify the orthogonal vector pointing towards the interior of the polygon
@@ -171,7 +171,7 @@ namespace BURST::geometry {
             return std::optional<std::monostate>{std::monostate{}}; 
         }
 
-        void render(scene& scene) const override {
+        void render(scene& scene) const noexcept override {
             CGAL::add_to_graphics_scene(this->wall_shape, scene);
         }
 
