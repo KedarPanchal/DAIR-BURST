@@ -9,7 +9,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 add_executable(BURST_TESTS
-    tests/test_wallgeometry.cpp
+    test_wallgeometry.cpp
 )
 
 target_link_libraries(BURST_TESTS
