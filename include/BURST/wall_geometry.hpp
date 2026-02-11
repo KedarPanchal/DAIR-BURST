@@ -29,6 +29,7 @@ namespace BURST::geometry {
     
     // This class is intended to be used internally and not as an API
     // This is because ConfigurationGeometry should never be instantiated directly
+    // TODO: Change this to a nested class inside WallGeometry
     namespace {
         class ConfigurationGeometryImpl : public ConfigurationGeometry {
         private:
@@ -72,13 +73,22 @@ namespace BURST::geometry {
      */
     class WallGeometry : public Renderable {
     private:
-        const Polygon_2 wall_shape;
+        Polygon_2 wall_shape;
+        WallGeometry(const Polygon_2& shape) noexcept : wall_shape{shape} {}
+        WallGeometry(Polygon_2&& shape) noexcept : wall_shape{std::move(shape)} {}
 
     public:
-        // In the future, if logging is added, add a warning if the polygon is not simple or is degenerate
         template <typename Iter>
-        WallGeometry(Iter begin, Iter end): wall_shape{Polygon_2{begin, end}} {}
+        static std::optional<WallGeometry> create(Iter begin, Iter end) noexcept {
+            Polygon_2 wall_polygon{begin, end};
+            if (!wall_polygon.is_clockwise_oriented() && !wall_polygon.is_counterclockwise_oriented()) {
+                // The polygon is degenerate, so we can't create a wall geometry
+                // Panic and cry and return nullopt
+                return std::nullopt;
+            }
 
+            return std::optional<WallGeometry>{WallGeometry{std::move(wall_polygon)}};
+        }
         std::optional<std::monostate> generateConfigurationGeometry(Robot& robot) const {
             /*
              * Algorithm -- this may not work with holed polygons (figure this out later)
@@ -92,7 +102,7 @@ namespace BURST::geometry {
              * 3. Identify points of intersection and construct a new polygon using these points
              */
             
-            if (!this->wall_shape.is_clockwise_oriented() || !this->wall_shape.is_counterclockwise_oriented()) {
+            if (!this->wall_shape.is_clockwise_oriented() && !this->wall_shape.is_counterclockwise_oriented()) {
                 // The polygon is degenerate, so we can't generate a configuration geometry
                 // Panic and cry and return nullopt
                 return std::nullopt;
