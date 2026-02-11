@@ -94,6 +94,7 @@ namespace BURST::geometry {
             
             if (!this->wall_shape.is_clockwise_oriented() || !this->wall_shape.is_counterclockwise_oriented()) {
                 // The polygon is degenerate, so we can't generate a configuration geometry
+                // Panic and cry and return nullopt
                 return std::nullopt;
             }
             

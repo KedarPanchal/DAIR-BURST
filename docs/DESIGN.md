@@ -131,8 +131,6 @@ There are 4 implementations of `RotationModel`:
 * `PRRotationModel` - a policy that generates a pseudorandom rotation error.
 * `SeededPRRotationModel` - a policy that generates a pseudorandom rotation error based on a seed.
 * `FixedRotationModel` - a policy that always returns the same rotation error.
-* `TDoERotationModel` - a policy that generates rotation errors based on the time signature changes in Dream Theater's "The Dance of Eternity".
-  * This is a fun implementation that I'll add if I have time, but it's not a priority.
 
 ### MovementModel
 
