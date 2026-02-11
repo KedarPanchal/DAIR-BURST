@@ -17,9 +17,19 @@ namespace BURST::geometry {
      */
     class ConfigurationGeometry : public Renderable {
     public:
+        ConfigurationGeometry() = default;
+        virtual ~ConfigurationGeometry() = default;
+
+        ConfigurationGeometry(const ConfigurationGeometry&) = delete;
+        ConfigurationGeometry& operator= (const ConfigurationGeometry&) = delete;
+
+        ConfigurationGeometry(ConfigurationGeometry&&) = default;
+        ConfigurationGeometry& operator= (ConfigurationGeometry&&) = default;
+
         virtual std::optional<Segment_2> getEdge(Point_2 intersection_point) const = 0;
         virtual std::optional<Segment_2> getEdge(Segment_2 intersection_segment) const noexcept = 0;
         virtual void render(scene& scene) const override = 0;
+
     };
     
 }
