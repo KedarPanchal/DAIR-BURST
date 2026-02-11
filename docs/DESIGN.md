@@ -84,9 +84,11 @@ classDiagram
     RotationModel --* Robot
 
     class WallGeometry {
-        -const Polygon_2 wall_shape
-
-        +WallGeometry~Iter~(Iter begin, Iter end)
+        -Polygon_2 wall_shape
+        
+        -WallGeometry(const Polygon_2& wall_shape)
+        -WallGeometry(Polygon_2&& wall_shape)
+        +WallGeometry create~Iter~(Iter begin, Iter end)
         +void generateConfigurationGeometry(Robot& robot)
     }
     WallGeometry ..|> Renderable
@@ -101,8 +103,11 @@ classDiagram
     Robot "1" ..> "1" ConfigurationGeometry : owns
 
     class ConfigurationGeometryImpl {
-        #const Polygon_2 configuration_shape
-        -ConfigurationGeometryImpl~Iter~(Iter begin, Iter end)
+        -Polygon_2 configuration_shape
+
+        -ConfigurationGeometryImpl(const Polygon_2& configuration_shape)
+        -ConfigurationGeometryImpl(Polygon_2&& configuration_shape)
+        -ConfigurationGeometryImpl* create~Iter~(Iter begin, Iter end)
     }
     ConfigurationGeometryImpl --|> ConfigurationGeometry
 ```

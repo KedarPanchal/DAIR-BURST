@@ -27,18 +27,33 @@ using scene = CGAL::Graphics_scene;
 
 namespace BURST::geometry {
     
-    // This class is intended to be used internally and not as an API
-    // This is because ConfigurationGeometry should never be instantiated directly
-    // TODO: Change this to a nested class inside WallGeometry
-    namespace {
+    /*
+     * WallGeometry represents the geometry of the walls in the environment. It is defined by a polygon.
+     */
+    class WallGeometry : public Renderable {
+    private:
+        // This class is intended to be used internally and not as an API
+        // This is because ConfigurationGeometry should never be instantiated directly
+        // Thus it is a private nested class of WallGeometry
         class ConfigurationGeometryImpl : public ConfigurationGeometry {
         private:
-            const Polygon_2 configuration_shape;
+            Polygon_2 configuration_shape;
+
+            ConfigurationGeometryImpl(const Polygon_2& shape) noexcept : configuration_shape{shape} {}
+            ConfigurationGeometryImpl(Polygon_2&& shape) noexcept : configuration_shape{std::move(shape)} {}
+
+            template <typename Iter>
+            static std::unique_ptr<ConfigurationGeometryImpl> create(Iter begin, Iter end) noexcept {
+                Polygon_2 configuration_polygon{begin, end};
+                if (!configuration_polygon.is_clockwise_oriented() && !configuration_polygon.is_counterclockwise_oriented()) {
+                    // The polygon is degenerate, so we can't create a configuration geometry
+                    // Panic and cry and return nullptr 
+                    return nullptr;
+                }
+                return std::unique_ptr<ConfigurationGeometryImpl>{new ConfigurationGeometryImpl{std::move(configuration_polygon)}};
+            }
 
         public:
-            template <typename Iter>
-            ConfigurationGeometryImpl(Iter begin, Iter end) : configuration_shape{Polygon_2{begin, end}} {}
-
             std::optional<Segment_2> getEdge(Point_2 intersection_point) const override {
                 for (auto edge_it = this->configuration_shape.edges_begin(); edge_it != this->configuration_shape.edges_end(); edge_it++) {
                     // TODO: For now, the first edge containing the point is returned
@@ -65,14 +80,10 @@ namespace BURST::geometry {
             void render(scene& scene) const override {
                 CGAL::add_to_graphics_scene(this->configuration_shape, scene); 
             }
-        };
-    }
 
-    /*
-     * WallGeometry represents the geometry of the walls in the environment. It is defined by a polygon.
-     */
-    class WallGeometry : public Renderable {
-    private:
+            friend class WallGeometry; // For access to private constructor
+        };
+
         Polygon_2 wall_shape;
         WallGeometry(const Polygon_2& shape) noexcept : wall_shape{shape} {}
         WallGeometry(Polygon_2&& shape) noexcept : wall_shape{std::move(shape)} {}
@@ -147,7 +158,13 @@ namespace BURST::geometry {
             }
             
             // Generate a configuration geometry from the vertices and set it as the robot's configuration environment
-            std::unique_ptr<ConfigurationGeometry> config_geometry = std::make_unique<ConfigurationGeometryImpl>(configuration_vertices.begin(), configuration_vertices.end());
+            Polygon_2 config_polygon{configuration_vertices.begin(), configuration_vertices.end()};
+            if (!config_polygon.is_clockwise_oriented() && !config_polygon.is_counterclockwise_oriented()) {
+                // The configuration polygon is degenerate, so we can't create a configuration geometry
+                // Panic and cry and return nullopt
+                return std::nullopt;
+            }
+            std::unique_ptr<ConfigurationGeometry> config_geometry = WallGeometry::ConfigurationGeometryImpl::create(configuration_vertices.begin(), configuration_vertices.end());
             robot.setConfigurationEnvironment(std::move(config_geometry));
 
             // monostate is used as a replacement for void while still keeping the return type as an optional to indicate failure
@@ -157,6 +174,8 @@ namespace BURST::geometry {
         void render(scene& scene) const override {
             CGAL::add_to_graphics_scene(this->wall_shape, scene);
         }
+
+        friend class std::unique_ptr<WallGeometry>;
     };
 
 }
