@@ -2,12 +2,12 @@
 #define MODELS_HPP
 
 #include <CGAL/Gmpq.h>
-#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
 
 #include "configuration_geometry.hpp"
 
-using precise_float = CGAL::Gmpq;
-using Kernel = CGAL::Exact_predicates_exact_constructions_kernel;
+using Kernel = CGAL::Exact_predicates_exact_constructions_kernel_with_sqrt;
+using precise_float = Kernel::FT;
 using Point_2 = Kernel::Point_2;
 using Segment_2 = Kernel::Segment_2;
 
@@ -59,7 +59,7 @@ namespace BURST::models {
         const precise_float fixed_rotation_scale;
     
     public:
-        FixedRotationModel(precise_float max_rotation_error, precise_float fixed_rotation_scale = precise_float(1, 1));
+        FixedRotationModel(precise_float max_rotation_error, precise_float fixed_rotation_scale = 1);
 
         precise_float operator() (precise_float rotation) const override;
 

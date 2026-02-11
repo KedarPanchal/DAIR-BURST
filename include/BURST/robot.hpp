@@ -2,7 +2,7 @@
 #define ROBOT_HPP
 
 #include <CGAL/Gmpq.h>
-#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Graphics_scene.h>
 
@@ -10,8 +10,8 @@
 #include "configuration_geometry.hpp"
 #include "models.hpp"
 
-using precise_float = CGAL::Gmpq;
-using Kernel = CGAL::Exact_predicates_exact_constructions_kernel;
+using Kernel = CGAL::Exact_predicates_exact_constructions_kernel_with_sqrt;
+using precise_float = Kernel::FT;
 using Point_2 = Kernel::Point_2;
 using Segment_2 = Kernel::Segment_2;
 using Polygon_2 = CGAL::Polygon_2<Kernel>;
