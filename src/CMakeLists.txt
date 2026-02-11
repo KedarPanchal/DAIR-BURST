@@ -7,7 +7,7 @@ find_package(CGAL REQUIRED COMPONENTS Qt6)
 add_library(BURST INTERFACE)
 
 target_include_directories(BURST INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(BURST INTERFACE 

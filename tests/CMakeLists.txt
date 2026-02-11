@@ -13,6 +13,6 @@ add_executable(BURST_TESTS
 )
 
 target_link_libraries(BURST_TESTS
-    BURST
+    PRIVATE BURST
     GTest::gtest_main
 )
