@@ -75,8 +75,64 @@ namespace BURST::geometry {
         };
 
         Polygon_2 wall_shape;
+
         WallGeometry(const Polygon_2& shape) noexcept : wall_shape{shape} {}
         WallGeometry(Polygon_2&& shape) noexcept : wall_shape{std::move(shape)} {}
+        
+        // Private method since the public API depends on the robot
+        // Abstracting this away to a private method allows using FRIEND_TEST to test this method without exposing it in the public API and having a dependency on the Robot class in the test
+        std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const fscalar& robot_radius) const noexcept {
+            /*
+             * Algorithm -- this may not work with holed polygons (figure this out later)
+             * 1. For each edge of the wall_shape polygon, identify the orthogonal vector pointing towards the interior of the polygon
+             *   a. The interior of the polygon can be determined by its winding order.
+             *   b. A counterclockwise winding order means a relative counterclockwise rotation of the edge vector
+             *   c. A clockwise winding order means a relative clockwise rotation of the edge vector
+             *   d. Making these rotations 90 degrees will give the orthogonal vector
+             * 2. Translate the edge by the robot's radius in the direction of the normalized orthogonal vector
+             *   a. This can be achieved by multiplying the orthogonal vector by the robot's radius
+             * 3. Identify points of intersection and construct a new polygon using these points
+             */
+            std::vector<Segment_2> translated_edges; // Hold the translated edges of the configuration geometry
+            // Find the transformed segments for each edge of the wall polygon
+            for (auto edge_it = this->wall_shape.edges_begin(); edge_it != this->wall_shape.edges_end(); edge_it++) {
+                // Construct a perpendicular vector based on the shape's orientation (winding order)
+                Vector_2 orthogonal = edge_it->to_vector().perpendicular(this->wall_shape.orientation()); 
+                // Normalize the orthogonal vector
+                orthogonal /= CGAL::sqrt(orthogonal.squared_length()); 
+                // Scale the orthogonal vector by the robot's radius
+                orthogonal = orthogonal * robot_radius;
+                // Build a transformation from the orthogonal vector
+                Transformation translate(CGAL::TRANSLATION, orthogonal); 
+                // Shift the edge by the transformation
+                translated_edges.push_back(edge_it->transform(translate));
+            }
+
+            // For each pair of edges, identify the intersection points
+            // For this implementation, use a pseudo-circular queue-style implementation to wrap around the edges
+            std::vector<Point_2> configuration_vertices; // Hold the vertices of the configuration geometry
+            for (size_t i = 0; i < translated_edges.size(); i++) {
+                Segment_2& current_edge = translated_edges.at(i);
+                Segment_2& next_edge = translated_edges.at((i + 1) % translated_edges.size());
+
+                auto maybe_intersection = CGAL::intersection(current_edge, next_edge);
+                // No intersection, this shouldn't happen otherwise the polygon is disconnected
+                if (!maybe_intersection) return nullptr;
+                // The intersection can be a point or a segment in CGAL, but it should always be a point in this case
+                if (const Point_2* intersection = std::get_if<Point_2>(&*maybe_intersection)) configuration_vertices.push_back(*intersection);
+                // The intersection is not a point, this shouldn't happen otherwise the polygon is degenerate
+                else return nullptr;
+            }
+            // Check if the vertices are more than 2, simple, and not collinear
+            // Return nullopt if these conditions fail
+            if (configuration_vertices.size() <= 2) return nullptr;
+            if (!CGAL::is_simple_2(configuration_vertices.begin(), configuration_vertices.end())) return nullptr;
+            if (CGAL::orientation_2(configuration_vertices.begin(), configuration_vertices.end()) == CGAL::COLLINEAR) return nullptr;
+
+            // Generate a configuration geometry from the vertices and set it as the robot's configuration environment
+            Polygon_2 config_polygon{configuration_vertices.begin(), configuration_vertices.end()};
+            return WallGeometry::ConfigurationGeometryImpl::create(configuration_vertices.begin(), configuration_vertices.end());
+        }
 
     public:
         template <typename Iter>
@@ -98,63 +154,8 @@ namespace BURST::geometry {
         }
 
         std::optional<std::monostate> generateConfigurationGeometry(Robot& robot) const noexcept {
-            /*
-             * Algorithm -- this may not work with holed polygons (figure this out later)
-             * 1. For each edge of the wall_shape polygon, identify the orthogonal vector pointing towards the interior of the polygon
-             *   a. The interior of the polygon can be determined by its winding order.
-             *   b. A counterclockwise winding order means a relative counterclockwise rotation of the edge vector
-             *   c. A clockwise winding order means a relative clockwise rotation of the edge vector
-             *   d. Making these rotations 90 degrees will give the orthogonal vector
-             * 2. Translate the edge by the robot's radius in the direction of the normalized orthogonal vector
-             *   a. This can be achieved by multiplying the orthogonal vector by the robot's radius
-             * 3. Identify points of intersection and construct a new polygon using these points
-             */
-            std::vector<Segment_2> translated_edges; // Hold the translated edges of the configuration geometry
-            // Find the transformed segments for each edge of the wall polygon
-            for (auto edge_it = this->wall_shape.edges_begin(); edge_it != this->wall_shape.edges_end(); edge_it++) {
-                // Construct a perpendicular vector based on the shape's orientation (winding order)
-                Vector_2 orthogonal = edge_it->to_vector().perpendicular(this->wall_shape.orientation()); 
-                // Normalize the orthogonal vector
-                orthogonal /= CGAL::sqrt(orthogonal.squared_length()); 
-                // Scale the orthogonal vector by the robot's radius
-                orthogonal = orthogonal * robot.getRadius(); 
-                // Build a transformation from the orthogonal vector
-                Transformation translate(CGAL::TRANSLATION, orthogonal); 
-                // Shift the edge by the transformation
-                translated_edges.push_back(edge_it->transform(translate));
-            }
-
-            // For each pair of edges, identify the intersection points
-            // For this implementation, use a pseudo-circular queue-style implementation to wrap around the edges
-            std::vector<Point_2> configuration_vertices; // Hold the vertices of the configuration geometry
-            for (size_t i = 0; i < translated_edges.size(); i++) {
-                Segment_2& current_edge = translated_edges.at(i);
-                Segment_2& next_edge = translated_edges.at((i + 1) % translated_edges.size());
-
-                auto maybe_intersection = CGAL::intersection(current_edge, next_edge);
-                if (!maybe_intersection) {
-                    // No intersection, this shouldn't happen otherwise the polygon is disconnected
-                    // Panic and cry and return nullopt
-                    return std::nullopt;
-                }
-                // The intersection can be a point or a segment in CGAL, but it should always be a point in this case
-                if (const Point_2* intersection = std::get_if<Point_2>(&*maybe_intersection)) {
-                    configuration_vertices.push_back(*intersection);
-                } else {
-                    // The intersection is not a point, this shouldn't happen otherwise the polygon is degenerate
-                    // Panic and cry and return nullopt
-                    return std::nullopt;
-                }
-            }
-            // Check if the vertices are more than 2, simple, and not collinear
-            // Return nullopt if these conditions fail
-            if (configuration_vertices.size() <= 2) return std::nullopt;
-            if (!CGAL::is_simple_2(configuration_vertices.begin(), configuration_vertices.end())) return std::nullopt;
-            if (CGAL::orientation_2(configuration_vertices.begin(), configuration_vertices.end()) == CGAL::COLLINEAR) return std::nullopt;
-
-            // Generate a configuration geometry from the vertices and set it as the robot's configuration environment
-            Polygon_2 config_polygon{configuration_vertices.begin(), configuration_vertices.end()};
-            std::unique_ptr<ConfigurationGeometry> config_geometry = WallGeometry::ConfigurationGeometryImpl::create(configuration_vertices.begin(), configuration_vertices.end());
+            auto config_geometry = this->constructConfigurationGeometry(robot.getRadius());
+            if (!config_geometry) return std::nullopt; // Degenerate configuration geometry, can't set it for the robot
             robot.setConfigurationEnvironment(std::move(config_geometry));
 
             // monostate is used as a replacement for void while still keeping the return type as an optional to indicate failure
