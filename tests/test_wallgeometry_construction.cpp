@@ -16,7 +16,7 @@ TEST(WallGeometryTest, NonDegenerateRegularPolygon) {
 
     // Expect the WallGeometry to be non-degenerate
     // i.e., it is not nullopt
-    EXPECT_TRUE(wall_geometry.has_value());
+    EXPECT_TRUE(wall_geometry.has_value()) << "Expected non-degenerate WallGeometry for a regular polygon, but got nullopt.";
 }
 
 // Test for intended non-degeneracy with a simple polygon
@@ -32,7 +32,7 @@ TEST(WallGeometryTest, NonDegenerateSimplePolygon) {
 
     // Expect the WallGeometry to be non-degenerate
     // i.e., it is not nullopt
-    EXPECT_TRUE(wall_geometry.has_value());
+    EXPECT_TRUE(wall_geometry.has_value()) << "Expected non-degenerate WallGeometry for a simple polygon, but got nullopt.";
 }
 
 // Test for intended degeneracy with a straight line
@@ -47,7 +47,7 @@ TEST(WallGeometryTest, DegenerateStraightLine) {
 
     // Expect the WallGeometry to be degenerate
     // i.e., it is nullopt
-    EXPECT_FALSE(wall_geometry.has_value());
+    EXPECT_FALSE(wall_geometry.has_value()) << "Expected degenerate WallGeometry for a straight line, but got a valid geometry.";
 }
 
 // Test for intended degeneracy with a single point
@@ -60,7 +60,7 @@ TEST(WallGeometryTest, DegenerateSinglePoint) {
 
     // Expect the WallGeometry to be degenerate
     // i.e., it is nullopt
-    EXPECT_FALSE(wall_geometry.has_value());
+    EXPECT_FALSE(wall_geometry.has_value()) << "Expected degenerate WallGeometry for a single point, but got a valid geometry.";
 }
 
 // Test for intended degeneracy with a repeated point
@@ -76,7 +76,7 @@ TEST(WallGeometryTest, DegenerateRepeatedPoint) {
 
     // Expect the WallGeometry to be degenerate
     // i.e., it is nullopt
-    EXPECT_FALSE(wall_geometry.has_value());
+    EXPECT_FALSE(wall_geometry.has_value()) << "Expected degenerate WallGeometry for a repeated point, but got a valid geometry.";
 }
 
 // Test for intended degeneracy with a self-intersecting polygon
@@ -94,5 +94,5 @@ TEST(WallGeometryTest, DegenerateSelfIntersectingPolygon) {
 
     // Expect the WallGeometry to be degenerate
     // i.e., it is nullopt
-    EXPECT_FALSE(wall_geometry.has_value());
+    EXPECT_FALSE(wall_geometry.has_value()) << "Expected degenerate WallGeometry for a self-intersecting polygon, but got a valid geometry.";
 }

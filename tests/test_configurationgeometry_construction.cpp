@@ -29,7 +29,7 @@ TEST_F(ConfigurationGeometryConstructionTest, NonDegenerateRegularPolygon) {
 
     // Expect the configuration geometry to be non-degenerate
     // i.e., it is not nullopt
-    EXPECT_TRUE(config_geometry.has_value());
+    EXPECT_TRUE(config_geometry.has_value()) << "Expected non-degenerate configuration geometry for a regular polygon, but got nullopt.";
 }
 
 // Test for intended non-degeneracy of configuration geometry with a simple polygon
@@ -48,7 +48,7 @@ TEST_F(ConfigurationGeometryConstructionTest, NonDegenerateSimplePolygon) {
 
     // Expect the configuration geometry to be non-degenerate
     // i.e., it is not nullopt
-    EXPECT_TRUE(config_geometry.has_value());
+    EXPECT_TRUE(config_geometry.has_value()) << "Expected non-degenerate configuration geometry for a simple polygon, but got nullopt.";
 }
 
 // Test for intended degeneracy of configuration geometry with a wall geometry smaller than the robot's radius
@@ -66,5 +66,5 @@ TEST_F(ConfigurationGeometryConstructionTest, DegenerateSmallWallGeometry) {
 
     // Expect the configuration geometry to be degenerate
     // i.e., it is nullopt
-    EXPECT_FALSE(config_geometry.has_value());
+    EXPECT_FALSE(config_geometry.has_value()) << "Expected degenerate configuration geometry for a wall geometry smaller than the robot's radius, but got a valid geometry.";
 }
