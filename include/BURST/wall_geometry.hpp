@@ -78,9 +78,10 @@ namespace BURST::geometry {
 
         WallGeometry(const Polygon_2& shape) noexcept : wall_shape{shape} {}
         WallGeometry(Polygon_2&& shape) noexcept : wall_shape{std::move(shape)} {}
-        
-        // Private method since the public API depends on the robot
-        // Abstracting this away to a private method allows using FRIEND_TEST to test this method without exposing it in the public API and having a dependency on the Robot class in the test
+
+    protected: 
+        // Protected method since the public API depends on the robot
+        // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
         std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const fscalar& robot_radius) const noexcept {
             /*
              * Algorithm -- this may not work with holed polygons (figure this out later)

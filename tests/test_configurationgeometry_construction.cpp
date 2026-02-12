@@ -5,36 +5,43 @@
 
 // Utility includes for tests
 #include <optional>
+#include <initializer_list>
 
-// Create a test fixture for a common robot setup
-class ConfigurationGeometryConstructionTest : public ::testing::Test {
-protected:
-    fscalar robot_radius = 0.5;
-    fscalar max_rotation_error = 0.1;
-    BURST::Robot robot{robot_radius, max_rotation_error};
+// WallGeometry subclass to forward the constructConfigurationGeometry method for testing
+class TestWallGeometry : public BURST::geometry::WallGeometry {
+public:
+    std::unique_ptr<BURST::geometry::ConfigurationGeometry> testConstructConfigurationGeometry(fscalar robot_radius) const {
+        return this->constructConfigurationGeometry(robot_radius);
+    }
 };
 
-// Test for intended non-degeneracy of configuration geometry with a regular polygon
-TEST_F(ConfigurationGeometryConstructionTest, NonDegenerateRegularPolygon) {
-    // Construct a WallGeometry for a square
+// Test for intended non-degeneracy of the configuration geometry with a regular polygon
+TEST(ConfigurationGeometryConstructionTest, NonDegenerateRegularPolygon) {
+    // Construct an already known non-degenerate WallGeometry for a square
     auto wall_geometry = BURST::geometry::WallGeometry::create({
         Point_2(0, 0),
         Point_2(10, 0),
         Point_2(10, 10),
         Point_2(0, 10)
     });
+    // For some reason if the WallGeometry is degenerate, crash the test
+    ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
 
-    // Generate the configuration geometry for the robot
-    auto config_geometry = wall_geometry->generateConfigurationGeometry(robot);
+    // Convert the WallGeometry to a TestWallGeometry to access the protected method
+    TestWallGeometry* test_wall_geometry = dynamic_cast<TestWallGeometry*>(&*wall_geometry);
+    // For some reason if the cast fails, crash the test
+    ASSERT_NE(test_wall_geometry, nullptr) << "Failed to cast WallGeometry to TestWallGeometry";
 
+    // Construct a configuration geometry for a robot with radius 1
+    auto config_geometry = test_wall_geometry->testConstructConfigurationGeometry(1);
     // Expect the configuration geometry to be non-degenerate
-    // i.e., it is not nullopt
-    EXPECT_TRUE(config_geometry.has_value()) << "Expected non-degenerate configuration geometry for a regular polygon, but got nullopt.";
+    // i.e., it is not nullptr
+    EXPECT_NE(config_geometry, nullptr) << "Expected non-degenerate ConfigurationGeometry for a regular polygon, but got nullptr.";
 }
 
-// Test for intended non-degeneracy of configuration geometry with a simple polygon
-TEST_F(ConfigurationGeometryConstructionTest, NonDegenerateSimplePolygon) {
-    // Construct a WallGeometry for a simple polygon
+// Test for intended non-degeneracy of the configuration geometry with a simple polygon
+TEST(ConfigurationGeometryConstructionTest, NonDegenerateSimplePolygon) {
+    // Construct an already known non-degenerate WallGeometry for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = BURST::geometry::WallGeometry::create({
         Point_2(0, 2),
@@ -42,29 +49,67 @@ TEST_F(ConfigurationGeometryConstructionTest, NonDegenerateSimplePolygon) {
         Point_2(0, 0),
         Point_2(20, -20)
     });
+    // For some reason if the WallGeometry is degenerate, crash the test
+    ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
 
-    // Generate the configuration geometry for the robot
-    auto config_geometry = wall_geometry->generateConfigurationGeometry(robot);
+    // Convert the WallGeometry to a TestWallGeometry to access the protected method
+    TestWallGeometry* test_wall_geometry = dynamic_cast<TestWallGeometry*>(&*wall_geometry);
+    // For some reason if the cast fails, crash the test
+    ASSERT_NE(test_wall_geometry, nullptr) << "Failed to cast WallGeometry to TestWallGeometry";
 
+    // Construct a configuration geometry for a robot with radius 1
+    auto config_geometry = test_wall_geometry->testConstructConfigurationGeometry(1);
     // Expect the configuration geometry to be non-degenerate
-    // i.e., it is not nullopt
-    EXPECT_TRUE(config_geometry.has_value()) << "Expected non-degenerate configuration geometry for a simple polygon, but got nullopt.";
+    // i.e., it is not nullptr
+    EXPECT_NE(config_geometry, nullptr) << "Expected non-degenerate ConfigurationGeometry for a simple polygon, but got nullptr.";
 }
 
-// Test for intended degeneracy of configuration geometry with a wall geometry smaller than the robot's radius
-TEST_F(ConfigurationGeometryConstructionTest, DegenerateSmallWallGeometry) {
-    // Construct a WallGeometry for a small square
+// Test for intended degeneracy of the configuration geometry with a too-small WallGeometry
+// In this case, it's too small to even fit the robot
+TEST(ConfigurationGeometryConstructionTest, DegenerateTooSmallWallGeometry) {
+    // Construct a tiny square WallGeometry that's smaller than the robot's radius
     auto wall_geometry = BURST::geometry::WallGeometry::create({
         Point_2(0, 0),
-        Point_2(0.1, 0),
-        Point_2(0.1, 0.1),
-        Point_2(0, 0.1)
+        Point_2(0.5, 0),
+        Point_2(0.5, 0.5),
+        Point_2(0, 0.5)
     });
+    // For some reason if the WallGeometry is degenerate, crash the test
+    ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
 
-    // Generate the configuration geometry for the robot
-    auto config_geometry = wall_geometry->generateConfigurationGeometry(robot);
+    // Convert the WallGeometry to a TestWallGeometry to access the protected method
+    TestWallGeometry* test_wall_geometry = dynamic_cast<TestWallGeometry*>(&*wall_geometry);
+    // For some reason if the cast fails, crash the test
+    ASSERT_NE(test_wall_geometry, nullptr) << "Failed to cast WallGeometry to TestWallGeometry";
 
+    // Construct a configuration geometry for a robot with radius 1
+    auto config_geometry = test_wall_geometry->testConstructConfigurationGeometry(1);
     // Expect the configuration geometry to be degenerate
-    // i.e., it is nullopt
-    EXPECT_FALSE(config_geometry.has_value()) << "Expected degenerate configuration geometry for a wall geometry smaller than the robot's radius, but got a valid geometry.";
+    // i.e., it is nullptr
+    EXPECT_EQ(config_geometry, nullptr) << "Expected degenerate ConfigurationGeometry for a too-small WallGeometry, but got a valid geometry.";
+}
+
+// Test for intended degeneracy of the configuration geometry with a tight-fitting WallGeometry
+// This should cause the configuration geometry to be degenerate since the translated edges will coincide and the intersection points will be collinear
+TEST(ConfigurationGeometryConstructionTest, DegenerateTightFittingWallGeometry) {
+    // Construct a tight-fitting rectangular WallGeometry that's exactly the height of the robot's diameter
+    auto wall_geometry = BURST::geometry::WallGeometry::create({
+        Point_2(0, 0),
+        Point_2(10, 0),
+        Point_2(10, 2),
+        Point_2(0, 2)
+    });
+    // For some reason if the WallGeometry is degenerate, crash the test
+    ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
+
+    // Convert the WallGeometry to a TestWallGeometry to access the protected method
+    TestWallGeometry* test_wall_geometry = dynamic_cast<TestWallGeometry*>(&*wall_geometry);
+    // For some reason if the cast fails, crash the test
+    ASSERT_NE(test_wall_geometry, nullptr) << "Failed to cast WallGeometry to TestWallGeometry";
+
+    // Construct a configuration geometry for a robot with radius 1
+    auto config_geometry = test_wall_geometry->testConstructConfigurationGeometry(1);
+    // Expect the configuration geometry to be degenerate
+    // i.e., it is nullptr
+    EXPECT_EQ(config_geometry, nullptr) << "Expected degenerate ConfigurationGeometry for a tight-fitting WallGeometry, but got a valid geometry.";
 }
