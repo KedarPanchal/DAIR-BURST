@@ -14,17 +14,20 @@ if (TESTSCOPE STREQUAL "all")
     add_executable(test_all
         test_wallgeometry_construction.cpp
         test_configurationgeometry_construction.cpp
+        test_wallgeometry_rendering.cpp
     )
     target_link_libraries(test_all
         PRIVATE BURST
         GTest::gtest_main
     )
-elseif(TESTSCOPE STREQUAL "wallgeometry")
-    # Build only wallgeometry-related tests
-    add_executable(test_wallgeometry_construction
+elseif(TESTSCOPE STREQUAL "namespaced")
+    # Build only geometry-related tests
+    add_executable(test_geometry
         test_wallgeometry_construction.cpp
+        test_configurationgeometry_construction.cpp
+        test_wallgeometry_rendering.cpp
     )
-    target_link_libraries(test_wallgeometry_construction
+    target_link_libraries(test_geometry
         PRIVATE BURST
         GTest::gtest_main
     )
@@ -45,6 +48,15 @@ else()
         test_configurationgeometry_construction.cpp
     )
     target_link_libraries(test_configurationgeometry_construction
+        PRIVATE BURST
+        GTest::gtest_main
+    )
+    
+    # Wall geometry rendering tests
+    add_executable(test_wallgeometry_rendering
+        test_wallgeometry_rendering.cpp
+    )
+    target_link_libraries(test_wallgeometry_rendering
         PRIVATE BURST
         GTest::gtest_main
     )
