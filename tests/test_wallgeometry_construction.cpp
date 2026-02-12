@@ -3,16 +3,15 @@
 
 // Utility includes for tests
 #include <optional>
-#include <array>
 
 // Test for intended non-degeneracy with a regular polygon
 TEST(WallGeometryTest, NonDegenerateRegularPolygon) {
     // Construct a WallGeometry for a square
     auto wall_geometry = BURST::geometry::WallGeometry::create({
         Point_2(0, 0),
-        Point_2(1, 0),
-        Point_2(1, 1),
-        Point_2(0, 1)
+        Point_2(10, 0),
+        Point_2(10, 10),
+        Point_2(0, 10)
     });
 
     // Expect the WallGeometry to be non-degenerate
@@ -26,9 +25,9 @@ TEST(WallGeometryTest, NonDegenerateSimplePolygon) {
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = BURST::geometry::WallGeometry::create({
         Point_2(0, 2),
-        Point_2(-2, -2),
+        Point_2(-20, -20),
         Point_2(0, 0),
-        Point_2(2, -2)
+        Point_2(20, -20)
     });
 
     // Expect the WallGeometry to be non-degenerate
@@ -42,8 +41,8 @@ TEST(WallGeometryTest, DegenerateStraightLine) {
     // This is a degenerate polygon
     auto wall_geometry = BURST::geometry::WallGeometry::create({
         Point_2(0, 0),
-        Point_2(1, 0),
-        Point_2(2, 0)
+        Point_2(10, 0),
+        Point_2(20, 0)
     });
 
     // Expect the WallGeometry to be degenerate
@@ -70,8 +69,8 @@ TEST(WallGeometryTest, DegenerateRepeatedPoint) {
     // This is a degenerate polygon
     auto wall_geometry = BURST::geometry::WallGeometry::create({
         Point_2(0, 0),
-        Point_2(1, 0),
-        Point_2(1, 0),
+        Point_2(10, 0),
+        Point_2(10, 0),
         Point_2(0, 0)
     });
 
@@ -87,10 +86,10 @@ TEST(WallGeometryTest, DegenerateSelfIntersectingPolygon) {
     // This polygon looks like an hourglass and intersects itself at the center
     // This is a degenerate polygon for our purposes
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        Point_2(-2, 2),
-        Point_2(2, 2),
-        Point_2(-2, -2),
-        Point_2(2, -2)
+        Point_2(-20, 20),
+        Point_2(20, 20),
+        Point_2(-20, -20),
+        Point_2(20, -20)
     });
 
     // Expect the WallGeometry to be degenerate

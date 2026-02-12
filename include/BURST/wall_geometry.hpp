@@ -109,13 +109,6 @@ namespace BURST::geometry {
              *   a. This can be achieved by multiplying the orthogonal vector by the robot's radius
              * 3. Identify points of intersection and construct a new polygon using these points
              */
-            
-            if (!this->wall_shape.is_clockwise_oriented() && !this->wall_shape.is_counterclockwise_oriented()) {
-                // The polygon is degenerate, so we can't generate a configuration geometry
-                // Panic and cry and return nullopt
-                return std::nullopt;
-            }
-            
             std::vector<Segment_2> translated_edges; // Hold the translated edges of the configuration geometry
             // Find the transformed segments for each edge of the wall polygon
             for (auto edge_it = this->wall_shape.edges_begin(); edge_it != this->wall_shape.edges_end(); edge_it++) {

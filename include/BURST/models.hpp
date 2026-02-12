@@ -13,7 +13,7 @@ namespace BURST::models {
      */
     class RotationModel {
     public:
-        virtual fscalar operator() (fscalar rotation) const = 0;
+        virtual fscalar operator() (fscalar angle) const = 0;
 
         virtual fscalar getMaxRotationError(fscalar angle) const = 0;
         virtual fscalar getMinRotationError(fscalar angle) const = 0;
@@ -26,7 +26,7 @@ namespace BURST::models {
     public:
         PRRotationModel(fscalar max_rotation_error);
 
-        fscalar operator() (fscalar rotation) const override;
+        fscalar operator() (fscalar angle) const override;
 
         fscalar getMaxRotationError(fscalar angle) const override;
         fscalar getMinRotationError(fscalar angle) const override;
@@ -40,7 +40,7 @@ namespace BURST::models {
     public:
         SeededPRRotationModel(fscalar max_rotation_error, unsigned int seed);
 
-        fscalar operator() (fscalar rotation) const override;
+        fscalar operator() (fscalar angle) const override;
 
         fscalar getMaxRotationError(fscalar angle) const override;
         fscalar getMinRotationError(fscalar angle) const override;
@@ -52,9 +52,10 @@ namespace BURST::models {
         const fscalar fixed_rotation_scale;
     
     public:
+
         FixedRotationModel(fscalar max_rotation_error, fscalar fixed_rotation_scale = 1);
 
-        fscalar operator() (fscalar rotation) const override;
+        fscalar operator() (fscalar angle) const override;
 
         fscalar getMaxRotationError(fscalar angle) const override;
         fscalar getMinRotationError(fscalar angle) const override;

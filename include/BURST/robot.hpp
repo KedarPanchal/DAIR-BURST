@@ -18,7 +18,7 @@ namespace BURST {
      */
     class Robot : public Renderable {
     private:
-        const fscalar radius;
+        fscalar radius;
         fscalar x_position;
         fscalar y_position;
         std::unique_ptr<ConfigurationGeometry> configuration_environment;
@@ -32,6 +32,7 @@ namespace BURST {
         Robot(fscalar robot_radius, fscalar max_rotation_error, fscalar fixed_rotation_scale);
         Robot(fscalar robot_radius, std::unique_ptr<RotationModel> rotation_model, std::unique_ptr<MovementModel> movement_model);
         void setConfigurationEnvironment(std::unique_ptr<ConfigurationGeometry> config_environment);
+        const ConfigurationGeometry& getConfigurationEnvironment() const;
 
         fscalar getRadius() const;
         Point_2 shootRay(fscalar angle) const;

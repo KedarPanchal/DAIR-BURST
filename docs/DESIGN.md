@@ -20,9 +20,9 @@ title: BURST Class Diagram
 classDiagram
     direction TD
     class RotationModel {
-        +fscalar operator() (fscalar rotation)*
-        +fscalar getMinRotationError(fscalar rotation)*
-        +fscalar getMaxRotationError(fscalar rotation)*
+        +fscalar operator() (fscalar angle)*
+        +fscalar getMinRotationError(fscalar angle)*
+        +fscalar getMaxRotationError(fscalar angle)*
     }
     <<interface>> RotationModel
     
@@ -73,6 +73,7 @@ classDiagram
         +Robot(fscalar robot_radius, fscalar max_rotation_error, fscalar fixed_rotation_scale)
         +Robot(fscalar robot_radius, fscalar max_rotation_error, RotationModel* rotation_model, MovementModel* movement_model)
         +void setConfigurationEnvironment(ConfigurationGeometry* configuration_environment)
+        +ConfigurationGeometry getConfigurationEnvironment()
         +fscalar getRadius()
         +Point_2 shootRay(fscalar angle)
         +Polygon_2 generateStadium(fscalar angle)
