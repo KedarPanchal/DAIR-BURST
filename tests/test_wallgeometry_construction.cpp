@@ -96,3 +96,20 @@ TEST(WallGeometryTest, DegenerateSelfIntersectingPolygon) {
     // i.e., it is nullopt
     EXPECT_FALSE(wall_geometry.has_value()) << "Expected degenerate WallGeometry for a self-intersecting polygon, but got a valid geometry.";
 }
+
+// Test for intended degeneracy with a a normally valid polygon with out-of-order points
+TEST(WallGeometryTest, DegenerateOutOfOrderPoints) {
+    // Construct a WallGeometry for a normally valid polygon with out-of-order points
+    // This polygon is a square but the points are given in an order that creates a bowtie shape
+    // This is a degenerate polygon for our purposes
+    auto wall_geometry = BURST::geometry::WallGeometry::create({
+        Point_2(0, 0),
+        Point_2(10, 10),
+        Point_2(10, 0),
+        Point_2(0, 10)
+    });
+
+    // Expect the WallGeometry to be degenerate
+    // i.e., it is nullopt
+    EXPECT_FALSE(wall_geometry.has_value()) << "Expected degenerate WallGeometry for a normally valid polygon with out-of-order points, but got a valid geometry.";
+}
