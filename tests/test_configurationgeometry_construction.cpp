@@ -4,13 +4,11 @@
 #include <BURST/robot.hpp>
 
 // Utility includes for tests
-#include <optional>
-#include <initializer_list>
 
 // WallGeometry subclass to forward the constructConfigurationGeometry method for testing
 class TestWallGeometry : public BURST::geometry::WallGeometry {
 public:
-    std::unique_ptr<BURST::geometry::ConfigurationGeometry> testConstructConfigurationGeometry(fscalar robot_radius) const {
+    std::unique_ptr<BURST::geometry::ConfigurationGeometry> testConstructConfigurationGeometry(BURST::fscalar robot_radius) const {
         return this->constructConfigurationGeometry(robot_radius);
     }
 };
@@ -19,10 +17,10 @@ public:
 TEST(ConfigurationGeometryConstructionTest, NonDegenerateRegularPolygon) {
     // Construct an already known non-degenerate WallGeometry for a square
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        Point_2(0, 0),
-        Point_2(10, 0),
-        Point_2(10, 10),
-        Point_2(0, 10)
+        BURST::Point_2(0, 0),
+        BURST::Point_2(10, 0),
+        BURST::Point_2(10, 10),
+        BURST::Point_2(0, 10)
     });
     // For some reason if the WallGeometry is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
@@ -44,10 +42,10 @@ TEST(ConfigurationGeometryConstructionTest, NonDegenerateSimplePolygon) {
     // Construct an already known non-degenerate WallGeometry for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        Point_2(0, 2),
-        Point_2(-20, -20),
-        Point_2(0, 0),
-        Point_2(20, -20)
+        BURST::Point_2(0, 2),
+        BURST::Point_2(-20, -20),
+        BURST::Point_2(0, 0),
+        BURST::Point_2(20, -20)
     });
     // For some reason if the WallGeometry is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
@@ -69,10 +67,10 @@ TEST(ConfigurationGeometryConstructionTest, NonDegenerateSimplePolygon) {
 TEST(ConfigurationGeometryConstructionTest, DegenerateTooSmallWallGeometry) {
     // Construct a tiny square WallGeometry that's smaller than the robot's radius
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        Point_2(0, 0),
-        Point_2(0.5, 0),
-        Point_2(0.5, 0.5),
-        Point_2(0, 0.5)
+        BURST::Point_2(0, 0),
+        BURST::Point_2(0.5, 0),
+        BURST::Point_2(0.5, 0.5),
+        BURST::Point_2(0, 0.5)
     });
     // For some reason if the WallGeometry is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
@@ -94,10 +92,10 @@ TEST(ConfigurationGeometryConstructionTest, DegenerateTooSmallWallGeometry) {
 TEST(ConfigurationGeometryConstructionTest, DegenerateTightFittingWallGeometry) {
     // Construct a tight-fitting rectangular WallGeometry that's exactly the height of the robot's diameter
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        Point_2(0, 0),
-        Point_2(10, 0),
-        Point_2(10, 2),
-        Point_2(0, 2)
+        BURST::Point_2(0, 0),
+        BURST::Point_2(10, 0),
+        BURST::Point_2(10, 2),
+        BURST::Point_2(0, 2)
     });
     // For some reason if the WallGeometry is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
