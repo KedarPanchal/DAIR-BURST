@@ -19,7 +19,9 @@ if (TESTSCOPE STREQUAL "all")
     target_link_libraries(test_all
         PRIVATE BURST
         GTest::gtest_main
+        CGAL::CGAL_Qt6
     )
+    target_compile_definitions(test_all PRIVATE CGAL_USE_BASIC_VIEWER)
     target_compile_options(test_all PRIVATE -g)
 elseif(TESTSCOPE STREQUAL "categorized")
     # Build only geometry-related tests
@@ -31,8 +33,10 @@ elseif(TESTSCOPE STREQUAL "categorized")
         PRIVATE BURST
         GTest::gtest_main
     )
+    target_compile_definitions(test_geometry PRIVATE CGAL_USE_BASIC_VIEWER)
     target_compile_options(test_geometry PRIVATE -g)
-
+    
+    # Build only rendering-related tests
     add_executable(test_rendering
         test_wallgeometry_rendering.cpp
         test_configurationgeometry_rendering.cpp
@@ -40,7 +44,9 @@ elseif(TESTSCOPE STREQUAL "categorized")
     target_link_libraries(test_rendering
         PRIVATE BURST
         GTest::gtest_main
+        CGAL::CGAL_Qt6
     )
+    target_compile_definitions(test_rendering PRIVATE CGAL_USE_BASIC_VIEWER)
     target_compile_options(test_rendering PRIVATE -g)
 else()
     # Build individual test executables for each test file
@@ -53,6 +59,7 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
+    target_compile_definitions(test_wallgeometry_construction PRIVATE CGAL_USE_BASIC_VIEWER)
     target_compile_options(test_wallgeometry_construction PRIVATE -g)
 
     # Configuration geometry construction tests
@@ -63,6 +70,7 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
+    target_compile_definitions(test_configurationgeometry_construction PRIVATE CGAL_USE_BASIC_VIEWER)
     target_compile_options(test_configurationgeometry_construction PRIVATE -g)
     
     # Wall geometry rendering tests
@@ -72,7 +80,9 @@ else()
     target_link_libraries(test_wallgeometry_rendering
         PRIVATE BURST
         GTest::gtest_main
+        CGAL::CGAL_Qt6
     )
+    target_compile_definitions(test_wallgeometry_rendering PRIVATE CGAL_USE_BASIC_VIEWER)
     target_compile_options(test_wallgeometry_rendering PRIVATE -g)
 
     # Configuration geometry rendering tests
@@ -82,7 +92,9 @@ else()
     target_link_libraries(test_configurationgeometry_rendering
         PRIVATE BURST
         GTest::gtest_main
+        CGAL::CGAL_Qt6
     )
+    target_compile_definitions(test_configurationgeometry_rendering PRIVATE CGAL_USE_BASIC_VIEWER)
     target_compile_options(test_configurationgeometry_rendering PRIVATE -g)
 endif()
 

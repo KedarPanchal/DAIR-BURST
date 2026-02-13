@@ -3,9 +3,7 @@
 
 // Utility includes for tests
 #include <BURST/types.hpp>
-#include <CGAL/Qt/Basic_viewer.h>
-
-// TODO: For these tests, figure out why the display isn't showing up
+#include <CGAL/Basic_viewer.h>
 
 // Test for rendering a regular polygon
 TEST(WallGeometryRenderingTest, RenderRegularPolygon) {
