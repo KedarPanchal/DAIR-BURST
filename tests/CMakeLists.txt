@@ -8,7 +8,7 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-if (TESTSCOPE STREQUAL "all")
+if (TEST_SCOPE STREQUAL "all")
     # All tests
     add_executable(test_all
         test_wallgeometry_construction.cpp
@@ -22,7 +22,7 @@ if (TESTSCOPE STREQUAL "all")
         GTest::gtest_main
     )
     target_compile_options(test_all PRIVATE -g)
-elseif(TESTSCOPE STREQUAL "categorized")
+elseif(TEST_SCOPE STREQUAL "categorized")
     # Build only geometry-related tests
     add_executable(test_geometry
         test_wallgeometry_construction.cpp
