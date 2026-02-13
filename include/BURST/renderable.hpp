@@ -1,10 +1,6 @@
 #ifndef RENDERABLE_HPP
 #define RENDERABLE_HPP
 
-#ifndef CGAL_USE_BASIC_VIEWER
-#error "Rendering requires CGAL's Basic Viewer."
-#endif
-
 #include "types.hpp"
 
 namespace BURST {
