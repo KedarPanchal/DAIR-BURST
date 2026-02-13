@@ -2,7 +2,7 @@
 #include <BURST/configuration_geometry.hpp>
 #include <BURST/wall_geometry.hpp>
 
-#include "test_wallgeometry_class.hpp"
+#include "test_helpers.hpp"
 
 // Utility includes for tests
 #include <BURST/types.hpp>
