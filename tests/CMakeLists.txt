@@ -19,6 +19,7 @@ if (TESTSCOPE STREQUAL "all")
         PRIVATE BURST
         GTest::gtest_main
     )
+    target_compile_options(test_all PRIVATE -g)
 elseif(TESTSCOPE STREQUAL "namespaced")
     # Build only geometry-related tests
     add_executable(test_geometry
@@ -30,6 +31,7 @@ elseif(TESTSCOPE STREQUAL "namespaced")
         PRIVATE BURST
         GTest::gtest_main
     )
+    target_compile_options(test_geometry PRIVATE -g)
 else()
     # Build individual test executables for each test file
 
@@ -41,6 +43,7 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
+    target_compile_options(test_wallgeometry_construction PRIVATE -g)
 
     # Configuration geometry construction tests
     add_executable(test_configurationgeometry_construction
@@ -50,6 +53,7 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
+    target_compile_options(test_configurationgeometry_construction PRIVATE -g)
     
     # Wall geometry rendering tests
     add_executable(test_wallgeometry_rendering
@@ -59,6 +63,7 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
+    target_compile_options(test_wallgeometry_rendering PRIVATE -g)
 endif()
 
 
