@@ -3,6 +3,8 @@
 #include <BURST/wall_geometry.hpp>
 #include <BURST/robot.hpp>
 
+#include "test_wallgeometry_class.hpp"
+
 // Utility includes for tests
 
 // Test for intended non-degeneracy of the configuration geometry with a regular polygon
