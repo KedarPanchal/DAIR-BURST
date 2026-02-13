@@ -16,7 +16,7 @@
 #include "robot.hpp"
 
 namespace BURST::geometry {
-    
+
     /*
      * WallGeometry represents the geometry of the walls in the environment. It is defined by a polygon.
      */
@@ -63,14 +63,23 @@ namespace BURST::geometry {
             }
 
             void render(scene& scene) const noexcept override {
-                CGAL::add_to_graphics_scene(this->configuration_shape, scene); 
+                polygon_options graphics_options = polygon_options();
+                graphics_options.face_color = [](const Polygon_2& polygon, void* fh) noexcept {
+                    return color(138, 154, 91);  // Light green configuration space
+                };
+                graphics_options.colored_face = [](const Polygon_2& polygon, void* fh) noexcept {
+                    return true;
+                };
+
+                CGAL::add_to_graphics_scene(this->configuration_shape, scene, graphics_options); 
             }
 
             friend class WallGeometry; // For access to private constructor
         };
 
         Polygon_2 wall_shape;
-        
+        polygon_options wall_render_options;
+
         // Helper method to compute the intersection between two lines or rays or segments
         template <typename T1, typename T2>
         typename std::enable_if_t<(std::is_same_v<T1, Line_2> || std::is_same_v<T1, Segment_2>) && (std::is_same_v<T2, Line_2> || std::is_same_v<T2, Segment_2>), std::optional<Point_2>>
@@ -182,7 +191,15 @@ namespace BURST::geometry {
         }
 
         void render(scene& scene) const noexcept override {
-            CGAL::add_to_graphics_scene(this->wall_shape, scene);
+            polygon_options graphics_options = polygon_options();
+            graphics_options.face_color = [](const Polygon_2& polygon, void* fh) noexcept {
+                return color(173, 216, 230);  // Light blue walls
+            };
+            graphics_options.colored_face = [](const Polygon_2& polygon, void* fh) noexcept {
+                return true;
+            };
+
+            CGAL::add_to_graphics_scene(this->wall_shape, scene, graphics_options);
         }
 
         friend class std::unique_ptr<WallGeometry>;

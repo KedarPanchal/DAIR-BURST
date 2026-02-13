@@ -29,7 +29,6 @@ namespace BURST::geometry {
         virtual std::optional<Segment_2> getEdge(Point_2 intersection_point) const = 0;
         virtual std::optional<Segment_2> getEdge(Segment_2 intersection_segment) const noexcept = 0;
         virtual void render(scene& scene) const override = 0;
-
     };
     
 }

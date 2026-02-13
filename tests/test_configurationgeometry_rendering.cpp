@@ -4,7 +4,6 @@
 
 // Utility includes for tests
 #include <BURST/types.hpp>
-#include <CGAL/Qt/Basic_viewer.h>
 
 // WallGeometry subclass to forward the constructConfigurationGeometry method for testing
 class TestWallGeometry : public BURST::geometry::WallGeometry {
@@ -29,8 +28,6 @@ public:
         return this->constructConfigurationGeometry(robot_radius);
     }
 };
-
-// TODO: For these tests, figure out why the display isn't showing up
 
 // Test for rendering a regular polygon and its configuration geometry
 TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {

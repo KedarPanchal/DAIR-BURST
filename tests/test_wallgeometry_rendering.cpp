@@ -3,7 +3,6 @@
 
 // Utility includes for tests
 #include <BURST/types.hpp>
-#include <CGAL/Basic_viewer.h>
 
 // Test for rendering a regular polygon
 TEST(WallGeometryRenderingTest, RenderRegularPolygon) {

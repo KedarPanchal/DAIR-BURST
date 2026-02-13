@@ -6,6 +6,9 @@
 #include <CGAL/Vector_2.h>
 #include <CGAL/Aff_transformation_2.h>
 #include <CGAL/Graphics_scene.h>
+#include <CGAL/Basic_viewer.h>
+#include <CGAL/Graphics_scene_options.h>
+#include <CGAL/IO/Color.h>
 
 namespace BURST {
     // Kernel
@@ -27,5 +30,8 @@ namespace BURST {
     
     // Rendering types
     using scene = CGAL::Graphics_scene;
+    using viewer = CGAL::Qt::Basic_viewer;
+    using polygon_options = CGAL::Graphics_scene_options<Polygon_2, Polygon_2::Vertex_const_iterator, Polygon_2::Vertex_const_iterator, void*>;
+    using color = CGAL::IO::Color;
 }
 #endif
