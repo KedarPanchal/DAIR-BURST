@@ -51,8 +51,8 @@ TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
 
     // Create a CGAL Graphics Scene and render the WallGeometry and ConfigurationGeometry
     BURST::scene scene;
-    wall_geometry->render(scene);
     configuration_geometry->render(scene);
+    wall_geometry->render(scene);
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
@@ -84,8 +84,8 @@ TEST(ConfigurationGeometryRenderingTest, RenderSimplePolygon) {
 
     // Create a CGAL Graphics Scene and render the WallGeometry and ConfigurationGeometry
     BURST::scene scene;
-    wall_geometry->render(scene);
     configuration_geometry->render(scene);
+    wall_geometry->render(scene);
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
