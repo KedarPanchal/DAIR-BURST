@@ -8,7 +8,6 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# Individual test executable for each test file
 if (TESTSCOPE STREQUAL "all")
     # All tests
     add_executable(test_all
