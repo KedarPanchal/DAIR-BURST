@@ -18,6 +18,7 @@ namespace BURST {
     // Geometric types
     using Point_2 = Kernel::Point_2;
     using Segment_2 = Kernel::Segment_2;
+    using Line_2 = Kernel::Line_2;
     using Polygon_2 = CGAL::Polygon_2<Kernel>;
     using Vector_2 = CGAL::Vector_2<Kernel>;
     

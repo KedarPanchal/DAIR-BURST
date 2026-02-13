@@ -70,6 +70,27 @@ namespace BURST::geometry {
         };
 
         Polygon_2 wall_shape;
+        
+        // Helper method to compute the intersection between two lines or rays or segments
+        template <typename T1, typename T2>
+        typename std::enable_if_t<(std::is_same_v<T1, Line_2> || std::is_same_v<T1, Segment_2>) && (std::is_same_v<T2, Line_2> || std::is_same_v<T2, Segment_2>), std::optional<Point_2>>
+        compute_intersection(T1 linear1, T2 linear2) const noexcept {
+            auto maybe_intersection = CGAL::intersection(linear1, linear2);
+            
+            // Only enable the below cases if both T1 and T2 are segments, since it's only possible to have a disconnect in the intersection in that case
+            if constexpr (std::is_same_v<T1, Segment_2> && std::is_same_v<T2, Segment_2>) {
+                if (!maybe_intersection) {
+                    // No intersection, which happens when the segments are disconnected
+                    // To remedy this, extend the segments in both directions and check for a new intersection
+                    // The quick and dirty way to extend a segment is to just make a line from it and then check for intersections
+                    Line_2 line1(linear1);
+                    Line_2 line2(linear2);
+                    return this->compute_intersection(line1, line2);
+                }
+            }
+            if (const Point_2* intersection = std::get_if<Point_2>(&*maybe_intersection)) return std::optional<Point_2>{*intersection};
+            else return std::nullopt; // The intersection is not a point, this shouldn't happen otherwise the polygon is degenerate
+        }
 
     protected: 
         // Protected constructors since the public API is through the static create method
@@ -112,21 +133,17 @@ namespace BURST::geometry {
             for (size_t i = 0; i < translated_edges.size(); i++) {
                 Segment_2& current_edge = translated_edges.at(i);
                 Segment_2& next_edge = translated_edges.at((i + 1) % translated_edges.size());
-
-                auto maybe_intersection = CGAL::intersection(current_edge, next_edge);
-                // No intersection, this shouldn't happen otherwise the polygon is disconnected
+                // Attempt to compute the intersection between the current edge and the next edge
+                auto maybe_intersection = this->compute_intersection(current_edge, next_edge);
+                // No intersection, which occurs when the configuration geometry is degenerate but not necessarily disconnected (i.e. collinear edges)
                 if (!maybe_intersection) return nullptr;
-                // The intersection can be a point or a segment in CGAL, but it should always be a point in this case
-                if (const Point_2* intersection = std::get_if<Point_2>(&*maybe_intersection)) configuration_vertices.push_back(*intersection);
-                // The intersection is not a point, this shouldn't happen otherwise the polygon is degenerate
-                else return nullptr;
+                else configuration_vertices.push_back(*maybe_intersection);
             }
             // Check if the vertices are more than 2, simple, and not collinear
             // Return nullopt if these conditions fail
             if (configuration_vertices.size() <= 2) return nullptr;
             if (!CGAL::is_simple_2(configuration_vertices.begin(), configuration_vertices.end())) return nullptr;
             if (CGAL::orientation_2(configuration_vertices.begin(), configuration_vertices.end()) == CGAL::COLLINEAR) return nullptr;
-
             // Generate a configuration geometry from the vertices and set it as the robot's configuration environment
             Polygon_2 config_polygon{configuration_vertices.begin(), configuration_vertices.end()};
             return WallGeometry::ConfigurationGeometryImpl::create(configuration_vertices.begin(), configuration_vertices.end());
