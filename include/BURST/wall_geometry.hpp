@@ -35,11 +35,6 @@ namespace BURST::geometry {
             template <typename Iter>
             static std::unique_ptr<ConfigurationGeometryImpl> create(Iter begin, Iter end) noexcept {
                 Polygon_2 configuration_polygon{begin, end};
-                if (!configuration_polygon.is_clockwise_oriented() && !configuration_polygon.is_counterclockwise_oriented()) {
-                    // The polygon is degenerate, so we can't create a configuration geometry
-                    // Panic and cry and return nullptr 
-                    return nullptr;
-                }
                 return std::unique_ptr<ConfigurationGeometryImpl>{new ConfigurationGeometryImpl{std::move(configuration_polygon)}};
             }
 
@@ -76,10 +71,12 @@ namespace BURST::geometry {
 
         Polygon_2 wall_shape;
 
+    protected: 
+        // Protected constructors since the public API is through the static create method
+        // Abstracting this away to protected constructors allows subclassing WallGeometry in a test environment without depending on the static create method and its constraints
         WallGeometry(const Polygon_2& shape) noexcept : wall_shape{shape} {}
         WallGeometry(Polygon_2&& shape) noexcept : wall_shape{std::move(shape)} {}
 
-    protected: 
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
         std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const fscalar& robot_radius) const noexcept {
