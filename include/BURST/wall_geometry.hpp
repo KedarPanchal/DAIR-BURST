@@ -137,7 +137,11 @@ namespace BURST::geometry {
                 auto maybe_intersection = this->compute_intersection(current_edge, next_edge);
                 // No intersection, which occurs when the configuration geometry is degenerate but not necessarily disconnected (i.e. collinear edges)
                 if (!maybe_intersection) return nullptr;
-                else configuration_vertices.push_back(*maybe_intersection);
+                // If the intersection point exists, check if it's outside the bounds of the original wall polygon
+                // If this occurs, then the original wall geometry is too small for the robot
+                if (this->wall_shape.bounded_side(*maybe_intersection) == CGAL::ON_UNBOUNDED_SIDE) return nullptr;
+                // If the intersection point is valid, add it to the configuration vertices
+                configuration_vertices.push_back(*maybe_intersection);
             }
             // Check if the vertices are more than 2, simple, and not collinear
             // Return nullopt if these conditions fail
