@@ -63,6 +63,8 @@ namespace BURST::geometry {
             }
 
             void render(scene& scene) const noexcept override {
+                // TODO: Add a z-offset to the configuration geometry rendering so that it's visible
+                // Right now, we're getting lucky with how we ordered the rendering, but this could change as the scene gets more complex
                 polygon_options graphics_options = polygon_options();
                 graphics_options.face_color = [](const Polygon_2& polygon, void* fh) noexcept {
                     return color(138, 154, 91);  // Light green configuration space
