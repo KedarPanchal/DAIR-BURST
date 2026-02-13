@@ -14,3 +14,4 @@ target_link_libraries(BURST INTERFACE
     CGAL::CGAL
     CGAL::CGAL_Qt6
 )
+target_compile_definitions(BURST INTERFACE CGAL_USE_BASIC_VIEWER)
