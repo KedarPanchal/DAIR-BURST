@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <BURST/configuration_geometry.hpp>
 #include <BURST/wall_geometry.hpp>
-#include <BURST/robot.hpp>
 
 #include "test_helpers.hpp"
 
@@ -18,7 +17,6 @@ TEST(ConfigurationGeometryConstructionTest, NonDegenerateRegularPolygon) {
     });
     // For some reason if the WallGeometry is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry";
-
 
     // Construct a configuration geometry for a robot with radius 1
     auto config_geometry = wall_geometry->testConstructConfigurationGeometry(1);
