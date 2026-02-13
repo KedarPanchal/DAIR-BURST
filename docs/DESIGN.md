@@ -86,7 +86,9 @@ classDiagram
 
     class WallGeometry {
         -Polygon_2 wall_shape
-        
+
+        -Point_2 computeIntersection~T1, T2~(T1 linear1, T2 linear2)
+        #ConfigurationGeometry constructConfigurationGeometry(fscalar robot_radius)
         -WallGeometry(const Polygon_2& wall_shape)
         -WallGeometry(Polygon_2&& wall_shape)
         +WallGeometry create~Iter~(Iter begin, Iter end)

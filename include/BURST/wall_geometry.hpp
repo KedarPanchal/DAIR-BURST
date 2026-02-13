@@ -74,7 +74,7 @@ namespace BURST::geometry {
         // Helper method to compute the intersection between two lines or rays or segments
         template <typename T1, typename T2>
         typename std::enable_if_t<(std::is_same_v<T1, Line_2> || std::is_same_v<T1, Segment_2>) && (std::is_same_v<T2, Line_2> || std::is_same_v<T2, Segment_2>), std::optional<Point_2>>
-        compute_intersection(T1 linear1, T2 linear2) const noexcept {
+        computeIntersection(T1 linear1, T2 linear2) const noexcept {
             auto maybe_intersection = CGAL::intersection(linear1, linear2);
             
             // Only enable the below cases if both T1 and T2 are segments, since it's only possible to have a disconnect in the intersection in that case
@@ -85,7 +85,7 @@ namespace BURST::geometry {
                     // The quick and dirty way to extend a segment is to just make a line from it and then check for intersections
                     Line_2 line1(linear1);
                     Line_2 line2(linear2);
-                    return this->compute_intersection(line1, line2);
+                    return this->computeIntersection(line1, line2);
                 }
             }
             if (const Point_2* intersection = std::get_if<Point_2>(&*maybe_intersection)) return std::optional<Point_2>{*intersection};
@@ -134,7 +134,7 @@ namespace BURST::geometry {
                 Segment_2& current_edge = translated_edges.at(i);
                 Segment_2& next_edge = translated_edges.at((i + 1) % translated_edges.size());
                 // Attempt to compute the intersection between the current edge and the next edge
-                auto maybe_intersection = this->compute_intersection(current_edge, next_edge);
+                auto maybe_intersection = this->computeIntersection(current_edge, next_edge);
                 // No intersection, which occurs when the configuration geometry is degenerate but not necessarily disconnected (i.e. collinear edges)
                 if (!maybe_intersection) return nullptr;
                 // If the intersection point exists, check if it's outside the bounds of the original wall polygon
