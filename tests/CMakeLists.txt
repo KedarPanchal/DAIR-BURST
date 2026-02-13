@@ -14,24 +14,34 @@ if (TESTSCOPE STREQUAL "all")
         test_wallgeometry_construction.cpp
         test_configurationgeometry_construction.cpp
         test_wallgeometry_rendering.cpp
+        test_configurationgeometry_rendering.cpp
     )
     target_link_libraries(test_all
         PRIVATE BURST
         GTest::gtest_main
     )
     target_compile_options(test_all PRIVATE -g)
-elseif(TESTSCOPE STREQUAL "namespaced")
+elseif(TESTSCOPE STREQUAL "categorized")
     # Build only geometry-related tests
     add_executable(test_geometry
         test_wallgeometry_construction.cpp
         test_configurationgeometry_construction.cpp
-        test_wallgeometry_rendering.cpp
     )
     target_link_libraries(test_geometry
         PRIVATE BURST
         GTest::gtest_main
     )
     target_compile_options(test_geometry PRIVATE -g)
+
+    add_executable(test_rendering
+        test_wallgeometry_rendering.cpp
+        test_configurationgeometry_rendering.cpp
+    )
+    target_link_libraries(test_rendering
+        PRIVATE BURST
+        GTest::gtest_main
+    )
+    target_compile_options(test_rendering PRIVATE -g)
 else()
     # Build individual test executables for each test file
 
@@ -64,6 +74,16 @@ else()
         GTest::gtest_main
     )
     target_compile_options(test_wallgeometry_rendering PRIVATE -g)
+
+    # Configuration geometry rendering tests
+    add_executable(test_configurationgeometry_rendering
+        test_configurationgeometry_rendering.cpp
+    )
+    target_link_libraries(test_configurationgeometry_rendering
+        PRIVATE BURST
+        GTest::gtest_main
+    )
+    target_compile_options(test_configurationgeometry_rendering PRIVATE -g)
 endif()
 
 

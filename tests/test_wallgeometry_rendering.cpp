@@ -5,6 +5,8 @@
 #include <BURST/types.hpp>
 #include <CGAL/Qt/Basic_viewer.h>
 
+// TODO: For these tests, figure out why the display isn't showing up
+
 // Test for rendering a regular polygon
 TEST(WallGeometryRenderingTest, RenderRegularPolygon) {
     // Construct a WallGeometry for a square
