@@ -24,7 +24,7 @@ TEST(WallGeometryConstructionTest, NonDegenerateSimplePolygon) {
     // Construct a WallGeometry for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point_2(0, 2),
+        BURST::Point_2(0, 20),
         BURST::Point_2(-20, -20),
         BURST::Point_2(0, 0),
         BURST::Point_2(20, -20)
