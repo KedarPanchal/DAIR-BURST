@@ -16,12 +16,10 @@
 #include "robot.hpp"
 
 namespace BURST::geometry {
+    // Forward declare WallGeometry for ConfigurationGeometryImpl
+    class WallGeometry;
 
-    /*
-     * WallGeometry represents the geometry of the walls in the environment. It is defined by a polygon.
-     */
-    class WallGeometry : public Renderable {
-    private:
+    namespace detail {
         // This class is intended to be used internally and not as an API
         // This is because ConfigurationGeometry should never be instantiated directly
         // Thus it is a private nested class of WallGeometry
@@ -61,9 +59,16 @@ namespace BURST::geometry {
                 CGAL::add_to_graphics_scene(this->configuration_shape, scene, graphics_options); 
             }
 
-            friend class WallGeometry; // For access to private constructor
+            friend class BURST::geometry::WallGeometry; // For access to private constructor
         };
+    }
 
+    /*
+     * WallGeometry represents the geometry of the walls in the environment. It is defined by a polygon.
+     */
+    class WallGeometry : public Renderable {
+    private:
+        
         Polygon_2 wall_shape;
         polygon_options wall_render_options;
 
@@ -146,7 +151,7 @@ namespace BURST::geometry {
             if (CGAL::orientation_2(configuration_vertices.begin(), configuration_vertices.end()) == CGAL::COLLINEAR) return nullptr;
             // Generate a configuration geometry from the vertices and set it as the robot's configuration environment
             Polygon_2 config_polygon{configuration_vertices.begin(), configuration_vertices.end()};
-            return WallGeometry::ConfigurationGeometryImpl::create(configuration_vertices.begin(), configuration_vertices.end());
+            return detail::ConfigurationGeometryImpl::create(configuration_vertices.begin(), configuration_vertices.end());
         }
 
     public:
@@ -167,8 +172,10 @@ namespace BURST::geometry {
         static std::optional<WallGeometry> create(std::initializer_list<Point_2> points) noexcept {
             return WallGeometry::create(points.begin(), points.end());
         }
-
-        std::optional<std::monostate> generateConfigurationGeometry(Robot& robot) const noexcept {
+        // Template is not needed for any implementation, but is needed for Robot
+        // Thus this can be ommitted when called and the template parameters can be inferred
+        template <typename R, typename M>
+        std::optional<std::monostate> generateConfigurationGeometry(Robot<R, M>& robot) const noexcept {
             auto config_geometry = this->constructConfigurationGeometry(robot.getRadius());
             if (!config_geometry) return std::nullopt; // Degenerate configuration geometry, can't set it for the robot
             robot.setConfigurationEnvironment(std::move(config_geometry));
