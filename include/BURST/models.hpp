@@ -22,7 +22,7 @@ namespace BURST::models {
         mutable Dist rand_dist; // Generate from -1 to 1 to scale max_rotation_error by
 
     public:
-        RotationModel(fscalar max_rotation_error, int seed = std::random_device{}()) : max_rotation_error{max_rotation_error}, prng{seed}, rand_dist{-1.0, 1.0} {}
+        RotationModel(fscalar max_rotation_error, unsigned int seed = std::random_device{}()) : max_rotation_error{max_rotation_error}, prng{seed}, rand_dist{-1.0, 1.0} {}
 
         fscalar operator() (fscalar angle) const {
             // Generate a random rotation error scaled by max_rotation_error

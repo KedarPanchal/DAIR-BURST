@@ -21,7 +21,8 @@ classDiagram
     direction TD
     class RotationModel {
         -const fscalar max_rotation_error
-
+        
+        +RotationModel(fscalar max_rotation_error, unsigned int seed)
         +fscalar operator() (fscalar angle)
         +fscalar getMinRotation(fscalar angle)
         +fscalar getMaxRotation(fscalar angle)
