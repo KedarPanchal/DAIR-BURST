@@ -40,9 +40,14 @@ namespace BURST::geometry {
             edge_iterator edge_begin() const noexcept override {
                 return this->configuration_shape.edges_begin();
             }
-
             edge_iterator edge_end() const noexcept override {
                 return this->configuration_shape.edges_end();
+            }
+            vertex_iterator vertex_begin() const noexcept override {
+                return this->configuration_shape.vertices_begin();
+            }
+            vertex_iterator vertex_end() const noexcept override {
+                return this->configuration_shape.vertices_end();
             }
 
             void render(scene& scene) const noexcept override {

@@ -76,6 +76,8 @@ classDiagram
     class ConfigurationGeometry {
         +edge_iterator edge_begin()*
         +edge_iterator edge_end()*
+        +vertex_iterator vertex_begin()*
+        +vertex_iterator vertex_end()*
     }
     <<interface>> ConfigurationGeometry
     ConfigurationGeometry ..|> Renderable

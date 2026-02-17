@@ -1,8 +1,6 @@
 #ifndef CONFIGURATION_GEOMETRY_HPP
 #define CONFIGURATION_GEOMETRY_HPP
 
-#include <optional>
-
 #include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Graphics_scene.h>
@@ -29,6 +27,8 @@ namespace BURST::geometry {
 
         virtual edge_iterator edge_begin() const noexcept = 0;
         virtual edge_iterator edge_end() const noexcept = 0;
+        virtual vertex_iterator vertex_begin() const noexcept = 0;
+        virtual vertex_iterator vertex_end() const noexcept = 0;
         virtual void render(scene& scene) const override = 0;
     };
     
