@@ -26,10 +26,12 @@ namespace BURST::models {
 
         // Type traits for validating whether a type can be used in a CGAL intersection computation against a polygon edge
         template <typename T, typename = void>
-        struct is_valid_intersection_type : std::false_type {};
+        struct is_valid_builtin_intersection_type : std::false_type {};
         template <typename T>
-        struct is_valid_intersection_type<T, std::void_t<decltype(CGAL::intersection(std::declval<T>(), std::declval<Segment_2>()))>> : std::true_type {};
-
+        struct is_valid_builtin_intersection_type<T, std::void_t<decltype(CGAL::intersection(std::declval<T>(), std::declval<Segment_2>()))>> : std::true_type {};
+        
+        // Type traits for validating whether a type can be a Path for a movement model
+        // This requires a 2-argument constructor that accepts start and end Point_2s (like Segment_2)
         template <typename T, typename = void>
         struct is_valid_path_type : std::false_type {};
         template <typename T>
@@ -95,7 +97,7 @@ namespace BURST::models {
                 if (edge_it->has_on(origin)) continue;
                 
                 // Use CGAL's inbuilt intersection function if Trajectory is a valid type for intersection with the polygon edge
-                if constexpr (detail::is_valid_intersection_type<typename ModelType::Trajectory>::value) {
+                if constexpr (detail::is_valid_builtin_intersection_type<typename ModelType::Trajectory>::value) {
                     auto maybe_intersection = CGAL::intersection(trajectory, *edge_it);
 
                     // No intersection, so continue to the next edge
