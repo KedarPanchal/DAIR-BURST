@@ -17,6 +17,7 @@ namespace BURST::models {
         // This allows for templating the rotation model and avoiding inheritance
         class flat_distribution {
         public:
+            flat_distribution(double = 0.0, double = 0.0) {} // Dummy constructor to match the interface of std::uniform_real_distribution
             template <typename RNG> double operator() (RNG& rng) const {
                 return 1.0;
             }
@@ -24,7 +25,7 @@ namespace BURST::models {
     }
     
     /*
-     * RotationModel classes define how the robot's rotation is affected by noise.
+     * RotationModel defines how the robot's rotation is affected by noise.
      */
     template <typename PRNG = std::mt19937, typename Dist = std::uniform_real_distribution<double>>
     class RotationModel {
@@ -52,7 +53,7 @@ namespace BURST::models {
     using FixedRotationModel = RotationModel<std::mt19937, detail::flat_distribution>;
     
     /*
-     * MovementModel classes define how the robot's movement is affected by noise.
+     * MovementModel defines how the robot's movement is affected by noise.
      */
     template <typename Trajectory>
     class MovementModel {
@@ -60,6 +61,8 @@ namespace BURST::models {
         Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const;
         Trajectory generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const;
     };
+
+    using LinearMovementModel = MovementModel<Segment_2>;
     
 }
 #endif
