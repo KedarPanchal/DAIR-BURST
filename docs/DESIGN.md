@@ -31,14 +31,6 @@ classDiagram
     }
     PRRotationModel ..|> RotationModel
 
-    class SeededPRRotationModel {
-        -const fscalar max_rotation_error
-        -const unsigned int seed
-
-        +SeededPRRotationModel(fscalar max_rotation_error, unsigned int seed)
-    }
-    SeededPRRotationModel ..|> RotationModel
-
     class FixedRotationModel {
         -const fscalar max_rotation_error
         -const fscalar fixed_rotation_scale
@@ -140,7 +132,6 @@ When the functor is called, it returns a new angle within the range:
 
 There are 4 implementations of `RotationModel`:
 * `PRRotationModel` - a policy that generates a pseudorandom rotation error.
-* `SeededPRRotationModel` - a policy that generates a pseudorandom rotation error based on a seed.
 * `FixedRotationModel` - a policy that always returns the same rotation error.
 
 ### MovementModel
