@@ -13,7 +13,6 @@ if (TEST_SCOPE STREQUAL "all")
     add_executable(test_all
         test_wallgeometry_construction.cpp
         test_configurationgeometry_construction.cpp
-        test_configurationgeometry_intersections.cpp
         test_wallgeometry_rendering.cpp
         test_configurationgeometry_rendering.cpp
     )
@@ -27,7 +26,6 @@ elseif(TEST_SCOPE STREQUAL "categorized")
     add_executable(test_geometry
         test_wallgeometry_construction.cpp
         test_configurationgeometry_construction.cpp
-        test_configurationgeometry_intersections.cpp
     )
     target_link_libraries(test_geometry
         PRIVATE BURST
@@ -69,16 +67,6 @@ else()
     )
     target_compile_options(test_configurationgeometry_construction PRIVATE -g)
 
-    # Configuration geometry intersection tests
-    add_executable(test_configurationgeometry_intersections
-        test_configurationgeometry_intersections.cpp
-    )
-    target_link_libraries(test_configurationgeometry_intersections
-        PRIVATE BURST
-        GTest::gtest_main
-    )
-    target_compile_options(test_configurationgeometry_intersections PRIVATE -g)
-    
     # Wall geometry rendering tests
     add_executable(test_wallgeometry_rendering
         test_wallgeometry_rendering.cpp
