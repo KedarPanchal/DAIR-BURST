@@ -20,24 +20,13 @@ title: BURST Class Diagram
 classDiagram
     direction TD
     class RotationModel {
-        +fscalar operator() (fscalar angle)*
-        +fscalar getMinRotation(fscalar angle)*
-        +fscalar getMaxRotation(fscalar angle)*
+        -const fscalar max_rotation_error
+
+        +fscalar operator() (fscalar angle)
+        +fscalar getMinRotation(fscalar angle)
+        +fscalar getMaxRotation(fscalar angle)
     }
-    <<interface>> RotationModel
     
-    class PRRotationModel {
-        -const fscalar max_rotation_error
-    }
-    PRRotationModel ..|> RotationModel
-
-    class FixedRotationModel {
-        -const fscalar max_rotation_error
-        -const fscalar fixed_rotation_scale
-        +FixedRotationModel(fscalar max_rotation_error, fscalar fixed_rotation_scale)
-    }
-    FixedRotationModel ..|> RotationModel
-
     class MovementModel {
         +Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment)*
         +Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment)*
@@ -129,10 +118,6 @@ When the functor is called, it returns a new angle within the range:
 ```
 [rotation - max_rotation_error, rotation + max_rotation_error]
 ```
-
-There are 4 implementations of `RotationModel`:
-* `PRRotationModel` - a policy that generates a pseudorandom rotation error.
-* `FixedRotationModel` - a policy that always returns the same rotation error.
 
 ### MovementModel
 

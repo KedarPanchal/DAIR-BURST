@@ -14,60 +14,38 @@ namespace BURST::models {
     /*
      * RotationModel classes define how the robot's rotation is affected by noise.
      */
+    template <typename PRNG = std::mt19937, typename Dist = std::uniform_real_distribution<double>>
     class RotationModel {
-    public:
-        virtual fscalar operator() (fscalar angle) const = 0;
-
-        virtual fscalar getMaxRotation(fscalar angle) const = 0;
-        virtual fscalar getMinRotation(fscalar angle) const = 0;
-    };
-    
-    // Pseudorandom rotation model
-    template <typename PRNG = std::mt19937, int Seed = std::random_device{}()>
-    class PRRotationModel : public RotationModel {
     private:
         fscalar max_rotation_error;
         mutable PRNG prng;
-        mutable std::uniform_real_distribution<double> rand_dist; // Generate from -1 to 1 to scale max_rotation_error by
+        mutable Dist rand_dist; // Generate from -1 to 1 to scale max_rotation_error by
 
     public:
-        PRRotationModel(fscalar max_rotation_error) : max_rotation_error{max_rotation_error}, prng{Seed}, rand_dist{-1.0, 1.0} {}
+        RotationModel(fscalar max_rotation_error, int seed = std::random_device{}()) : max_rotation_error{max_rotation_error}, prng{seed}, rand_dist{-1.0, 1.0} {}
 
-        fscalar operator() (fscalar angle) const override {
+        fscalar operator() (fscalar angle) const {
             // Generate a random rotation error scaled by max_rotation_error
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
-        fscalar getMaxRotation(fscalar angle) const override {
+        fscalar getMaxRotation(fscalar angle) const {
             return angle + this->max_rotation_error;
         }
-        fscalar getMinRotation(fscalar angle) const override {
+        fscalar getMinRotation(fscalar angle) const {
             return angle - this->max_rotation_error;
         }
     };
     
-    // Fixed-value rotation model
-    class FixedRotationModel : public RotationModel {
-    private:
-        fscalar max_rotation_error;
-        fscalar fixed_rotation;
-    
-    public:
-
-        FixedRotationModel(fscalar max_rotation_error, fscalar fixed_rotation_scale = 1) : max_rotation_error{max_rotation_error}, fixed_rotation{fixed_rotation_scale * max_rotation_error} {}
-
-        fscalar operator() (fscalar angle) const override {
-            // Apply a fixed rotation error scaled by fixed_rotation_scale
-            return angle + this->fixed_rotation;
-        }
-
-        fscalar getMaxRotation(fscalar angle) const override {
-            return angle + this->max_rotation_error;
-        }
-        fscalar getMinRotation(fscalar angle) const override {
-            return angle - this->max_rotation_error;
+    // Generates the same number for every RNG, which is useful for testing
+    // This allows for templating the rotation model and avoiding inheritance
+    struct flat_distribution {
+        template <typename RNG> double operator() (RNG& rng) const {
+            return 1.0;
         }
     };
+
+    using FixedRotationModel = RotationModel<std::mt19937, flat_distribution>;
     
     /*
      * MovementModel classes define how the robot's movement is affected by noise.
