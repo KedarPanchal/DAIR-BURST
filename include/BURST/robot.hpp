@@ -8,7 +8,7 @@
 
 namespace BURST {
     // Declare type traits for validating Robot class template parameters
-    template <typename R>
+    template <typename T>
     struct is_valid_rotation_model : std::false_type {};
     template <typename PRNG, typename Dist>
     struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
@@ -19,6 +19,9 @@ namespace BURST {
      */
     template <typename R, typename M>
     class Robot : public Renderable {
+    // Validate type traits
+    static_assert(is_valid_rotation_model<R>::value, "R must be a valid rotation model");
+
     private:
         fscalar radius;
         fscalar x_position;

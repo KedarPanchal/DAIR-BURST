@@ -72,12 +72,22 @@ namespace BURST::geometry {
         Polygon_2 wall_shape;
         polygon_options wall_render_options;
 
+        // Type traits for intersection helper method
+        template <typename T>
+        struct is_valid_intersection_type : std::false_type {};
+        template <>
+        struct is_valid_intersection_type<Line_2> : std::true_type {};
+        template<>
+        struct is_valid_intersection_type<Segment_2> : std::true_type {};
+
         // Helper method to compute the intersection between two lines or rays or segments
         template <typename T1, typename T2>
-        typename std::enable_if_t<(std::is_same_v<T1, Line_2> || std::is_same_v<T1, Segment_2>) && (std::is_same_v<T2, Line_2> || std::is_same_v<T2, Segment_2>), std::optional<Point_2>>
-        computeIntersection(T1 linear1, T2 linear2) const noexcept {
+        std::optional<Point_2> computeIntersection(T1 linear1, T2 linear2) const noexcept {
+            // Validate type traits
+            static_assert(is_valid_intersection_type<T1>::value, "T1 must be a valid intersection type (Line_2 or Segment_2)");
+            static_assert(is_valid_intersection_type<T2>::value, "T2 must be a valid intersection type (Line_2 or Segment_2)");
+
             auto maybe_intersection = CGAL::intersection(linear1, linear2);
-            
             // Only enable the below cases if both T1 and T2 are segments, since it's only possible to have a disconnect in the intersection in that case
             if constexpr (std::is_same_v<T1, Segment_2> && std::is_same_v<T2, Segment_2>) {
                 if (!maybe_intersection) {
@@ -89,6 +99,7 @@ namespace BURST::geometry {
                     return this->computeIntersection(line1, line2);
                 }
             }
+            // If we get a point (get_if isn't nullptr), return it
             if (const Point_2* intersection = std::get_if<Point_2>(&*maybe_intersection)) return std::optional<Point_2>{*intersection};
             else return std::nullopt; // The intersection is not a point, this shouldn't happen otherwise the polygon is degenerate
         }
