@@ -21,8 +21,8 @@ classDiagram
     direction TD
     class RotationModel {
         +fscalar operator() (fscalar angle)*
-        +fscalar getMinRotationError(fscalar angle)*
-        +fscalar getMaxRotationError(fscalar angle)*
+        +fscalar getMinRotation(fscalar angle)*
+        +fscalar getMaxRotation(fscalar angle)*
     }
     <<interface>> RotationModel
     

@@ -2,6 +2,7 @@
 #define MODELS_HPP
 
 #include <random>
+#include <optional>
 
 #include "types.hpp"
 #include "configuration_geometry.hpp"
@@ -17,8 +18,8 @@ namespace BURST::models {
     public:
         virtual fscalar operator() (fscalar angle) const = 0;
 
-        virtual fscalar getMaxRotationError(fscalar angle) const = 0;
-        virtual fscalar getMinRotationError(fscalar angle) const = 0;
+        virtual fscalar getMaxRotation(fscalar angle) const = 0;
+        virtual fscalar getMinRotation(fscalar angle) const = 0;
     };
     
     // Pseudorandom rotation model
@@ -37,10 +38,10 @@ namespace BURST::models {
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
-        fscalar getMaxRotationError(fscalar angle) const override {
+        fscalar getMaxRotation(fscalar angle) const override {
             return angle + this->max_rotation_error;
         }
-        fscalar getMinRotationError(fscalar angle) const override {
+        fscalar getMinRotation(fscalar angle) const override {
             return angle - this->max_rotation_error;
         }
     };
@@ -62,10 +63,10 @@ namespace BURST::models {
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
-        fscalar getMaxRotationError(fscalar angle) const override {
+        fscalar getMaxRotation(fscalar angle) const override {
             return angle + this->max_rotation_error;
         }
-        fscalar getMinRotationError(fscalar angle) const override {
+        fscalar getMinRotation(fscalar angle) const override {
             return angle - this->max_rotation_error;
         }
     };
@@ -85,10 +86,10 @@ namespace BURST::models {
             return angle + this->fixed_rotation;
         }
 
-        fscalar getMaxRotationError(fscalar angle) const override {
+        fscalar getMaxRotation(fscalar angle) const override {
             return angle + this->max_rotation_error;
         }
-        fscalar getMinRotationError(fscalar angle) const override {
+        fscalar getMinRotation(fscalar angle) const override {
             return angle - this->max_rotation_error;
         }
     };
