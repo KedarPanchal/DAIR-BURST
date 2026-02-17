@@ -6,8 +6,6 @@
 #include "configuration_geometry.hpp"
 #include "models.hpp"
 
-using ConfigurationGeometry = BURST::geometry::ConfigurationGeometry;
-
 namespace BURST {
     // Declare type traits for validating Robot class template parameters
     template <typename R>
@@ -25,7 +23,7 @@ namespace BURST {
         fscalar radius;
         fscalar x_position;
         fscalar y_position;
-        std::unique_ptr<ConfigurationGeometry> configuration_environment;
+        std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_environment;
 
         std::unique_ptr<R> rotation_model;
         std::unique_ptr<M> movement_model;
@@ -34,8 +32,8 @@ namespace BURST {
         Robot(fscalar robot_radius, fscalar max_rotation_error);
         Robot(fscalar robot_radius, fscalar max_rotation_error, unsigned int rotation_seed);
 
-        void setConfigurationEnvironment(std::unique_ptr<ConfigurationGeometry> config_environment);
-        const ConfigurationGeometry& getConfigurationEnvironment() const;
+        void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationGeometry> config_environment);
+        const BURST::geometry::ConfigurationGeometry& getConfigurationEnvironment() const;
 
         fscalar getRadius() const;
         Point_2 shootRay(fscalar angle) const;

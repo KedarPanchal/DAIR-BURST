@@ -7,8 +7,6 @@
 #include "types.hpp"
 #include "configuration_geometry.hpp"
 
-using ConfigurationGeometry = BURST::geometry::ConfigurationGeometry;
-
 namespace BURST::models {
     
     // Internal implementations not intended for public use
@@ -58,8 +56,8 @@ namespace BURST::models {
     template <typename Trajectory>
     class MovementModel {
     public:
-        Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const;
-        Trajectory generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const;
+        Point_2 operator() (const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const;
+        Trajectory generateTrajectory(const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const;
     };
 
     using LinearMovementModel = MovementModel<Segment_2>;
