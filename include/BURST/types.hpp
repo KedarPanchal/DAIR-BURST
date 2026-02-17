@@ -30,7 +30,6 @@ namespace BURST {
     
     // Rendering types
     using scene = CGAL::Graphics_scene;
-    using viewer = CGAL::Qt::Basic_viewer;
     using polygon_options = CGAL::Graphics_scene_options<Polygon_2, Polygon_2::Vertex_const_iterator, Polygon_2::Vertex_const_iterator, void*>;
     using color = CGAL::IO::Color;
 }
