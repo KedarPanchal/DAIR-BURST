@@ -16,6 +16,16 @@
 #include "robot.hpp"
 
 namespace BURST::geometry {
+    // Internal implementations not intended for public use
+    namespace detail {
+        // Type traits for intersection helper method
+        template <typename T>
+        struct is_valid_intersection_type : std::false_type {};
+        template <>
+        struct is_valid_intersection_type<Line_2> : std::true_type {};
+        template<>
+        struct is_valid_intersection_type<Segment_2> : std::true_type {};
+    }
     // Forward declare WallGeometry for ConfigurationGeometryImpl
     class WallGeometry;
 
@@ -77,20 +87,12 @@ namespace BURST::geometry {
         Polygon_2 wall_shape;
         polygon_options wall_render_options;
 
-        // Type traits for intersection helper method
-        template <typename T>
-        struct is_valid_intersection_type : std::false_type {};
-        template <>
-        struct is_valid_intersection_type<Line_2> : std::true_type {};
-        template<>
-        struct is_valid_intersection_type<Segment_2> : std::true_type {};
-
         // Helper method to compute the intersection between two lines or rays or segments
         template <typename T1, typename T2>
         std::optional<Point_2> computeIntersection(T1 linear1, T2 linear2) const noexcept {
             // Validate type traits
-            static_assert(is_valid_intersection_type<T1>::value, "T1 must be a valid intersection type (Line_2 or Segment_2)");
-            static_assert(is_valid_intersection_type<T2>::value, "T2 must be a valid intersection type (Line_2 or Segment_2)");
+            static_assert(detail::is_valid_intersection_type<T1>::value, "T1 must be a valid intersection type (Line_2 or Segment_2)");
+            static_assert(detail::is_valid_intersection_type<T2>::value, "T2 must be a valid intersection type (Line_2 or Segment_2)");
 
             auto maybe_intersection = CGAL::intersection(linear1, linear2);
             // Only enable the below cases if both T1 and T2 are segments, since it's only possible to have a disconnect in the intersection in that case

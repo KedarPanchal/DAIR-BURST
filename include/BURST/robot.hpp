@@ -7,11 +7,15 @@
 #include "models.hpp"
 
 namespace BURST {
-    // Declare type traits for validating Robot class template parameters
-    template <typename T>
-    struct is_valid_rotation_model : std::false_type {};
-    template <typename PRNG, typename Dist>
-    struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
+
+    // Internal implementations not intended for public use
+    namespace detail {
+        // Declare type traits for validating Robot class template parameters
+        template <typename T>
+        struct is_valid_rotation_model : std::false_type {};
+        template <typename PRNG, typename Dist>
+        struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
+    }
 
     /*
      * The robot class represents a circular, blind, unreliable robot.
@@ -20,7 +24,7 @@ namespace BURST {
     template <typename R, typename M>
     class Robot : public Renderable {
     // Validate type traits
-    static_assert(is_valid_rotation_model<R>::value, "R must be a valid rotation model");
+    static_assert(detail::is_valid_rotation_model<R>::value, "R must be a valid rotation model");
 
     private:
         fscalar radius;
