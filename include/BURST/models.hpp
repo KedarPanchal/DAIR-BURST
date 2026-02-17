@@ -64,7 +64,7 @@ namespace BURST::models {
         }
     };
 
-    using FixedRotationModel = RotationModel<std::mt19937, flat_distribution>;
+    using MaximumRotationModel = RotationModel<std::mt19937, flat_distribution>;
    
     // Define Path-Trajectory pairs for movement models
     struct LinearModel {
@@ -88,6 +88,8 @@ namespace BURST::models {
 
             // Create a direction trajectory from the angle
             Vector_2 direction_vector{std::cos(CGAL::to_double(angle)), std::sin(CGAL::to_double(angle))};
+            // TODO: Validate that the direction vector doesn't point outwards from the configuration geometry, which would make the movement invalid, and return nullopt if it does
+            
             // Create a trajectory from the origin in the direction of the direction vector
             typename ModelType::Trajectory trajectory{origin, direction_vector};
 
