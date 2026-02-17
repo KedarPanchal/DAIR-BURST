@@ -11,6 +11,17 @@ using ConfigurationGeometry = BURST::geometry::ConfigurationGeometry;
 
 namespace BURST::models {
     
+    // Internal implementations not intended for public use
+    namespace detail {
+        // Generates the same number for every RNG, which is useful for testing
+        // This allows for templating the rotation model and avoiding inheritance
+        struct flat_distribution {
+            template <typename RNG> double operator() (RNG& rng) const {
+                return 1.0;
+            }
+        };
+    }
+    
     /*
      * RotationModel classes define how the robot's rotation is affected by noise.
      */
@@ -36,16 +47,8 @@ namespace BURST::models {
             return angle - this->max_rotation_error;
         }
     };
-    
-    // Generates the same number for every RNG, which is useful for testing
-    // This allows for templating the rotation model and avoiding inheritance
-    struct flat_distribution {
-        template <typename RNG> double operator() (RNG& rng) const {
-            return 1.0;
-        }
-    };
 
-    using FixedRotationModel = RotationModel<std::mt19937, flat_distribution>;
+    using FixedRotationModel = RotationModel<std::mt19937, detail::flat_distribution>;
     
     /*
      * MovementModel classes define how the robot's movement is affected by noise.
