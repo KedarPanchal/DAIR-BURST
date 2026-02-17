@@ -15,7 +15,8 @@ namespace BURST::models {
     namespace detail {
         // Generates the same number for every RNG, which is useful for testing
         // This allows for templating the rotation model and avoiding inheritance
-        struct flat_distribution {
+        class flat_distribution {
+        public:
             template <typename RNG> double operator() (RNG& rng) const {
                 return 1.0;
             }
@@ -53,17 +54,11 @@ namespace BURST::models {
     /*
      * MovementModel classes define how the robot's movement is affected by noise.
      */
+    template <typename Trajectory>
     class MovementModel {
     public:
-        virtual Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const = 0;
-        virtual Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const = 0;
-    };
-    
-    // Linear trajectory movement model
-    class LinearMovementModel : public MovementModel {
-    public:
-        Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const override;
-        Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const override;
+        Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const;
+        Trajectory generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const;
     };
     
 }
