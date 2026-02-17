@@ -48,7 +48,7 @@ classDiagram
 
     class MovementModel {
         +Point_2 operator() (fscalar angle, const ConfigurationGeometry& configuration_environment)*
-        +Segment_2 generateTrajectory(Point_2 origin, fscalar angle, const ConfigurationGeometry& configuration_environment)*
+        +Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment)*
     }
     <<interface>> MovementModel
 

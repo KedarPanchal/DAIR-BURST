@@ -97,13 +97,13 @@ namespace BURST::models {
     class MovementModel {
     public:
         virtual Point_2 operator() (fscalar angle, const ConfigurationGeometry& configuration_environment) const = 0;
-        virtual Segment_2 generateTrajectory(Point_2 origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const = 0;
+        virtual Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const = 0;
     };
     
     class LinearMovementModel : public MovementModel {
     public:
         Point_2 operator() (fscalar angle, const ConfigurationGeometry& configuration_environment) const override;
-        Segment_2 generateTrajectory(Point_2 origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const override;
+        Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const override;
     };
     
 }
