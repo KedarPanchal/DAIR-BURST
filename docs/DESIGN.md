@@ -47,7 +47,7 @@ classDiagram
     FixedRotationModel ..|> RotationModel
 
     class MovementModel {
-        +Point_2 operator() (fscalar angle, const ConfigurationGeometry& configuration_environment)*
+        +Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment)*
         +Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment)*
     }
     <<interface>> MovementModel
@@ -145,7 +145,7 @@ There are 4 implementations of `RotationModel`:
 
 The `MovementModel` interface defines a functor that generates:
 
-* An endpoint for movement given an angle and a robot's configuration space.
+* An endpoint for movement given an origin, angle and a robot's configuration space.
 * A trajectory for movement given an origin, angle, and robot's configuration space.
 
 Currently, there's 1 implementation of `MovementModel`:

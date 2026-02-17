@@ -45,6 +45,7 @@ namespace BURST::models {
         }
     };
     
+    // Seeded pseudorandom rotation model
     template <typename PRNG = std::mt19937>
     class SeededPRRotationModel : public RotationModel {
     private:
@@ -69,6 +70,7 @@ namespace BURST::models {
         }
     };
     
+    // Fixed-value rotation model
     class FixedRotationModel : public RotationModel {
     private:
         fscalar max_rotation_error;
@@ -96,13 +98,14 @@ namespace BURST::models {
      */
     class MovementModel {
     public:
-        virtual Point_2 operator() (fscalar angle, const ConfigurationGeometry& configuration_environment) const = 0;
+        virtual Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const = 0;
         virtual Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const = 0;
     };
     
+    // Linear trajectory movement model
     class LinearMovementModel : public MovementModel {
     public:
-        Point_2 operator() (fscalar angle, const ConfigurationGeometry& configuration_environment) const override;
+        Point_2 operator() (const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const override;
         Segment_2 generateTrajectory(const Point_2& origin, fscalar angle, const ConfigurationGeometry& configuration_environment) const override;
     };
     
