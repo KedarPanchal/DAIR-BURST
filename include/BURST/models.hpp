@@ -14,16 +14,6 @@ namespace BURST::models {
     
     // Internal implementations not intended for public use
     namespace detail {
-        // Custom random number distribution that generates the same number for every RNG, which is useful for testing
-        // This allows for templating the rotation model and avoiding inheritance
-        class flat_distribution {
-        public:
-            flat_distribution(double = 0.0, double = 0.0) {} // Dummy constructor to match the interface of std::uniform_real_distribution
-            template <typename RNG> double operator() (RNG& rng) const {
-                return 1.0;
-            }
-        };
-
         // Type traits for validating whether a type can be used in a CGAL intersection computation against a polygon edge
         template <typename T, typename = void>
         struct is_valid_builtin_intersection_type : std::false_type {};
@@ -38,6 +28,16 @@ namespace BURST::models {
         struct is_valid_path_type<T, std::void_t<decltype(T(std::declval<Point_2>(), std::declval<Point_2>()))>> : std::true_type {};
     }
     
+    // Custom random number distribution that generates the same number for every RNG, which is useful for testing
+    // This allows for templating the rotation model and avoiding inheritance
+    class flat_distribution {
+    public:
+        flat_distribution(double = 0.0, double = 0.0) {} // Dummy constructor to match the interface of std::uniform_real_distribution
+        template <typename RNG> double operator() (RNG& rng) const {
+            return 1.0;
+        }
+    };
+
     /*
      * RotationModel defines how the robot's rotation is affected by noise.
      */
@@ -64,7 +64,7 @@ namespace BURST::models {
         }
     };
 
-    using FixedRotationModel = RotationModel<std::mt19937, detail::flat_distribution>;
+    using FixedRotationModel = RotationModel<std::mt19937, flat_distribution>;
    
     // Define Path-Trajectory pairs for movement models
     struct LinearModel {
