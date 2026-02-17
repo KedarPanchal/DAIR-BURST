@@ -162,6 +162,7 @@ namespace BURST::geometry {
                 // If the intersection point is valid, add it to the configuration vertices
                 configuration_vertices.push_back(*maybe_intersection);
             }
+
             // Check if the vertices are more than 2, simple, and not collinear
             // Return nullopt if these conditions fail
             if (configuration_vertices.size() <= 2) return nullptr;
