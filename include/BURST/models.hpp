@@ -1,8 +1,11 @@
 #ifndef MODELS_HPP
 #define MODELS_HPP
 
+#include <CGAL/Polygon_2_algorithms.h>
+
 #include <random>
 #include <optional>
+#include <cmath>
 
 #include "types.hpp"
 #include "configuration_geometry.hpp"
@@ -11,7 +14,7 @@ namespace BURST::models {
     
     // Internal implementations not intended for public use
     namespace detail {
-        // Generates the same number for every RNG, which is useful for testing
+        // Custom random number distribution that generates the same number for every RNG, which is useful for testing
         // This allows for templating the rotation model and avoiding inheritance
         class flat_distribution {
         public:
@@ -20,6 +23,15 @@ namespace BURST::models {
                 return 1.0;
             }
         };
+
+        // Type traits for validating whether a type can be used in a CGAL intersection computation against a polygon edge
+        template <typename T, typename = void>
+        struct is_valid_intersection_type : std::false_type {};
+        template <typename T>
+        struct is_valid_intersection_type<T, std::void_t<decltype(CGAL::intersection(std::declval<T>(), std::declval<Segment_2>()))>> : std::true_type {};
+
+        // TODO: Add type traits for validating that a type is a valid path type for generating paths
+        // This means having a 2-argument constructor with a start and end Point_2
     }
     
     /*
@@ -49,18 +61,75 @@ namespace BURST::models {
     };
 
     using FixedRotationModel = RotationModel<std::mt19937, detail::flat_distribution>;
-    
+   
+    // Define Path-Trajectory pairs for movement models
+    struct LinearModel {
+        using Path = Segment_2;
+        using Trajectory = Ray_2;
+    };
+
     /*
      * MovementModel defines how the robot's movement is affected by noise.
      */
-    template <typename Trajectory>
+    template <typename ModelType>
     class MovementModel {
     public:
-        Point_2 operator() (const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const;
-        Trajectory generateTrajectory(const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const;
+        std::optional<Point_2> operator() (const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
+            // If the origin doesn't lie on the configuration geometry boundary, then the movement is invalid, so return nullopt
+            if (CGAL::bounded_side_2(configuration_environment.vertex_begin(), configuration_environment.vertex_end(), origin) != CGAL::ON_BOUNDARY) {
+                return std::nullopt;
+            }
+
+            // Create a direction trajectory from the angle
+            Vector_2 direction_vector{std::cos(CGAL::to_double(angle)), std::sin(CGAL::to_double(angle))};
+            // Create a trajectory from the origin in the direction of the direction vector
+            typename ModelType::Trajectory trajectory{origin, direction_vector};
+
+            // Find the first intersection of the trajectory with the configuration geometry edges
+            for (auto edge_it = configuration_environment.edge_begin(); edge_it != configuration_environment.edge_end(); ++edge_it) {
+                // Skip if the origin is on the current edge, since that's where the robot is currently located
+                if (edge_it->has_on(origin)) continue;
+                
+                // Use CGAL's inbuilt intersection function if Trajectory is a valid type for intersection with the polygon edge
+                if constexpr (detail::is_valid_intersection_type<typename ModelType::Trajectory>::value) {
+                    auto maybe_intersection = CGAL::intersection(trajectory, *edge_it);
+
+                    // No intersection, so continue to the next edge
+                    if (!maybe_intersection.has_value()) continue;
+
+                    // If the intersection is a point we found the next position of the robot, so return it
+                    if (const Point_2* intersection_point = std::get_if<Point_2>(&*maybe_intersection)) return std::optional<Point_2>{*intersection_point};
+
+                    /*
+                     * The case of the trajectory being collinear with the edge shouldn't occur since the edge intersecting with the origin isn't considered
+                     * For the sake of completeness, the following is considered:
+                     * If the trajectory is collinear with the edge, the robot should intersect with another edge in the polygon given:
+                     * 1. The intersecting edge forms a convex vertex with another edge, so the robot can intersect the next edge at that vertex
+                     * 2. The intersecting edge forms a concave vertex with another edge, so the robot slides along the edge's direction until it intersects with another edge
+                     * Because of this, we can just continue to the next edge
+                     */
+                    // Continue to the next edge...
+                } else {
+                    // TODO: Figure out some interface for handling the case where the trajectory type isn't directly compatible with CGAL's intersection function
+                }
+            }
+
+            // No intersections with any edge, so the movement is invalid, so return nullopt
+            return std::nullopt;
+        }
+        std::optional<typename ModelType::Path> generatePath(const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
+            // Identify the endpoint of the path by using the operator() function
+            std::optional<Point_2> maybe_endpoint = (*this)(origin, angle, configuration_environment);
+
+            // If the endpoint doesn't exist, then the path is invalid, so return nullopt
+            if (!maybe_endpoint.has_value()) return std::nullopt;
+
+            // Otherwise generate a path from the origin to the endpoint and return it
+            return std::optional<typename ModelType::Path>{typename ModelType::Path{origin, *maybe_endpoint}};
+        }
     };
 
-    using LinearMovementModel = MovementModel<Segment_2>;
+    using LinearMovementModel = MovementModel<LinearModel>;
     
 }
 #endif
