@@ -98,8 +98,10 @@ classDiagram
     WallGeometry ..|> Renderable
 
     class ConfigurationGeometry {
-        +Segment getEdge(Point_2 intersection_point)*
-        +Segment getEdge(Segment_2 intersection_segment)*
+        +Segment_2 getEdge(Point_2 intersection_point)*
+        +Segment_2 getEdge(Segment_2 intersection_segment)*
+        +edge_iterator edge_begin()*
+        +edge_iterator edge_end()*
     }
     <<interface>> ConfigurationGeometry
     ConfigurationGeometry ..|> Renderable

@@ -24,13 +24,17 @@ namespace BURST {
     using Line_2 = Kernel::Line_2;
     using Polygon_2 = CGAL::Polygon_2<Kernel>;
     using Vector_2 = CGAL::Vector_2<Kernel>;
+
+    // Iterator types
+    using vertex_iterator = Polygon_2::Vertex_const_iterator;
+    using edge_iterator = Polygon_2::Edge_const_iterator;
     
     // Transformation types
     using Transformation = CGAL::Aff_transformation_2<Kernel>;
     
     // Rendering types
     using scene = CGAL::Graphics_scene;
-    using polygon_options = CGAL::Graphics_scene_options<Polygon_2, Polygon_2::Vertex_const_iterator, Polygon_2::Vertex_const_iterator, void*>;
+    using polygon_options = CGAL::Graphics_scene_options<Polygon_2, vertex_iterator, vertex_iterator, void*>;
     using color = CGAL::IO::Color;
 }
 #endif

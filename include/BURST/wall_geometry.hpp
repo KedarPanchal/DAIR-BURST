@@ -62,6 +62,14 @@ namespace BURST::geometry {
                 return std::nullopt;
             }
 
+            edge_iterator edge_begin() const noexcept override {
+                return this->configuration_shape.edges_begin();
+            }
+
+            edge_iterator edge_end() const noexcept override {
+                return this->configuration_shape.edges_end();
+            }
+
             void render(scene& scene) const noexcept override {
                 // TODO: Add a z-offset to the configuration geometry rendering so that it's visible
                 // Right now, we're getting lucky with how we ordered the rendering, but this could change as the scene gets more complex
