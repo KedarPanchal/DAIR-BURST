@@ -31,11 +31,9 @@ namespace BURST {
         std::unique_ptr<M> movement_model;
 
     public:
-        // TODO: Update constructors to fit new templated models
         Robot(fscalar robot_radius, fscalar max_rotation_error);
         Robot(fscalar robot_radius, fscalar max_rotation_error, unsigned int rotation_seed);
-        Robot(fscalar robot_radius, fscalar max_rotation_error, fscalar fixed_rotation_scale);
-        Robot(fscalar robot_radius, std::unique_ptr<R> rotation_model, std::unique_ptr<M> movement_model);
+
         void setConfigurationEnvironment(std::unique_ptr<ConfigurationGeometry> config_environment);
         const ConfigurationGeometry& getConfigurationEnvironment() const;
 

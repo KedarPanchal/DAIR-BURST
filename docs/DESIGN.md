@@ -48,8 +48,6 @@ classDiagram
 
         +Robot(fscalar robot_radius, fscalar max_rotation_error)
         +Robot(fscalar robot_radius, fscalar max_rotation_error, unsigned int rotation_seed)
-        +Robot(fscalar robot_radius, fscalar max_rotation_error, fscalar fixed_rotation_scale)
-        +Robot(fscalar robot_radius, fscalar max_rotation_error, RotationModel* rotation_model, MovementModel* movement_model)
         +void setConfigurationEnvironment(ConfigurationGeometry* configuration_environment)
         +ConfigurationGeometry getConfigurationEnvironment()
         +fscalar getRadius()
