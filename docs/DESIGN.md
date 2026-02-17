@@ -76,8 +76,6 @@ classDiagram
     WallGeometry ..|> Renderable
 
     class ConfigurationGeometry {
-        +Segment_2 getEdge(Point_2 intersection_point)*
-        +Segment_2 getEdge(Segment_2 intersection_segment)*
         +edge_iterator edge_begin()*
         +edge_iterator edge_end()*
     }
@@ -123,13 +121,6 @@ The `MovementModel` interface defines a functor that generates:
 * An endpoint for movement given an origin, angle and a robot's configuration space.
 * A trajectory for movement given an origin, angle, and robot's configuration space.
 
-Currently, there's 1 implementation of `MovementModel`:
-* `LinearMovementModel` - a policy that generates a straight line trajectory.
-
-> <p style="color: cyan; font-weight: bold;">NOTE:</p>
-> More implementations may be defined that create curved or nonlinear trajectories.
-> This may result in the return type of the functor being changed.
-
 ### Robot
 
 The `Robot` class is the main class of the simulation.
@@ -153,7 +144,7 @@ It generates `ConfigurationGeometry` based on the robot's shape and transferring
 
 The `ConfigurationGeometry` abstract class represents the configuration space of the robot.
 It's a polygon that represents the total space the center of the robot can occupy without overlapping with any wall.
-It contains methods to get the edge of the configuration space polygon based on an intersection point or line segment.
+It exposes an iterator over the edges of the polygon for various geometric tasks.
 
 The `ConfigurationGeometry` is an abstract class because it should neer be directly instantiated.
 

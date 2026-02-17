@@ -17,17 +17,16 @@ namespace BURST::geometry {
      */
     class ConfigurationGeometry : public Renderable {
     public:
+        // Initialize default destructor for use in unique_ptr
         ConfigurationGeometry() = default;
         virtual ~ConfigurationGeometry() = default;
-
+        // Delete copy constructor and assignment to only allow move semantics
         ConfigurationGeometry(const ConfigurationGeometry&) = delete;
         ConfigurationGeometry& operator= (const ConfigurationGeometry&) = delete;
 
         ConfigurationGeometry(ConfigurationGeometry&&) = default;
         ConfigurationGeometry& operator= (ConfigurationGeometry&&) = default;
 
-        virtual std::optional<Segment_2> getEdge(Point_2 intersection_point) const = 0;
-        virtual std::optional<Segment_2> getEdge(Segment_2 intersection_segment) const noexcept = 0;
         virtual edge_iterator edge_begin() const noexcept = 0;
         virtual edge_iterator edge_end() const noexcept = 0;
         virtual void render(scene& scene) const override = 0;

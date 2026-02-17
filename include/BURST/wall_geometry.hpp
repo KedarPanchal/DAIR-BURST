@@ -39,29 +39,6 @@ namespace BURST::geometry {
             }
 
         public:
-            std::optional<Segment_2> getEdge(Point_2 intersection_point) const noexcept override {
-                for (auto edge_it = this->configuration_shape.edges_begin(); edge_it != this->configuration_shape.edges_end(); edge_it++) {
-                    // TODO: For now, the first edge containing the point is returned
-                    // This doesn't handle corners
-                    // The paper doesn't handle corners, either, so let's deflect blame and procrastinate
-                    if (edge_it->has_on(intersection_point)) {
-                        return std::optional<Segment_2>{*edge_it};
-                    }
-                }
-                return std::nullopt;
-            }
-            std::optional<Segment_2> getEdge(Segment_2 intersection_segment) const noexcept override {
-                for (auto edge_it = this->configuration_shape.edges_begin(); edge_it != this->configuration_shape.edges_end(); edge_it++) {
-                    // Check if both endpoints of the intersection segment are on the edge
-                    // This means that the intersection is a subsegment of the edge
-                    if (edge_it->has_on(intersection_segment.source()) && edge_it->has_on(intersection_segment.target())) {
-                        return std::optional<Segment_2>{*edge_it};
-                    }
-                }
-                // No edge :(
-                return std::nullopt;
-            }
-
             edge_iterator edge_begin() const noexcept override {
                 return this->configuration_shape.edges_begin();
             }
