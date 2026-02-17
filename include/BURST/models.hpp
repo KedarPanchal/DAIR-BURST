@@ -30,8 +30,10 @@ namespace BURST::models {
         template <typename T>
         struct is_valid_intersection_type<T, std::void_t<decltype(CGAL::intersection(std::declval<T>(), std::declval<Segment_2>()))>> : std::true_type {};
 
-        // TODO: Add type traits for validating that a type is a valid path type for generating paths
-        // This means having a 2-argument constructor with a start and end Point_2
+        template <typename T, typename = void>
+        struct is_valid_path_type : std::false_type {};
+        template <typename T>
+        struct is_valid_path_type<T, std::void_t<decltype(T(std::declval<Point_2>(), std::declval<Point_2>()))>> : std::true_type {};
     }
     
     /*
@@ -73,6 +75,8 @@ namespace BURST::models {
      */
     template <typename ModelType>
     class MovementModel {
+    // Validate type traits
+    static_assert(detail::is_valid_path_type<typename ModelType::Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end Point_2s");
     public:
         std::optional<Point_2> operator() (const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
             // If the origin doesn't lie on the configuration geometry boundary, then the movement is invalid, so return nullopt
