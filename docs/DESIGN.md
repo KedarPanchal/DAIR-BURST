@@ -78,6 +78,7 @@ classDiagram
         +edge_iterator edge_end()*
         +vertex_iterator vertex_begin()*
         +vertex_iterator vertex_end()*
+        +winding_order orientation()*
     }
     <<interface>> ConfigurationGeometry
     ConfigurationGeometry ..|> Renderable

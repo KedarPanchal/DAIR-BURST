@@ -60,6 +60,10 @@ namespace BURST::geometry {
                 return this->configuration_shape.vertices_end();
             }
 
+            winding_order orientation() const noexcept override {
+                return this->configuration_shape.orientation();
+            }
+
             void render(scene& scene) const noexcept override {
                 // TODO: Add a z-offset to the configuration geometry rendering so that it's visible
                 // Right now, we're getting lucky with how we ordered the rendering, but this could change as the scene gets more complex

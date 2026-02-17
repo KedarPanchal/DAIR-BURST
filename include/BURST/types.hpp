@@ -7,6 +7,7 @@
 #include <CGAL/Aff_transformation_2.h>
 #include <CGAL/Graphics_scene.h>
 #include <CGAL/Basic_viewer.h>
+#include <CGAL/enum.h>
 #include <CGAL/Graphics_scene_options.h>
 #include <CGAL/IO/Color.h>
 
@@ -24,6 +25,7 @@ namespace BURST {
     using Line_2 = Kernel::Line_2;
     using Ray_2 = Kernel::Ray_2;
     using Polygon_2 = CGAL::Polygon_2<Kernel>;
+    using winding_order = CGAL::Orientation;
     using Vector_2 = CGAL::Vector_2<Kernel>;
 
     // Iterator types

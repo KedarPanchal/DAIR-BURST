@@ -29,6 +29,7 @@ namespace BURST::geometry {
         virtual edge_iterator edge_end() const noexcept = 0;
         virtual vertex_iterator vertex_begin() const noexcept = 0;
         virtual vertex_iterator vertex_end() const noexcept = 0;
+        virtual winding_order orientation() const noexcept = 0;
         virtual void render(scene& scene) const override = 0;
     };
     

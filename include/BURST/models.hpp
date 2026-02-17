@@ -88,7 +88,17 @@ namespace BURST::models {
 
             // Create a direction trajectory from the angle
             Vector_2 direction_vector{std::cos(CGAL::to_double(angle)), std::sin(CGAL::to_double(angle))};
-            // TODO: Validate that the direction vector doesn't point outwards from the configuration geometry, which would make the movement invalid, and return nullopt if it does
+
+            // Check that the direction_vector points into the configuration geometry, otherwise the movement is invalid
+            // Iterate through edges to find the one the origin lies on
+            for (auto edge_it = configuration_environment.edge_begin(); edge_it != configuration_environment.edge_end(); ++edge_it) {
+                if (!edge_it->has_on(origin)) continue; // Skip if the origin is not on the current edge
+                // Compute the normal to the edge vector
+                Vector_2 edge_normal = edge_it->to_vector().perpendicular(configuration_environment.orientation());
+                // If the dot product between the direction vector and the edge normal is non-positive, then the direction vector points outside the configuration geometry
+                // This means the movement is invalid, so return nullopt
+                if (direction_vector * edge_normal <= 0) return std::nullopt;
+            }
             
             // Create a trajectory from the origin in the direction of the direction vector
             typename ModelType::Trajectory trajectory{origin, direction_vector};
