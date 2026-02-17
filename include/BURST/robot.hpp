@@ -7,15 +7,19 @@
 #include "models.hpp"
 
 using ConfigurationGeometry = BURST::geometry::ConfigurationGeometry;
-using RotationModel = BURST::models::RotationModel;
-using MovementModel = BURST::models::MovementModel;
 
 namespace BURST {
+    // Declare type traits for validating Robot class template parameters
+    template <typename R>
+    struct is_valid_rotation_model : std::false_type {};
+    template <typename PRNG, typename Dist>
+    struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
 
     /*
      * The robot class represents a circular, blind, unreliable robot.
      * Its rotational and translational movements are affected by noise and uses models to determine the impact of this noise.
      */
+    template <typename R, typename M>
     class Robot : public Renderable {
     private:
         fscalar radius;
@@ -23,14 +27,15 @@ namespace BURST {
         fscalar y_position;
         std::unique_ptr<ConfigurationGeometry> configuration_environment;
 
-        std::unique_ptr<RotationModel> rotation_model;
-        std::unique_ptr<MovementModel> movement_model;
+        std::unique_ptr<R> rotation_model;
+        std::unique_ptr<M> movement_model;
 
     public:
+        // TODO: Update constructors to fit new templated models
         Robot(fscalar robot_radius, fscalar max_rotation_error);
         Robot(fscalar robot_radius, fscalar max_rotation_error, unsigned int rotation_seed);
         Robot(fscalar robot_radius, fscalar max_rotation_error, fscalar fixed_rotation_scale);
-        Robot(fscalar robot_radius, std::unique_ptr<RotationModel> rotation_model, std::unique_ptr<MovementModel> movement_model);
+        Robot(fscalar robot_radius, std::unique_ptr<R> rotation_model, std::unique_ptr<M> movement_model);
         void setConfigurationEnvironment(std::unique_ptr<ConfigurationGeometry> config_environment);
         const ConfigurationGeometry& getConfigurationEnvironment() const;
 
