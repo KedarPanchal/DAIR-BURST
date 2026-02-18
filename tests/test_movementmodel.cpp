@@ -11,14 +11,16 @@
 class MovementModelInSquareTest : public ::testing::Test {
 protected:
     std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_geometry;
+    BURST::Point_2 corner_vertex;
+    BURST::Point_2 edge_midpoint;
 
     void SetUp() override {
         // Construct a TestWallGeometry for a square and generate a ConfigurationGeometry with a robot radius of 1
         auto wall_geometry = TestWallGeometry::create({
-            BURST::Point_2(0, 0),
-            BURST::Point_2(10, 0),
-            BURST::Point_2(10, 10),
-            BURST::Point_2(0, 10)
+            BURST::Point_2{0, 0},
+            BURST::Point_2{10, 0},
+            BURST::Point_2{10, 10},
+            BURST::Point_2{0, 10}
         });
         // Expect the WallGeometry to be non-degenerate
         // i.e. it is not nullopt
@@ -27,6 +29,10 @@ protected:
         // Construct a configuration geometry for a robot with radius 1
         this->configuration_geometry = wall_geometry->testConstructConfigurationGeometry(1.0);
         ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationGeometry from WallGeometry in test fixture setup";
+
+        // Define a corner and midpoint for use in tests
+        this->corner_vertex = BURST::Point_2{1, 1};
+        this->edge_midpoint = BURST::Point_2{5, 1};
     }
 };
 
@@ -37,14 +43,16 @@ protected:
 class MovementModelInConcaveTest : public ::testing::Test {
 protected:
     std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_geometry;
+    BURST::Point_2 concave_vertex;
+    BURST::Point_2 edge_midpoint;
     
     void SetUp() override {
         // Construct a TestWallGeometry for a concave polygon and generate a ConfigurationGeometry with a robot radius of 1
         auto wall_geometry = TestWallGeometry::create({
-            BURST::Point_2(0, 20),
-            BURST::Point_2(-20, -20),
-            BURST::Point_2(0, 0),
-            BURST::Point_2(20, -20)
+            BURST::Point_2{0, 20},
+            BURST::Point_2{-20, -20},
+            BURST::Point_2{0, 0},
+            BURST::Point_2{20, -20}
         });
         // Expect the WallGeometry to be non-degenerate
         // i.e. it is not nullopt
@@ -53,6 +61,23 @@ protected:
         // Construct a configuration geometry for a robot with radius 1
         this->configuration_geometry = wall_geometry->testConstructConfigurationGeometry(1.0);
         ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationGeometry from WallGeometry in test fixture setup";
+        
+
+        // Identify the concave vertex of the configuration geometry for use in tests
+        for (auto vertex_it = this->configuration_geometry->vertex_begin(); vertex_it != this->configuration_geometry->vertex_end(); vertex_it++) {
+            if (vertex_it->x() == 0 && vertex_it->y() < 2) {
+                this->concave_vertex = *vertex_it;
+                break;
+            }
+        }
+        
+        // Find an edge of the configuration geometry that contains the concave vertex and identify its midpoint for use in tests
+        for (auto edge_it = this->configuration_geometry->edge_begin(); edge_it != this->configuration_geometry->edge_end(); edge_it++) {
+            if (edge_it->target().x() == 0 && edge_it->target().y() < 2) {
+                this->edge_midpoint = CGAL::midpoint(edge_it->source(), edge_it->target());
+                break;
+            }
+        }
     }
 };
 
@@ -61,8 +86,8 @@ protected:
  TEST_F(MovementModelInSquareTest, ValidLinearMovementInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the midpoint of the bottom edge of the configuration geometry
-    BURST::Point_2 origin = BURST::Point_2{5, 1};
+    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    BURST::Point_2 origin = this->edge_midpoint;
     // Generate a movement from the bottom edge towards the interior at a 45 degree angle
     std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_geometry);
 
@@ -75,8 +100,8 @@ protected:
  TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the first corner of the configuration geometry
-    BURST::Point_2 origin = BURST::Point_2{1, 1};
+    // Use the corner vertex of the configuration geometry as the origin
+    BURST::Point_2 origin = this->corner_vertex;
     // Generate a movement from the corner towards the interior at a 45 degree angle
     std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_geometry);
 
@@ -89,8 +114,8 @@ protected:
 TEST_F(MovementModelInSquareTest, ValidLinearMovementAlongEdgeInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the midpoint of the bottom edge of the configuration geometry
-    BURST::Point_2 origin = BURST::Point_2{5, 1};
+    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    BURST::Point_2 origin = this->edge_midpoint;
     // Generate a movement from the bottom edge towards the right along the edge at a 0 degree angle
     std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, 0, *this->configuration_geometry);
 
@@ -135,8 +160,8 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAlongEdgeInSquare) {
  TEST_F(MovementModelInSquareTest, InvalidLinearMovementPointingOutwardInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the midpoint of the bottom edge of the configuration geometry
-    BURST::Point_2 origin = BURST::Point_2{5, 1};
+    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    BURST::Point_2 origin = this->edge_midpoint;
     // Generate a movement from the edge towards the exterior at a 45 degree angle
     std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, -CGAL_PI/4, *this->configuration_geometry);
 
@@ -149,8 +174,8 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAlongEdgeInSquare) {
 TEST_F(MovementModelInConcaveTest, ValidLinearMovementInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the midpoint of the first edge of the configuration geometry
-    BURST::Point_2 origin = BURST::Point_2{-10, -10};
+    // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
+    BURST::Point_2 origin = this->edge_midpoint;
     // Generate a movement from the first edge towards the interior at a 90 degree angle
     std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_geometry);
 
@@ -163,8 +188,8 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementInConcave) {
 TEST_F(MovementModelInConcaveTest, ValidLinearMovementAtConcaveCornerInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the concave vertex of the configuration geometry
-    BURST::Point_2 origin = BURST::Point_2{0, 0};
+    // Use the concave vertex of the configuration geometry as the origin
+    BURST::Point_2 origin = this->concave_vertex;
     // Generate a movement from the concave vertex towards the interior at a 90 degree angle
     std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_geometry);
 
@@ -177,10 +202,10 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAtConcaveCornerInConcave) 
 TEST_F(MovementModelInConcaveTest, ValidLinearMovementAlongEdgeInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the midpoint of the first edge of the configuration geometry
-    BURST::Point_2 origin = BURST::Point_2{-10, -10};
+    // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
+    BURST::Point_2 origin = this->edge_midpoint;
     // Generate a movement from the first edge towards the right along the edge at a 45 degree angle
-    std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, 0, *this->configuration_geometry);
+    std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_geometry);
 
     // Expect the movement to be valid
     // i.e., it is not nullopt
@@ -195,8 +220,8 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAlongEdgeInConcave) {
 TEST_F(MovementModelInConcaveTest, InvalidLinearMovementPointingOutwardAtConcaveCornerInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the concave vertex of the configuration geometry
-    BURST::Point_2 origin = BURST::Point_2{0, 0};
+    // Use the concave vertex of the configuration geometry as the origin
+    BURST::Point_2 origin = this->concave_vertex;
     // Generate a movement from the concave vertex towards the exterior at a -90 degree angle
     std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, -CGAL_PI/2, *this->configuration_geometry);
 

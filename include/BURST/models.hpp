@@ -91,9 +91,7 @@ namespace BURST::models {
     public:
         std::optional<Point_2> operator() (const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
             // If the origin doesn't lie on the configuration geometry boundary, then the movement is invalid, so return nullopt
-            if (CGAL::bounded_side_2(configuration_environment.vertex_begin(), configuration_environment.vertex_end(), origin) != CGAL::ON_BOUNDARY) {
-                return std::nullopt;
-            }
+            if (CGAL::bounded_side_2(configuration_environment.vertex_begin(), configuration_environment.vertex_end(), origin) != CGAL::ON_BOUNDARY) return std::nullopt;
 
             // Create a direction trajectory from the angle
             Vector_2 direction_vector{std::cos(CGAL::to_double(angle)), std::sin(CGAL::to_double(angle))};
@@ -106,7 +104,7 @@ namespace BURST::models {
                 Vector_2 edge_normal = edge_it->to_vector().perpendicular(configuration_environment.orientation());
                 // If the dot product between the direction vector and the edge normal is non-positive, then the direction vector points outside the configuration geometry
                 // This means the movement is invalid, so return nullopt
-                if (direction_vector * edge_normal <= 0) return std::nullopt;
+                if (direction_vector * edge_normal < 0) return std::nullopt;
             }
             
             // Create a trajectory from the origin in the direction of the direction vector
