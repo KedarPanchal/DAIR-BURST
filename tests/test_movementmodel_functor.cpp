@@ -5,7 +5,7 @@
 #include "test_helpers.hpp"
 #include <optional>
 
-// Test generating a valid movement with a linear movement model
+// Test generating a valid movement with a linear movement model in a square
 // This means that the movement should be in a straight line towards the interior of the configuration geometry
 TEST_F(MovementModelInSquareTest, ValidLinearMovementInSquare) {
     // Construct a LinearMovementModel
@@ -18,9 +18,13 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementInSquare) {
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    // Expect the endpoint to not be the same as the origin
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    }
 }
 
-// Test generating a valid movement with a linear movement model at a corner
+// Test generating a valid movement with a linear movement model at a corner in a square
 TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
@@ -32,9 +36,13 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerInSquare) {
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    // Expect the endpoint to not be the same as the origin
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    }
 }
 
-// Test generating a valid movement with a linear movement model along the edge
+// Test generating a valid movement with a linear movement model along the edge in a square
 TEST_F(MovementModelInSquareTest, ValidLinearMovementAlongEdgeInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
@@ -52,7 +60,7 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAlongEdgeInSquare) {
     }
 }
 
-// Test generating an invalid movement with a linear movement model with a point inside but not on the configuration geometry edge
+// Test generating an invalid movement with a linear movement model with a point inside but not on the configuration geometry edge in a square
 TEST_F(MovementModelInSquareTest, InvalidInteriorLinearMovementInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
@@ -66,7 +74,7 @@ TEST_F(MovementModelInSquareTest, InvalidInteriorLinearMovementInSquare) {
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
 }
 
-// Test generating an invalid movement with a linear movement model with a point outside the configuration geometry
+// Test generating an invalid movement with a linear movement model with a point outside the configuration geometry in a square
 TEST_F(MovementModelInSquareTest, InvalidExteriorLinearMovementInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
@@ -80,7 +88,7 @@ TEST_F(MovementModelInSquareTest, InvalidExteriorLinearMovementInSquare) {
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
 }
 
-// Test generating an invalid movement with a linear movement model with a point on the edge but a direction pointing outside the configuration geometry
+// Test generating an invalid movement with a linear movement model with a point on the edge but a direction pointing outside the configuration geometry in a square
 TEST_F(MovementModelInSquareTest, InvalidLinearMovementPointingOutwardInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
@@ -106,6 +114,10 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementInConcave) {
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    // Expect the endpoint to not be the same as the origin
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    }
 }
 
 // Test generating an valid movement with a linear movement model in a concave configuration geometry at a concave vertex
@@ -120,6 +132,10 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAtConcaveCornerInConcave) 
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    // Expect the endpoint to not be the same as the origin
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    }
 }
 
 // Test generating a valid movement with a linear movement model in a concave configuration geometry along the edge
@@ -129,7 +145,7 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAlongEdgeInConcave) {
     // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
     BURST::Point_2 origin = this->edge_midpoint;
     // Generate a movement from the first edge towards the right along the edge at a 45 degree angle
-    std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_geometry);
+    std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_geometry);
 
     // Expect the movement to be valid
     // i.e., it is not nullopt

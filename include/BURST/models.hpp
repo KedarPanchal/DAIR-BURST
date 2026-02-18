@@ -148,7 +148,8 @@ namespace BURST::models {
 
             // If the endpoint doesn't exist, then the path is invalid, so return nullopt
             if (!maybe_endpoint.has_value()) return std::nullopt;
-
+            // If the origin and endpoint are the same, then the path is invalid, so return nullopt
+            if (*maybe_endpoint == origin) return std::nullopt;
             // Otherwise generate a path from the origin to the endpoint and return it
             return std::optional<typename ModelType::Path>{typename ModelType::Path{origin, *maybe_endpoint}};
         }
