@@ -18,9 +18,11 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementInSquare) {
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
-    // Expect the endpoint to not be the same as the origin
+    // Expect the endpoint to not be the same as the origin, fail otherwise
     if (maybe_endpoint.has_value()) {
         EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
     }
 }
 
@@ -36,9 +38,11 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerInSquare) {
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
-    // Expect the endpoint to not be the same as the origin
+    // Expect the endpoint to not be the same as the origin, fail otherwise
     if (maybe_endpoint.has_value()) {
         EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
     }
 }
 
@@ -54,9 +58,31 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAlongEdgeInSquare) {
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
-    // Expect the endpoint to not be the same as the origin
+    // Expect the endpoint to not be the same as the origin, fail otherwise
     if (maybe_endpoint.has_value()) {
         EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
+    }
+}
+
+// Test generating a valid movement with a linear movement model at a corner and along the edge in a square
+TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerAlongEdgeInSquare) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the corner vertex of the configuration geometry as the origin
+    BURST::Point_2 origin = this->corner_vertex;
+    // Generate a movement from the corner towards the right along the edge at a 0 degree angle
+    std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, 0, *this->configuration_geometry);  
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    // Expect the endpoint to not be the same as the origin, fail otherwise
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
     }
 }
 
@@ -114,9 +140,11 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementInConcave) {
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
-    // Expect the endpoint to not be the same as the origin
+    // Expect the endpoint to not be the same as the origin, fail otherwise
     if (maybe_endpoint.has_value()) {
         EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
     }
 }
 
@@ -132,9 +160,11 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAtConcaveCornerInConcave) 
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
-    // Expect the endpoint to not be the same as the origin
+    // Expect the endpoint to not be the same as the origin, fail otherwise
     if (maybe_endpoint.has_value()) {
         EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
     }
 }
 
@@ -150,9 +180,31 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAlongEdgeInConcave) {
     // Expect the movement to be valid
     // i.e., it is not nullopt
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
-    // Expect the endpoint to not be the same as the origin
+    // Expect the endpoint to not be the same as the origin, fail otherwise
     if (maybe_endpoint.has_value()) {
         EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
+    }
+}
+
+// Test generating a valid movement with a linear movement model at a concave corner and along the edge in a concave configuration geometry
+TEST_F(MovementModelInConcaveTest, ValidLinearMovementAtConcaveCornerAlongEdgeInConcave) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the concave vertex of the configuration geometry as the origin
+    BURST::Point_2 origin = this->concave_vertex;
+    // Generate a movement from the concave vertex towards the right along the edge at a -45 degree angle
+    std::optional<BURST::Point_2> maybe_endpoint = movement_model(origin, -CGAL_PI/4, *this->configuration_geometry);
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    // Expect the endpoint to not be the same as the origin, fail otherwise
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
     }
 }
 
