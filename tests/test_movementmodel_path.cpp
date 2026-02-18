@@ -95,7 +95,7 @@ TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryAlongEdgeInConcave) {
     auto movement_model = BURST::models::LinearMovementModel{};
     // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
     BURST::Point_2 origin = this->edge_midpoint;
-    // Generate a trajectory from the first edge towards the right along the edge at a 0 degree angle
+    // Generate a trajectory from the first edge towards the right along the edge at a 45 degree angle
     std::optional<BURST::Segment_2> maybe_path = movement_model.generatePath(origin, CGAL_PI/4, *this->configuration_geometry);
 
     // Expect the trajectory to be valid
