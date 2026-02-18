@@ -25,7 +25,7 @@ namespace BURST::models {
         template <typename T, typename = void>
         struct is_valid_path_type : std::false_type {};
         template <typename T>
-        struct is_valid_path_type<T, std::void_t<decltype(T(std::declval<Point_2>(), std::declval<Point_2>()))>> : std::true_type {};
+        struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<Point_2>(), std::declval<Point_2>()})>> : std::true_type {};
     }
     
     // Custom random number distribution that generates the same number for every RNG, which is useful for testing
