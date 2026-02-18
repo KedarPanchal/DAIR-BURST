@@ -16,7 +16,7 @@ if (TEST_SCOPE STREQUAL "all")
         test_wallgeometry_rendering.cpp
         test_configurationgeometry_rendering.cpp
         test_rotationmodel.cpp
-        test_movementmodel.cpp
+        test_movementmodel_functor.cpp
     )
     target_link_libraries(test_all
         PRIVATE BURST
@@ -50,7 +50,7 @@ elseif(TEST_SCOPE STREQUAL "categorized")
     # Build only model-related tests
     add_executable(test_models
         test_rotationmodel.cpp
-        test_movementmodel.cpp
+        test_movementmodel_functor.cpp
     )
     target_link_libraries(test_models
         PRIVATE BURST
@@ -110,15 +110,15 @@ else()
     )
     target_compile_options(test_rotationmodel PRIVATE -g)
 
-    # Movement model tests
-    add_executable(test_movementmodel
-        test_movementmodel.cpp
+    # Movement model operator() tests
+    add_executable(test_movementmodel_functor
+        test_movementmodel_functor.cpp
     )
-    target_link_libraries(test_movementmodel
+    target_link_libraries(test_movementmodel_functor
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_movementmodel PRIVATE -g)
+    target_compile_options(test_movementmodel_functor PRIVATE -g)
 endif()
 
 
