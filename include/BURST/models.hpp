@@ -6,7 +6,6 @@
 #include <utility>
 #include <random>
 #include <optional>
-#include <cmath>
 
 #include "types.hpp"
 #include "configuration_geometry.hpp"
@@ -95,7 +94,8 @@ namespace BURST::models {
 
             // Create a direction trajectory from the angle
             // TODO: Computing this introduces some floating point errors, so figure out how to compute trigonometric functions in a way that minimizes this
-            Vector_2 direction_vector{std::cos(CGAL::to_double(angle)), std::sin(CGAL::to_double(angle))};
+            hp_scalar hp_angle = to_high_precision(angle);
+            Vector_2 direction_vector{bmp::cos(hp_angle), bmp::sin(hp_angle)};
 
             // Check that the direction_vector points into the configuration geometry, otherwise the movement is invalid
             // Iterate through edges to find the one the origin lies on
@@ -106,7 +106,7 @@ namespace BURST::models {
                 // If the dot product between the direction vector and the edge normal is non-positive, then the direction vector points outside the configuration geometry
                 // This means the movement is invalid, so return nullopt
                 // Use a small margin to account for floating point errors
-                if (direction_vector * edge_normal < -0.000001) return std::nullopt;
+                if (direction_vector * edge_normal < -0.00000001) return std::nullopt;
             }
             
             // Create a trajectory from the origin in the direction of the direction vector

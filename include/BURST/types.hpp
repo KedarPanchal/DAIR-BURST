@@ -11,13 +11,19 @@
 #include <CGAL/Graphics_scene_options.h>
 #include <CGAL/IO/Color.h>
 
+#include <boost/multiprecision/mpfr.hpp>
+
+#include <sstream>
+
 namespace BURST {
     // Kernel
     using Kernel = CGAL::Exact_predicates_exact_constructions_kernel_with_sqrt;
+    namespace bmp = boost::multiprecision;
     
     // Scalar/numeric types
     using fscalar = Kernel::FT;
     using rscalar = Kernel::RT;
+    using hp_scalar = bmp::number<bmp::mpfr_float_backend<100>>; // 100 decimal digits of precision
     
     // Geometric types
     using Point_2 = Kernel::Point_2;
@@ -39,5 +45,13 @@ namespace BURST {
     using scene = CGAL::Graphics_scene;
     using polygon_options = CGAL::Graphics_scene_options<Polygon_2, vertex_iterator, vertex_iterator, void*>;
     using color = CGAL::IO::Color;
+
+    // Type conversion functions
+    template <typename FT>
+    hp_scalar to_high_precision(const FT& value) {
+        std::ostringstream str_representation;
+        str_representation << std::setprecision(100) << value; // 100-decimal precision string
+        return hp_scalar{str_representation.str()}; // Construct high-precision scalar from string
+    }
 }
 #endif
