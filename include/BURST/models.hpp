@@ -27,6 +27,13 @@ namespace BURST::models {
         struct is_valid_path_type : std::false_type {};
         template <typename T>
         struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<Point_2>(), std::declval<Point_2>()})>> : std::true_type {};
+
+        // Type traits for validating whether a type can be a Trajectory for a movement model
+        // This requires a 2-argument constructor that accepts an origin Point_2 and a direction Vector_2 (like Ray_2)
+        template <typename T, typename = void>
+        struct is_valid_trajectory_type : std::false_type {};
+        template <typename T>
+        struct is_valid_trajectory_type<T, std::void_t<decltype(T{std::declval<Point_2>(), std::declval<Vector_2>()})>> : std::true_type {};
     }
     
     // Custom random number distribution that generates the same number for every RNG, which is useful for testing
@@ -80,6 +87,7 @@ namespace BURST::models {
     class MovementModel {
     // Validate type traits
     static_assert(detail::is_valid_path_type<typename ModelType::Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end Point_2s");
+    static_assert(detail::is_valid_trajectory_type<typename ModelType::Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin Point_2 and a direction Vector_2");
     public:
         std::optional<Point_2> operator() (const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
             // If the origin doesn't lie on the configuration geometry boundary, then the movement is invalid, so return nullopt
