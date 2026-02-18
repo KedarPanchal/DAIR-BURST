@@ -3,6 +3,7 @@
 
 #include <CGAL/Polygon_2_algorithms.h>
 
+#include <utility>
 #include <random>
 #include <optional>
 #include <cmath>
