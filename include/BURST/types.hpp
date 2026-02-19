@@ -55,9 +55,5 @@ namespace BURST {
         str_representation << std::setprecision(100) << value; // 100-decimal precision string
         return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
     }
-    
-    // Global constants
-    const auto EPSILON = std::numeric_limits<hpscalar>::epsilon();
-    const auto TOLERANCE = bmp::sqrt(EPSILON); // sqrt(epsilon) is usually used as a tolerance for numeric analysis, so hopefully it works with trig
 }
 #endif
