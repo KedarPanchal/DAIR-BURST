@@ -14,16 +14,18 @@
 #include <boost/multiprecision/mpfr.hpp>
 
 #include <sstream>
+#include <limits.h>
 
 namespace BURST {
-    // Kernel
+    // Top-level
     using Kernel = CGAL::Exact_predicates_exact_constructions_kernel_with_sqrt;
     namespace bmp = boost::multiprecision;
+    constexpr unsigned int HP_PRECISION = 100; // 100 decimal digits of precision for high-precision scalar type
     
     // Scalar/numeric types
     using fscalar = Kernel::FT;
     using rscalar = Kernel::RT;
-    using hpscalar = bmp::number<bmp::mpfr_float_backend<100>>; // 100 decimal digits of precision
+    using hpscalar = bmp::number<bmp::mpfr_float_backend<HP_PRECISION>>; 
     
     // Geometric types
     using Point_2 = Kernel::Point_2;
@@ -53,7 +55,9 @@ namespace BURST {
         str_representation << std::setprecision(100) << value; // 100-decimal precision string
         return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
     }
-
+    
     // Global constants
+    const auto EPSILON = std::numeric_limits<hpscalar>::epsilon();
+    const auto TOLERANCE = bmp::sqrt(EPSILON); // sqrt(epsilon) is usually used as a tolerance for numeric analysis, so hopefully it works with trig
 }
 #endif
