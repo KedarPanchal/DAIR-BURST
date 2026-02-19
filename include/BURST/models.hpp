@@ -94,7 +94,7 @@ namespace BURST::models {
 
             // Create a direction trajectory from the angle
             // TODO: Computing this introduces some floating point errors, so figure out how to compute trigonometric functions in a way that minimizes this
-            hp_scalar hp_angle = to_high_precision(angle);
+            hpscalar hp_angle = to_high_precision(angle);
             Vector_2 direction_vector{bmp::cos(hp_angle), bmp::sin(hp_angle)};
 
             // Check that the direction_vector points into the configuration geometry, otherwise the movement is invalid
@@ -106,6 +106,7 @@ namespace BURST::models {
                 // If the dot product between the direction vector and the edge normal is non-positive, then the direction vector points outside the configuration geometry
                 // This means the movement is invalid, so return nullopt
                 // Use a small margin to account for floating point errors
+                // TODO: Convert this float to a prettier binary float
                 if (direction_vector * edge_normal < -0.00000001) return std::nullopt;
             }
             

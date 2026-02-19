@@ -23,7 +23,7 @@ namespace BURST {
     // Scalar/numeric types
     using fscalar = Kernel::FT;
     using rscalar = Kernel::RT;
-    using hp_scalar = bmp::number<bmp::mpfr_float_backend<100>>; // 100 decimal digits of precision
+    using hpscalar = bmp::number<bmp::mpfr_float_backend<100>>; // 100 decimal digits of precision
     
     // Geometric types
     using Point_2 = Kernel::Point_2;
@@ -48,10 +48,12 @@ namespace BURST {
 
     // Type conversion functions
     template <typename FT>
-    hp_scalar to_high_precision(const FT& value) {
+    hpscalar to_high_precision(const FT& value) {
         std::ostringstream str_representation;
         str_representation << std::setprecision(100) << value; // 100-decimal precision string
-        return hp_scalar{str_representation.str()}; // Construct high-precision scalar from string
+        return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
     }
+
+    // Global constants
 }
 #endif
