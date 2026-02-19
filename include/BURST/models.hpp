@@ -93,21 +93,15 @@ namespace BURST::models {
             if (CGAL::bounded_side_2(configuration_environment.vertex_begin(), configuration_environment.vertex_end(), origin) != CGAL::ON_BOUNDARY) return std::nullopt;
 
             // Create a direction trajectory from the angle
-            // TODO: Computing this introduces some floating point errors, so figure out how to compute trigonometric functions in a way that minimizes this
-            hp_scalar hp_angle = to_high_precision(angle);
+            hpscalar hp_angle = to_high_precision(angle);
             Vector_2 direction_vector{bmp::cos(hp_angle), bmp::sin(hp_angle)};
-
-            // Check that the direction_vector points into the configuration geometry, otherwise the movement is invalid
-            // Iterate through edges to find the one the origin lies on
-            for (auto edge_it = configuration_environment.edge_begin(); edge_it != configuration_environment.edge_end(); ++edge_it) {
-                if (!edge_it->has_on(origin)) continue; // Skip if the origin is not on the current edge
-                // Compute the normal to the edge vector
-                Vector_2 edge_normal = edge_it->to_vector().perpendicular(configuration_environment.orientation());
-                // If the dot product between the direction vector and the edge normal is non-positive, then the direction vector points outside the configuration geometry
-                // This means the movement is invalid, so return nullopt
-                // Use a small margin to account for floating point errors
-                if (direction_vector * edge_normal < -0.00000001) return std::nullopt;
-            }
+            
+            /*
+             * RIP Direction Checking Code (2026 - 2026)
+             * There used to be code here to check whether the direction pointed outside the polygon.
+             * This wasn't needed in the first place as if it pointed outside the polygon, it would not intersect with any edges in the first place.
+             * TODO: Polygons with holes might put holes (heh) in this logic, so figure this out later.
+             */
             
             // Create a trajectory from the origin in the direction of the direction vector
             typename ModelType::Trajectory trajectory{origin, direction_vector};
