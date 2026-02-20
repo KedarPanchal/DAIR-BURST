@@ -27,7 +27,7 @@ namespace BURST {
     static_assert(detail::is_valid_rotation_model<R>::value, "R must be a valid rotation model");
 
     private:
-        fscalar radius;
+        rscalar radius;
         fscalar x_position;
         fscalar y_position;
         std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_environment;
@@ -43,9 +43,9 @@ namespace BURST {
         const BURST::geometry::ConfigurationGeometry& getConfigurationEnvironment() const;
 
         fscalar getRadius() const;
-        Point_2 shootRay(fscalar angle) const;
-        Polygon_2 generateStadium(fscalar angle) const;
-        Polygon_2 generateCCR(fscalar angle) const;
+        Point2D shootRay(fscalar angle) const;
+        Polygon2D generateStadium(fscalar angle) const;
+        Polygon2D generateCCR(fscalar angle) const;
         void move(fscalar angle);
 
         void render(scene& scene) const override;

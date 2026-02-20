@@ -1,10 +1,11 @@
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
-#include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
+#include <CGAL/Cartesian.h>
+#include <CGAL/CORE_algebraic_number_traits.h>
+#include <CGAL/Gps_traits_2.h>
 #include <CGAL/Polygon_2.h>
-#include <CGAL/Vector_2.h>
-#include <CGAL/Aff_transformation_2.h>
+#include <CGAL/Arr_conic_traits_2.h>
 #include <CGAL/Graphics_scene.h>
 #include <CGAL/Basic_viewer.h>
 #include <CGAL/enum.h>
@@ -13,47 +14,41 @@
 
 #include <boost/multiprecision/mpfr.hpp>
 
-#include <sstream>
-#include <limits.h>
-
 namespace BURST {
     // Top-level
-    using Kernel = CGAL::Exact_predicates_exact_constructions_kernel_with_sqrt;
+    using NumberTraits = CGAL::CORE_algebraic_number_traits;
+    using AlgebraicKernel = CGAL::Cartesian<NumberTraits::Algebraic>; // Used for computation
+    using RationalKernel = CGAL::Cartesian<NumberTraits::Rational>; // Used for polygon construction
+    using ConicTraits = CGAL::Arr_conic_traits_2<RationalKernel, AlgebraicKernel, NumberTraits>; // Used for creating curved polygons
+    using GeneralPolygonTraits = CGAL::Gps_traits_2<ConicTraits>; // Used for polygon operations on curved polygons
     namespace bmp = boost::multiprecision;
     constexpr unsigned int HP_PRECISION = 100; // 100 decimal digits of precision for high-precision scalar type
     
     // Scalar/numeric types
-    using fscalar = Kernel::FT;
-    using rscalar = Kernel::RT;
+    using fscalar = AlgebraicKernel::FT;
+    using rscalar = RationalKernel::FT;
     using hpscalar = bmp::number<bmp::mpfr_float_backend<HP_PRECISION>>; 
     
     // Geometric types
-    using Point_2 = Kernel::Point_2;
-    using Segment_2 = Kernel::Segment_2;
-    using Line_2 = Kernel::Line_2;
-    using Ray_2 = Kernel::Ray_2;
-    using Polygon_2 = CGAL::Polygon_2<Kernel>;
+    using Point2D = AlgebraicKernel::Point_2;
+    using Segment2D = AlgebraicKernel::Segment_2;
+    using Line2D = AlgebraicKernel::Line_2;
+    using Ray2D = AlgebraicKernel::Ray_2;
+    using Polygon2D = CGAL::Polygon_2<RationalKernel>;
+    using CurvedPolygon2D = GeneralPolygonTraits::Polygon_2;
     using winding_order = CGAL::Orientation;
-    using Vector_2 = CGAL::Vector_2<Kernel>;
+    using Vector2D = CGAL::Vector_2<AlgebraicKernel>;
 
     // Iterator types
-    using vertex_iterator = Polygon_2::Vertex_const_iterator;
-    using edge_iterator = Polygon_2::Edge_const_iterator;
-    
-    // Transformation types
-    using Transformation = CGAL::Aff_transformation_2<Kernel>;
+    using vertex_iterator = Polygon2D::Vertex_const_iterator;
+    using edge_iterator = Polygon2D::Edge_const_iterator;
+    using curve_iterator = CurvedPolygon2D::Curve_const_iterator;
     
     // Rendering types
     using scene = CGAL::Graphics_scene;
-    using polygon_options = CGAL::Graphics_scene_options<Polygon_2, vertex_iterator, vertex_iterator, void*>;
+    using polygon_options = CGAL::Graphics_scene_options<Polygon2D, edge_iterator, edge_iterator, void*>;
+    using curved_polygon_options = CGAL::Graphics_scene_options<CurvedPolygon2D, curve_iterator, curve_iterator, void*>;
     using color = CGAL::IO::Color;
 
-    // Type conversion functions
-    template <typename FT>
-    hpscalar to_high_precision(const FT& value) {
-        std::ostringstream str_representation;
-        str_representation << std::setprecision(100) << value; // 100-decimal precision string
-        return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
-    }
 }
 #endif
