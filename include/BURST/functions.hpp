@@ -22,7 +22,7 @@ namespace BURST {
     // Polygon utility functions
     inline bool curved_has_point(const curve_iterator& start, const curve_iterator& end, const Point2D& point) {
         // Create an arrangement to contain the polygon
-        CGAL::Arrangement_2<ConicTraits> arrangement;
+        CurvedPolygonArrangement2D arrangement;
         CGAL::insert(arrangement, start, end);
 
         // Create a point location object for the arrangement
@@ -30,8 +30,8 @@ namespace BURST {
         
         // Locate the point and check if it's on the boundary or vertex of the polygon
         auto location = point_location.locate(point);
-        return std::holds_alternative<CGAL::Arrangement_2<ConicTraits>::Halfedge_const_handle>(location)
-            || std::holds_alternative<CGAL::Arrangement_2<ConicTraits>::Vertex_const_handle>(location);
+        return std::holds_alternative<CurvedPolygonArrangement2D::Halfedge_const_handle>(location)
+            || std::holds_alternative<CurvedPolygonArrangement2D::Vertex_const_handle>(location);
     }
 
     inline bool curved_has_point(const curve_iterator& edge, const Point2D& point) {

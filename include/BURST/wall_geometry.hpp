@@ -9,6 +9,7 @@
 #include <CGAL/Polygon_2_algorithms.h>
 #include <CGAL/intersections.h>
 #include <CGAL/draw_polygon_2.h>
+#include <CGAL/draw_arrangement_2.h>
 #include <CGAL/offset_polygon_2.h>
 
 #include "types.hpp"
@@ -54,14 +55,16 @@ namespace BURST::geometry {
                 // TODO: Add a z-offset to the configuration geometry rendering so that it's visible
                 // Right now, we're getting lucky with how we ordered the rendering, but this could change as the scene gets more complex
                 curved_polygon_options graphics_options = curved_polygon_options();
-                graphics_options.face_color = [](const CurvedPolygon2D& polygon, void* fh) noexcept {
+                graphics_options.face_color = [](const CurvedPolygonArrangement2D& polygon, CurvedPolygonArrangement2D::Face_const_handle fh) noexcept {
                     return color(138, 154, 91);  // Light green configuration space
                 };
-                graphics_options.colored_face = [](const CurvedPolygon2D& polygon, void* fh) noexcept {
+                graphics_options.colored_face = [](const CurvedPolygonArrangement2D& polygon, CurvedPolygonArrangement2D::Face_const_handle fh) noexcept {
                     return true;
                 };
                 // TODO: Fix such that a curved shape can be rendered
-                CGAL::add_to_graphics_scene(this->configuration_shape, scene, graphics_options); 
+                CurvedPolygonArrangement2D graphics_arrangement;
+                CGAL::insert(graphics_arrangement, this->configuration_shape.curves_begin(), this->configuration_shape.curves_end());
+                CGAL::add_to_graphics_scene(graphics_arrangement, scene, graphics_options); 
             }
 
             friend class BURST::geometry::WallGeometry; // For access to private constructor
