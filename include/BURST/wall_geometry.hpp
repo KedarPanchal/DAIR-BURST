@@ -129,7 +129,7 @@ namespace BURST::geometry {
             Polygon2D wall_polygon{begin, end};
             return std::optional<WallGeometry>{WallGeometry{std::move(wall_polygon)}};
         }
-        static std::optional<WallGeometry> create(std::initializer_list<AlgebraicPoint2D> points) noexcept {
+        static std::optional<WallGeometry> create(std::initializer_list<Point2D<RationalKernel>> points) noexcept {
             return WallGeometry::create(points.begin(), points.end());
         }
         // Template is not needed for any implementation, but is needed for Robot

@@ -19,7 +19,7 @@ namespace BURST {
     }
 
     // Polygon utility functions
-    inline bool curved_has_point(const ClosedCurve2D& closed_curve, const AlgebraicPoint2D& point) {
+    inline bool curved_has_point(const ClosedCurve2D& closed_curve, const Point2D<AlgebraicKernel>& point) {
         // Create a point location object for the arrangement
         CGAL::Arr_naive_point_location<ClosedCurve2D> point_location{closed_curve};
         
@@ -29,7 +29,7 @@ namespace BURST {
             || std::holds_alternative<vertex_iterator<ClosedCurve2D>>(location);
     }
     
-    inline bool curved_has_point(const edge_iterator<ClosedCurve2D>& edge, const AlgebraicPoint2D& point) {
+    inline bool curved_has_point(const edge_iterator<ClosedCurve2D>& edge, const Point2D<AlgebraicKernel>& point) {
         ConicTraits traits;
         auto compare_x = traits.compare_x_2_object();
         auto compare_y_at_x = traits.compare_y_at_x_2_object();

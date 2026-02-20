@@ -43,7 +43,7 @@ namespace BURST {
         const BURST::geometry::ConfigurationGeometry& getConfigurationEnvironment() const;
 
         fscalar getRadius() const;
-        AlgebraicPoint2D shootRay(fscalar angle) const;
+        Point2D<AlgebraicKernel> shootRay(fscalar angle) const;
         ClosedCurve2D generateStadium(fscalar angle) const;
         ClosedCurve2D generateCCR(fscalar angle) const;
         void move(fscalar angle);

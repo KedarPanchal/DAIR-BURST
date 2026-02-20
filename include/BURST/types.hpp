@@ -29,10 +29,14 @@ namespace BURST {
     using hpscalar = bmp::number<bmp::mpfr_float_backend<HP_PRECISION>>; 
     
     // Geometric types
-    using AlgebraicPoint2D = AlgebraicKernel::Point_2;
-    using AlgebraicSegment2D = AlgebraicKernel::Segment_2;
-    using AlgebraicLine2D = AlgebraicKernel::Line_2;
-    using AlgebraicRay2D = AlgebraicKernel::Ray_2;
+    template <typename Kernel>
+    using Point2D = typename Kernel::Point_2;
+    template <typename Kernel>
+    using Segment2D = typename Kernel::Segment_2;
+    template <typename Kernel>
+    using Line2D = typename Kernel::Line_2;
+    template <typename Kernel>
+    using Ray2D = typename Kernel::Ray_2;
     using Polygon2D = CGAL::Polygon_2<RationalKernel>;
     using ClosedCurve2D = CGAL::Arrangement_2<ConicTraits>;
     using winding_order = CGAL::Orientation;
