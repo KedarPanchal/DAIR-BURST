@@ -25,9 +25,13 @@ namespace BURST::geometry {
         ConfigurationGeometry(ConfigurationGeometry&&) = default;
         ConfigurationGeometry& operator= (ConfigurationGeometry&&) = default;
 
-        virtual curve_iterator curve_begin() const noexcept = 0;
-        virtual curve_iterator curve_end() const noexcept = 0;
-        virtual winding_order orientation() const noexcept = 0;
+        virtual vertex_iterator<ClosedCurve2D> vertex_begin() const noexcept = 0;
+        virtual vertex_iterator<ClosedCurve2D> vertex_end() const noexcept = 0;
+        virtual edge_iterator<ClosedCurve2D> edge_begin() const noexcept = 0;
+        virtual edge_iterator<ClosedCurve2D> edge_end() const noexcept = 0;
+        virtual halfedge_iterator<ClosedCurve2D> directed_edge_begin() const noexcept = 0;
+        virtual halfedge_iterator<ClosedCurve2D> directed_edge_end() const noexcept = 0;
+        virtual operator ClosedCurve2D() const noexcept = 0; // Allow implicit conversion to ClosedCurve2D for use in CGAL algorithms that require it
         virtual void render(scene& scene) const override = 0;
     };
     

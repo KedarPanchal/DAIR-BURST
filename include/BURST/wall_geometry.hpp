@@ -28,43 +28,56 @@ namespace BURST::geometry {
         // Thus it is a private nested class of WallGeometry
         class ConfigurationGeometryImpl : public ConfigurationGeometry {
         private:
-            CurvedPolygon2D configuration_shape;
-
-            ConfigurationGeometryImpl(const CurvedPolygon2D& shape) noexcept : configuration_shape{shape} {}
-            ConfigurationGeometryImpl(CurvedPolygon2D&& shape) noexcept : configuration_shape{std::move(shape)} {}
+            ClosedCurve2D configuration_shape;
+            
+            template <typename Iter>
+            ConfigurationGeometryImpl(Iter begin, Iter end) noexcept {
+                this->configuration_shape = ClosedCurve2D{};
+                CGAL::insert(this->configuration_shape, begin, end);
+            }
 
             template <typename Iter>
             static std::unique_ptr<ConfigurationGeometryImpl> create(Iter begin, Iter end) noexcept {
-                CurvedPolygon2D configuration_polygon{begin, end};
-                return std::unique_ptr<ConfigurationGeometryImpl>{new ConfigurationGeometryImpl{std::move(configuration_polygon)}};
+                return std::unique_ptr<ConfigurationGeometryImpl>{new ConfigurationGeometryImpl{begin, end}};
             }
 
         public:
-            curve_iterator curve_begin() const noexcept override {
-                return this->configuration_shape.curves_begin();
+            
+            vertex_iterator<ClosedCurve2D> vertex_begin() const noexcept override {
+                return this->configuration_shape.vertices_begin();
             }
-            curve_iterator curve_end() const noexcept override {
-                return this->configuration_shape.curves_end();
+            vertex_iterator<ClosedCurve2D> vertex_end() const noexcept override {
+                return this->configuration_shape.vertices_end();
+            }
+            edge_iterator<ClosedCurve2D> edge_begin() const noexcept override {
+                return this->configuration_shape.edges_begin();
+            }
+            edge_iterator<ClosedCurve2D> edge_end() const noexcept override {
+                return this->configuration_shape.edges_end();
+            }
+            halfedge_iterator<ClosedCurve2D> directed_edge_begin() const noexcept override {
+                return this->configuration_shape.halfedges_begin();
+            }
+            halfedge_iterator<ClosedCurve2D> directed_edge_end() const noexcept override {
+                return this->configuration_shape.halfedges_end();
             }
 
-            winding_order orientation() const noexcept override {
-                return this->configuration_shape.orientation();
+            operator ClosedCurve2D() const noexcept override {
+                return this->configuration_shape;
             }
 
             void render(scene& scene) const noexcept override {
                 // TODO: Add a z-offset to the configuration geometry rendering so that it's visible
                 // Right now, we're getting lucky with how we ordered the rendering, but this could change as the scene gets more complex
-                curved_polygon_options graphics_options = curved_polygon_options();
-                graphics_options.face_color = [](const CurvedPolygonArrangement2D& polygon, CurvedPolygonArrangement2D::Face_const_handle fh) noexcept {
+                closed_curve_options graphics_options = closed_curve_options();
+                graphics_options.face_color = [](const ClosedCurve2D& polygon, ClosedCurve2D::Face_const_handle fh) noexcept {
                     return color(138, 154, 91);  // Light green configuration space
                 };
-                graphics_options.colored_face = [](const CurvedPolygonArrangement2D& polygon, CurvedPolygonArrangement2D::Face_const_handle fh) noexcept {
+                graphics_options.colored_face = [](const ClosedCurve2D& polygon, ClosedCurve2D::Face_const_handle fh) noexcept {
                     return true;
                 };
-                // TODO: Fix such that a curved shape can be rendered
-                CurvedPolygonArrangement2D graphics_arrangement;
-                CGAL::insert(graphics_arrangement, this->configuration_shape.curves_begin(), this->configuration_shape.curves_end());
-                CGAL::add_to_graphics_scene(graphics_arrangement, scene, graphics_options); 
+
+                CGAL::add_to_graphics_scene(this->configuration_shape, scene, graphics_options); 
             }
 
             friend class BURST::geometry::WallGeometry; // For access to private constructor
@@ -89,8 +102,16 @@ namespace BURST::geometry {
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
         std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const rscalar& robot_radius) const noexcept {
-            std::list<CurvedPolygon2D> inner_minkowski_polygons;
+            std::list<ClosedCurve2D> inner_minkowski_polygons;
             auto inner_minkowski = CGAL::inset_polygon_2(this->wall_shape, robot_radius, ConicTraits(), std::back_inserter(inner_minkowski_polygons));
+            
+            /*
+             * If the inset operation has no elements, it means the robot is too large for the wallgeometry, resulting in a degenerate configuration geonetry
+             * If the inset operation has more than 1 element, it means portions of the wallgeometry are too tight for the robot, resulting in a degenerate configuration geometry
+             */
+            if (inner_minkowski_polygons.size() != 1) return nullptr; 
+
+            return detail::ConfigurationGeometryImpl::create(inner_minkowski_polygons.front().vertices_begin(), inner_minkowski_polygons.front().vertices_end());
         }
 
     public:
@@ -108,7 +129,7 @@ namespace BURST::geometry {
             Polygon2D wall_polygon{begin, end};
             return std::optional<WallGeometry>{WallGeometry{std::move(wall_polygon)}};
         }
-        static std::optional<WallGeometry> create(std::initializer_list<Point2D> points) noexcept {
+        static std::optional<WallGeometry> create(std::initializer_list<AlgebraicPoint2D> points) noexcept {
             return WallGeometry::create(points.begin(), points.end());
         }
         // Template is not needed for any implementation, but is needed for Robot
