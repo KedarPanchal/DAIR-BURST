@@ -9,9 +9,9 @@
 #include <CGAL/intersections.h>
 #include <CGAL/draw_polygon_2.h>
 
-#include "types.hpp"
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
+#include "graphics_types.hpp"
 #include "renderable.hpp"
 #include "configuration_geometry.hpp"
 #include "robot.hpp"
@@ -65,12 +65,12 @@ namespace BURST::geometry {
                 return this->configuration_shape.orientation();
             }
 
-            void render(scene& scene) const noexcept override {
+            void render(graphics::Scene& scene) const noexcept override {
                 // TODO: Add a z-offset to the configuration geometry rendering so that it's visible
                 // Right now, we're getting lucky with how we ordered the rendering, but this could change as the scene gets more complex
-                polygon_options graphics_options = polygon_options();
+                graphics::PolygonOptions graphics_options{};
                 graphics_options.face_color = [](const Polygon2D& polygon, void* fh) noexcept {
-                    return color(138, 154, 91);  // Light green configuration space
+                    return graphics::Color(138, 154, 91);  // Light green configuration space
                 };
                 graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
                     return true;
@@ -90,7 +90,7 @@ namespace BURST::geometry {
     private:
         
         Polygon2D wall_shape;
-        polygon_options wall_render_options;
+        graphics::PolygonOptions wall_render_options;
 
         // Helper method to compute the intersection between two lines or rays or segments
         template <typename T1, typename T2>
@@ -140,7 +140,7 @@ namespace BURST::geometry {
             // Find the transformed segments for each edge of the wall polygon
             for (auto edge_it = this->wall_shape.edges_begin(); edge_it != this->wall_shape.edges_end(); edge_it++) {
                 // Construct a perpendicular vector based on the shape's orientation (winding order)
-                Vector_2 orthogonal = edge_it->to_vector().perpendicular(this->wall_shape.orientation()); 
+                Vector2D orthogonal = edge_it->to_vector().perpendicular(this->wall_shape.orientation()); 
                 // Normalize the orthogonal vector
                 orthogonal /= CGAL::sqrt(orthogonal.squared_length()); 
                 // Scale the orthogonal vector by the robot's radius
@@ -208,10 +208,10 @@ namespace BURST::geometry {
             return std::optional<std::monostate>{std::monostate{}}; 
         }
 
-        void render(scene& scene) const noexcept override {
-            polygon_options graphics_options = polygon_options();
+        void render(graphics::Scene& scene) const noexcept override {
+            graphics::PolygonOptions graphics_options{};
             graphics_options.face_color = [](const Polygon2D& polygon, void* fh) noexcept {
-                return color(173, 216, 230);  // Light blue walls
+                return graphics::Color(173, 216, 230);  // Light blue walls
             };
             graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
                 return true;
