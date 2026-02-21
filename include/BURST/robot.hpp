@@ -1,8 +1,8 @@
 #ifndef ROBOT_HPP
 #define ROBOT_HPP
 
-#include "types.hpp"
 #include "numeric_types.hpp"
+#include "graphics_types.hpp"
 #include "renderable.hpp"
 #include "configuration_geometry.hpp"
 #include "models.hpp"
@@ -49,7 +49,7 @@ namespace BURST {
         geometry::Polygon2D generateCCR(numeric::fscalar angle) const;
         void move(numeric::fscalar angle);
 
-        void render(scene& scene) const override;
+        void render(graphics::Scene& scene) const override;
     };
 
 }

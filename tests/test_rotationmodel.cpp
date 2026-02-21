@@ -2,7 +2,6 @@
 #include <BURST/models.hpp>
 
 // Utility includes for tests
-#include <BURST/types.hpp>
 
 // Test a rotation model generating an unseeded random rotation
 TEST(RotationModelTest, UnseededRandomRotation) {
@@ -11,7 +10,7 @@ TEST(RotationModelTest, UnseededRandomRotation) {
     auto rotation_model = BURST::models::RotationModel<>(0.5);
 
     // Generate a random rotation for an angle of 1.0 radians
-    BURST::fscalar rotated_angle = rotation_model(1.0);
+    BURST::numeric::fscalar rotated_angle = rotation_model(1.0);
 
     EXPECT_TRUE(rotated_angle >= 0.5 && rotated_angle <= 1.5) << "Expected rotated angle to be within the range of [0.5, 1.5], but got " << CGAL::to_double(rotated_angle);
 }
@@ -22,7 +21,7 @@ TEST(RotationModelTest, SeededRandomRotation) {
     auto rotation_model = BURST::models::RotationModel<>(0.5, 42);
 
     // Generate a random rotation for an angle of 1.0 radians
-    BURST::fscalar rotated_angle = rotation_model(1.0);
+    BURST::numeric::fscalar rotated_angle = rotation_model(1.0);
 
     EXPECT_TRUE(rotated_angle >= 0.5 && rotated_angle <= 1.5) << "Expected rotated angle to be within the range of [0.5, 1.5], but got " << CGAL::to_double(rotated_angle);
 }
@@ -33,7 +32,7 @@ TEST(RotationModelTest, FlatDistributionRotation) {
     auto rotation_model = BURST::models::MaximumRotationModel(0.5);
 
     // Generate a random rotation for an angle of 1.0 radians
-    BURST::fscalar rotated_angle = rotation_model(1.0);
+    BURST::numeric::fscalar rotated_angle = rotation_model(1.0);
 
     EXPECT_EQ(rotated_angle, 1.5) << "Expected rotated angle to be 1.5 with a flat distribution, but got " << CGAL::to_double(rotated_angle);
 }
@@ -45,7 +44,7 @@ TEST(RotationModelTest, FlatDistributionRotationConsistency) {
 
     // Generate multiple random rotations for an angle of 1.0 radians
     for (int i = 0; i < 10; i++) {
-        BURST::fscalar rotated_angle = rotation_model(1.0);
+        BURST::numeric::fscalar rotated_angle = rotation_model(1.0);
         EXPECT_EQ(rotated_angle, 1.5) << "Expected rotated angle to be 1.5 with a flat distribution, but got " << CGAL::to_double(rotated_angle) << " on iteration " << i;
     }
 }

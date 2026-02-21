@@ -4,14 +4,15 @@
 #include <gtest/gtest.h>
 #include <BURST/wall_geometry.hpp>
 #include <BURST/configuration_geometry.hpp>
-#include <BURST/types.hpp>
+#include <BURST/numeric_types.hpp>
+#include <BURST/geometric_types.hpp>
 
 // WallGeometry subclass to forward the constructConfigurationGeometry method for testing
 class TestWallGeometry : public BURST::geometry::WallGeometry {
 private:
     using WallGeometry::WallGeometry; // Inherit constructors
 public:
-    static std::optional<TestWallGeometry> create(std::initializer_list<BURST::Point_2> points) noexcept {
+    static std::optional<TestWallGeometry> create(std::initializer_list<BURST::geometry::Point2D> points) noexcept {
         // Copy over logic from WallGeometry::create to construct a TestWallGeometry instead
         // Can't make a polygon with 2 or fewer points
         if (std::distance(points.begin(), points.end()) <= 2) return std::nullopt;
@@ -22,10 +23,10 @@ public:
         // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
         if (CGAL::orientation_2(points.begin(), points.end()) == CGAL::COLLINEAR) return std::nullopt;
 
-        BURST::Polygon_2 wall_polygon{points.begin(), points.end()};
+        BURST::geometry::Polygon2D wall_polygon{points.begin(), points.end()};
         return std::optional<TestWallGeometry>{TestWallGeometry{std::move(wall_polygon)}};
     }
-    std::unique_ptr<BURST::geometry::ConfigurationGeometry> testConstructConfigurationGeometry(BURST::fscalar robot_radius) const {
+    std::unique_ptr<BURST::geometry::ConfigurationGeometry> testConstructConfigurationGeometry(BURST::numeric::fscalar robot_radius) const {
         return this->constructConfigurationGeometry(robot_radius);
     }
 };
@@ -36,16 +37,16 @@ public:
 class MovementModelInSquareTest : public ::testing::Test {
 protected:
     std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_geometry;
-    BURST::Point_2 corner_vertex;
-    BURST::Point_2 edge_midpoint;
+    BURST::geometry::Point2D corner_vertex;
+    BURST::geometry::Point2D edge_midpoint;
 
     void SetUp() override {
         // Construct a TestWallGeometry for a square and generate a ConfigurationGeometry with a robot radius of 1
         auto wall_geometry = TestWallGeometry::create({
-            BURST::Point_2{0, 0},
-            BURST::Point_2{10, 0},
-            BURST::Point_2{10, 10},
-            BURST::Point_2{0, 10}
+            BURST::geometry::Point2D{0, 0},
+            BURST::geometry::Point2D{10, 0},
+            BURST::geometry::Point2D{10, 10},
+            BURST::geometry::Point2D{0, 10}
         });
         // Expect the WallGeometry to be non-degenerate
         // i.e. it is not nullopt
@@ -56,8 +57,8 @@ protected:
         ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationGeometry from WallGeometry in test fixture setup";
 
         // Define a corner and midpoint for use in tests
-        this->corner_vertex = BURST::Point_2{1, 1};
-        this->edge_midpoint = BURST::Point_2{5, 1};
+        this->corner_vertex = BURST::geometry::Point2D{1, 1};
+        this->edge_midpoint = BURST::geometry::Point2D{5, 1};
     }
 };
 
@@ -68,16 +69,16 @@ protected:
 class MovementModelInConcaveTest : public ::testing::Test {
 protected:
     std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_geometry;
-    BURST::Point_2 concave_vertex;
-    BURST::Point_2 edge_midpoint;
+    BURST::geometry::Point2D concave_vertex;
+    BURST::geometry::Point2D edge_midpoint;
     
     void SetUp() override {
         // Construct a TestWallGeometry for a concave polygon and generate a ConfigurationGeometry with a robot radius of 1
         auto wall_geometry = TestWallGeometry::create({
-            BURST::Point_2{0, 20},
-            BURST::Point_2{-20, -20},
-            BURST::Point_2{0, 0},
-            BURST::Point_2{20, -20}
+            BURST::geometry::Point2D{0, 20},
+            BURST::geometry::Point2D{-20, -20},
+            BURST::geometry::Point2D{0, 0},
+            BURST::geometry::Point2D{20, -20}
         });
         // Expect the WallGeometry to be non-degenerate
         // i.e. it is not nullopt

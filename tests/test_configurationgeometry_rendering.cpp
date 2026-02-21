@@ -5,16 +5,15 @@
 #include "test_helpers.hpp"
 
 // Utility includes for tests
-#include <BURST/types.hpp>
 
 // Test for rendering a regular polygon and its configuration geometry
 TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
     // Construct a WallGeometry for a square
     auto wall_geometry = TestWallGeometry::create({
-        BURST::Point_2{0, 0},
-        BURST::Point_2{10, 0},
-        BURST::Point_2{10, 10},
-        BURST::Point_2{0, 10}
+        BURST::geometry::Point2D{0, 0},
+        BURST::geometry::Point2D{10, 0},
+        BURST::geometry::Point2D{10, 10},
+        BURST::geometry::Point2D{0, 10}
     });
 
     // Expect the WallGeometry to be non-degenerate
@@ -28,7 +27,7 @@ TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
     ASSERT_NE(configuration_geometry, nullptr) << "Failed to construct non-degenerate ConfigurationGeometry for a regular polygon";
 
     // Create a CGAL Graphics Scene and render the WallGeometry and ConfigurationGeometry
-    BURST::scene scene;
+    BURST::graphics::Scene scene;
     configuration_geometry->render(scene);
     wall_geometry->render(scene);
 
@@ -44,10 +43,10 @@ TEST(ConfigurationGeometryRenderingTest, RenderSimplePolygon) {
     // Construct a WallGeometry for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = TestWallGeometry::create({
-        BURST::Point_2{0, 20},
-        BURST::Point_2{-20, -20},
-        BURST::Point_2{0, 0},
-        BURST::Point_2{20, -20}
+        BURST::geometry::Point2D{0, 20},
+        BURST::geometry::Point2D{-20, -20},
+        BURST::geometry::Point2D{0, 0},
+        BURST::geometry::Point2D{20, -20}
     });
 
     // Expect the WallGeometry to be non-degenerate
@@ -61,7 +60,7 @@ TEST(ConfigurationGeometryRenderingTest, RenderSimplePolygon) {
     ASSERT_NE(configuration_geometry, nullptr) << "Failed to construct non-degenerate ConfigurationGeometry for a simple polygon";
 
     // Create a CGAL Graphics Scene and render the WallGeometry and ConfigurationGeometry
-    BURST::scene scene;
+    BURST::graphics::Scene scene;
     configuration_geometry->render(scene);
     wall_geometry->render(scene);
 

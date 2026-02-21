@@ -5,7 +5,8 @@
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Graphics_scene.h>
 
-#include "types.hpp"
+#include "geometric_types.hpp"
+#include "graphics_types.hpp"
 #include "renderable.hpp"
 
 namespace BURST::geometry {
@@ -30,7 +31,7 @@ namespace BURST::geometry {
         virtual vertex_iterator vertex_begin() const noexcept = 0;
         virtual vertex_iterator vertex_end() const noexcept = 0;
         virtual winding_order orientation() const noexcept = 0;
-        virtual void render(scene& scene) const override = 0;
+        virtual void render(graphics::Scene& scene) const override = 0;
     };
     
 }
