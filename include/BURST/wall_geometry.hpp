@@ -92,7 +92,9 @@ namespace BURST::geometry {
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
         std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const numeric::fscalar& robot_radius) const noexcept {
-
+            // TODO: Use an approximated_inset_2 algorithm to construct the Minkowski difference of the wall polygon and a disk of radius robot_radius
+            // Do NOT under ANY CIRCUMSTANCE use the inset_2 algorithm, since this gives an exact result at the cost of going to a massive war against the type system
+            // As tempting as it is, just find a nice epsilon and call it a day instead of going through template hell
         }
 
     public:
