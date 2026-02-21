@@ -37,10 +37,11 @@ namespace BURST {
     using Line2D = typename Kernel::Line_2;
     template <typename Kernel>
     using Ray2D = typename Kernel::Ray_2;
+    template <typename Kernel>
+    using Vector2D = typename Kernel::Vector_2;
     using Polygon2D = CGAL::Polygon_2<RationalKernel>;
     using ClosedCurve2D = CGAL::Arrangement_2<ConicTraits>;
     using winding_order = CGAL::Orientation;
-    using Vector2D = CGAL::Vector_2<AlgebraicKernel>;
 
     // Iterator types
     template <typename Shape>
@@ -55,7 +56,7 @@ namespace BURST {
     template <typename Shape, typename VertexIter = vertex_iterator<Shape>, typename EdgeIter = edge_iterator<Shape>, typename FaceIter = void*>
     using shape_options = CGAL::Graphics_scene_options<Shape, VertexIter, EdgeIter, FaceIter>;
     using polygon_options = shape_options<Polygon2D>;
-    using closed_curve_options = shape_options<ClosedCurve2D, vertex_iterator<ClosedCurve2D>, edge_iterator<ClosedCurve2D>, ClosedCurve2D::Face_const_handle>;
+    using closed_curve_options = shape_options<ClosedCurve2D, vertex_iterator<ClosedCurve2D>, halfedge_iterator<ClosedCurve2D>, ClosedCurve2D::Face_const_handle>;
     using color = CGAL::IO::Color;
 
 }

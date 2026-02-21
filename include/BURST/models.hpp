@@ -1,40 +1,19 @@
 #ifndef MODELS_HPP
 #define MODELS_HPP
 
-#include <CGAL/Polygon_2_algorithms.h>
+#include <CGAL/Surface_sweep_2_algorithms.h>
 
 #include <utility>
 #include <random>
 #include <optional>
+#include <array>
+#include <vector>
 
 #include "types.hpp"
 #include "functions.hpp"
 #include "configuration_geometry.hpp"
 
 namespace BURST::models {
-    
-    // Internal implementations not intended for public use
-    namespace detail {
-        // Type traits for validating whether a type can be used in a CGAL intersection computation against a polygon edge
-        template <typename T, typename = void>
-        struct is_valid_builtin_intersection_type : std::false_type {};
-        template <typename T>
-        struct is_valid_builtin_intersection_type<T, std::void_t<decltype(CGAL::intersection(std::declval<T>(), std::declval<Segment2D<AlgebraicKernel>>()))>> : std::true_type {};
-        
-        // Type traits for validating whether a type can be a Path for a movement model
-        // This requires a 2-argument constructor that accepts start and end Point2Ds (like Segment2D)
-        template <typename T, typename = void>
-        struct is_valid_path_type : std::false_type {};
-        template <typename T>
-        struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<Point2D<AlgebraicKernel>>(), std::declval<Point2D<AlgebraicKernel>>()})>> : std::true_type {};
-
-        // Type traits for validating whether a type can be a Trajectory for a movement model
-        // This requires a 2-argument constructor that accepts an origin Point2D and a direction Vector2D (like Ray2D)
-        template <typename T, typename = void>
-        struct is_valid_trajectory_type : std::false_type {};
-        template <typename T>
-        struct is_valid_trajectory_type<T, std::void_t<decltype(T{std::declval<Point2D<AlgebraicKernel>>(), std::declval<Vector2D>()})>> : std::true_type {};
-    }
     
     // Custom random number distribution that generates the same number for every RNG, which is useful for testing
     // This allows for templating the rotation model and avoiding inheritance
@@ -85,9 +64,6 @@ namespace BURST::models {
      */
     template <typename ModelType>
     class MovementModel {
-    // Validate type traits
-    static_assert(detail::is_valid_path_type<typename ModelType::Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end Point2Ds");
-    static_assert(detail::is_valid_trajectory_type<typename ModelType::Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin Point2D and a direction Vector2D");
     public:
         std::optional<Point2D<AlgebraicKernel>> operator() (const Point2D<AlgebraicKernel>& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
             // If the origin doesn't lie on the configuration geometry boundary, then the movement is invalid, so return nullopt
@@ -95,7 +71,8 @@ namespace BURST::models {
 
             // Create a direction trajectory from the angle
             hpscalar hp_angle = to_high_precision(angle);
-            Vector2D direction_vector{bmp::cos(hp_angle), bmp::sin(hp_angle)};
+            hpscalar direction_x = bmp::cos(hp_angle);
+            hpscalar direction_y = bmp::sin(hp_angle);
             
             /*
              * RIP Direction Checking Code (2026 - 2026)
@@ -104,36 +81,34 @@ namespace BURST::models {
              * TODO: Polygons with holes might put holes (heh) in this logic, so figure this out later.
              */
             
-            // Create a trajectory from the origin in the direction of the direction vector
-            typename ModelType::Trajectory trajectory{origin, direction_vector};
-
             // Find the first intersection of the trajectory with the configuration geometry edges
             for (auto edge_it = configuration_environment.edge_begin(); edge_it != configuration_environment.edge_end(); ++edge_it) {
                 // Skip if the origin is on the current edge, since that's where the robot is currently located
                 if (curved_has_point(edge_it, origin)) continue;
                 
-                // Use CGAL's inbuilt intersection function if Trajectory is a valid type for intersection with the polygon edge
-                if constexpr (detail::is_valid_builtin_intersection_type<typename ModelType::Trajectory>::value) {
-                    auto maybe_intersection = CGAL::intersection(trajectory, *edge_it);
+                // Convert the origin to a rational type for intersection
+                auto origin_interval_x = CGAL::to_interval(origin.x());
+                auto origin_interval_y = CGAL::to_interval(origin.y());
+                hpscalar rational_origin_x = to_high_precision(origin_interval_x.first + origin_interval_x.second) / 2;
+                hpscalar rational_origin_y = to_high_precision(origin_interval_y.first + origin_interval_y.second) / 2;
 
-                    // No intersection, so continue to the next edge
-                    if (!maybe_intersection.has_value()) continue;
+                // Convert the trajectory to a curve for intersection
+                ConicTraits traits;
+                auto construct_curve_2 = traits.construct_curve_2_object();
+                ConicTraits::Curve_2 trajectory_curve = construct_curve_2(0, 0, 0, rscalar{direction_y}, rscalar{-direction_x}, rscalar{rational_origin_x * direction_y - rational_origin_y * direction_x});
+                // Create a collection of curves to intersect
+                std::array<ConicTraits::Curve_2, 2> to_intersect = {edge_it->curve(), trajectory_curve};
+                std::vector<Point2D<AlgebraicKernel>> intersection_points; // Place intersection points here
+                                                                    
+                // Compute the intersection
+                CGAL::compute_intersection_points(to_intersect.begin(), to_intersect.end(), std::back_inserter(intersection_points));
+                // Find the closest intersection point to the origin, which is the endpoint of the movement
+                auto min = std::min_element(intersection_points.begin(), intersection_points.end(), [&origin](const Point2D<AlgebraicKernel>& a, const Point2D<AlgebraicKernel>& b) {
+                    return CGAL::squared_distance(origin, a) < CGAL::squared_distance(origin, b);
+                }); 
 
-                    // If the intersection is a point we found the next position of the robot, so return it
-                    if (const Point2D<AlgebraicKernel>* intersection_point = std::get_if<Point2D<AlgebraicKernel>>(&*maybe_intersection)) return std::optional<Point2D<AlgebraicKernel>>{*intersection_point};
-
-                    /*
-                     * The case of the trajectory being collinear with the edge shouldn't occur since the edge intersecting with the origin isn't considered
-                     * For the sake of completeness, the following is considered:
-                     * If the trajectory is collinear with the edge, the robot should intersect with another edge in the polygon given:
-                     * 1. The intersecting edge forms a convex vertex with another edge, so the robot can intersect the next edge at that vertex
-                     * 2. The intersecting edge forms a concave vertex with another edge, so the robot slides along the edge's direction until it intersects with another edge
-                     * Because of this, we can just continue to the next edge
-                     */
-                    // Continue to the next edge...
-                } else {
-                    // TODO: Figure out some interface for handling the case where the trajectory type isn't directly compatible with CGAL's intersection function
-                }
+                // If there is an intersection point (the range isn't empty), return the closest intersection point as the endpoint of the movement
+                if (min != intersection_points.end()) return *min;
             }
 
             // No intersections with any edge, so the movement is invalid, so return nullopt

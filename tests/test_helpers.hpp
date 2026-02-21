@@ -5,6 +5,8 @@
 #include <BURST/wall_geometry.hpp>
 #include <BURST/configuration_geometry.hpp>
 #include <BURST/types.hpp>
+#include <BURST/functions.hpp>
+#include <CGAL/Arr_walk_along_line_point_location.h>
 
 #include <initializer_list>
 
@@ -13,7 +15,7 @@ class TestWallGeometry : public BURST::geometry::WallGeometry {
 private:
     using WallGeometry::WallGeometry; // Inherit constructors
 public:
-    static std::optional<TestWallGeometry> create(std::initializer_list<BURST::Point2D> points) noexcept {
+    static std::optional<TestWallGeometry> create(std::initializer_list<BURST::Point2D<BURST::RationalKernel>> points) noexcept {
         // Copy over logic from WallGeometry::create to construct a TestWallGeometry instead
         // Can't make a polygon with 2 or fewer points
         if (std::distance(points.begin(), points.end()) <= 2) return std::nullopt;
@@ -38,16 +40,16 @@ public:
 class MovementModelInSquareTest : public ::testing::Test {
 protected:
     std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_geometry;
-    BURST::Point2D corner_vertex;
-    BURST::Point2D edge_midpoint;
+    BURST::Point2D<BURST::AlgebraicKernel> corner_vertex;
+    BURST::Point2D<BURST::AlgebraicKernel> edge_midpoint;
 
     void SetUp() override {
         // Construct a TestWallGeometry for a square and generate a ConfigurationGeometry with a robot radius of 1
         auto wall_geometry = TestWallGeometry::create({
-            BURST::Point2D{0, 0},
-            BURST::Point2D{10, 0},
-            BURST::Point2D{10, 10},
-            BURST::Point2D{0, 10}
+            BURST::Point2D<BURST::RationalKernel>{0, 0},
+            BURST::Point2D<BURST::RationalKernel>{10, 0},
+            BURST::Point2D<BURST::RationalKernel>{10, 10},
+            BURST::Point2D<BURST::RationalKernel>{0, 10}
         });
         // Expect the WallGeometry to be non-degenerate
         // i.e. it is not nullopt
@@ -58,8 +60,8 @@ protected:
         ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationGeometry from WallGeometry in test fixture setup";
 
         // Define a corner and midpoint for use in tests
-        this->corner_vertex = BURST::Point2D{1, 1};
-        this->edge_midpoint = BURST::Point2D{5, 1};
+        this->corner_vertex = BURST::Point2D<BURST::AlgebraicKernel>{1, 1};
+        this->edge_midpoint = BURST::Point2D<BURST::AlgebraicKernel>{5, 1};
     }
 };
 
@@ -70,16 +72,16 @@ protected:
 class MovementModelInConcaveTest : public ::testing::Test {
 protected:
     std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_geometry;
-    BURST::Point2D concave_vertex;
-    BURST::Point2D edge_midpoint;
+    BURST::Point2D<BURST::AlgebraicKernel> concave_vertex;
+    BURST::Point2D<BURST::AlgebraicKernel> edge_midpoint;
     
     void SetUp() override {
         // Construct a TestWallGeometry for a concave polygon and generate a ConfigurationGeometry with a robot radius of 1
         auto wall_geometry = TestWallGeometry::create({
-            BURST::Point2D{0, 20},
-            BURST::Point2D{-20, -20},
-            BURST::Point2D{0, 0},
-            BURST::Point2D{20, -20}
+            BURST::Point2D<BURST::RationalKernel>{0, 20},
+            BURST::Point2D<BURST::RationalKernel>{-20, -20},
+            BURST::Point2D<BURST::RationalKernel>{0, 0},
+            BURST::Point2D<BURST::RationalKernel>{20, -20}
         });
         // Expect the WallGeometry to be non-degenerate
         // i.e. it is not nullopt
@@ -89,19 +91,37 @@ protected:
         this->configuration_geometry = wall_geometry->testConstructConfigurationGeometry(1.0);
         ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationGeometry from WallGeometry in test fixture setup";
         
+        // Define a concave vertex for use in tests
+        // Find this by performing a raycast up from a really low y value
+        BURST::ConicTraits traits;
+        CGAL::Arr_walk_along_line_point_location<BURST::ClosedCurve2D> point_location{*this->configuration_geometry};
+        BURST::Point2D<BURST::AlgebraicKernel> ray_origin{0, -100};
+        auto ray_result = point_location.ray_shoot_up(ray_origin);
+        if (auto* edge = std::get_if<BURST::halfedge_iterator<BURST::ClosedCurve2D>>(&ray_result)) {
+            // Find intersections of some vertical line with the edge to find the exact point of intersection, which is the concave vertex
+            std::list<std::variant<std::pair<BURST::ConicTraits::Point_2, unsigned int>, BURST::ConicTraits::X_monotone_curve_2>> intersections;
+            auto intersect = traits.intersect_2_object();
+            auto vertical_ray = traits.construct_x_monotone_curve_2_object()(ray_origin, BURST::Point2D<BURST::AlgebraicKernel>{0, 3});
+            intersect((*edge)->curve(), vertical_ray, std::back_inserter(intersections));
 
-        // Identify the concave vertex of the configuration geometry for use in tests
-        for (auto vertex_it = this->configuration_geometry->vertex_begin(); vertex_it != this->configuration_geometry->vertex_end(); vertex_it++) {
-            if (vertex_it->x() == 0 && vertex_it->y() < 2) {
-                this->concave_vertex = *vertex_it;
-                break;
+            // Loop to find the intersection point, which is the concave vertex
+            for (const auto& intersection : intersections) {
+                if (auto* pt = std::get_if<std::pair<BURST::ConicTraits::Point_2, unsigned int>>(&intersection)) {
+                    this->concave_vertex = pt->first;
+                    break;
+                }
             }
+        } else {
+            FAIL() << "Failed to find an edge for ray shooting in test fixture setup";
         }
-        
-        // Find an edge of the configuration geometry that contains the concave vertex and identify its midpoint for use in tests
-        for (auto edge_it = this->configuration_geometry->edge_begin(); edge_it != this->configuration_geometry->edge_end(); edge_it++) {
-            if (edge_it->target().x() == 0 && edge_it->target().y() < 2) {
-                this->edge_midpoint = CGAL::midpoint(edge_it->source(), edge_it->target());
+
+        // Define a midpoint for use in tests
+        // We'll just use the midpoint of the edge containing the concave vertex, which we can find by iterating through the edges and finding the one that contains the concave vertex
+        for (auto edge_it = this->configuration_geometry->edge_begin(); edge_it != this->configuration_geometry->edge_end(); ++edge_it) {
+            if (BURST::curved_has_point(edge_it, this->concave_vertex)) {
+                auto source = edge_it->source()->point();
+                auto target = edge_it->target()->point();
+                this->edge_midpoint = CGAL::midpoint(source, target);
                 break;
             }
         }

@@ -76,6 +76,12 @@ namespace BURST::geometry {
                 graphics_options.colored_face = [](const ClosedCurve2D& polygon, ClosedCurve2D::Face_const_handle fh) noexcept {
                     return true;
                 };
+                graphics_options.edge_color = [](const ClosedCurve2D& polygon, ClosedCurve2D::Halfedge_const_handle eh) noexcept {
+                    return color(0, 100, 0);  // Dark green edges for configuration space
+                };
+                graphics_options.colored_edge = [](const ClosedCurve2D& polygon, ClosedCurve2D::Halfedge_const_handle eh) noexcept {
+                    return true;
+                };
 
                 CGAL::add_to_graphics_scene(this->configuration_shape, scene, graphics_options); 
             }
@@ -102,7 +108,7 @@ namespace BURST::geometry {
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
         std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const rscalar& robot_radius) const noexcept {
-            std::list<ClosedCurve2D> inner_minkowski_polygons;
+            std::list<CGAL::General_polygon_2<ConicTraits>> inner_minkowski_polygons;
             auto inner_minkowski = CGAL::inset_polygon_2(this->wall_shape, robot_radius, ConicTraits(), std::back_inserter(inner_minkowski_polygons));
             
             /*
@@ -111,7 +117,7 @@ namespace BURST::geometry {
              */
             if (inner_minkowski_polygons.size() != 1) return nullptr; 
 
-            return detail::ConfigurationGeometryImpl::create(inner_minkowski_polygons.front().vertices_begin(), inner_minkowski_polygons.front().vertices_end());
+            return detail::ConfigurationGeometryImpl::create(inner_minkowski_polygons.front().curves_begin(), inner_minkowski_polygons.front().curves_end());
         }
 
     public:
@@ -145,15 +151,7 @@ namespace BURST::geometry {
         }
 
         void render(scene& scene) const noexcept override {
-            polygon_options graphics_options = polygon_options();
-            graphics_options.face_color = [](const Polygon2D& polygon, void* fh) noexcept {
-                return color(173, 216, 230);  // Light blue walls
-            };
-            graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
-                return true;
-            };
-
-            CGAL::add_to_graphics_scene(this->wall_shape, scene, graphics_options);
+            CGAL::add_to_graphics_scene(this->wall_shape, scene);
         }
 
         friend class std::unique_ptr<WallGeometry>;

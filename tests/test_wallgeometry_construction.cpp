@@ -1,3 +1,4 @@
+#include "BURST/types.hpp"
 #include <gtest/gtest.h>
 #include <BURST/wall_geometry.hpp>
 
@@ -8,10 +9,10 @@
 TEST(WallGeometryConstructionTest, NonDegenerateRegularPolygon) {
     // Construct a WallGeometry for a square
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D{0, 0},
-        BURST::Point2D{10, 0},
-        BURST::Point2D{10, 10},
-        BURST::Point2D{0, 10}
+        BURST::Point2D<BURST::RationalKernel>{0, 0},
+        BURST::Point2D<BURST::RationalKernel>{10, 0},
+        BURST::Point2D<BURST::RationalKernel>{10, 10},
+        BURST::Point2D<BURST::RationalKernel>{0, 10}
     });
 
     // Expect the WallGeometry to be non-degenerate
@@ -24,10 +25,10 @@ TEST(WallGeometryConstructionTest, NonDegenerateSimplePolygon) {
     // Construct a WallGeometry for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D{0, 20},
-        BURST::Point2D{-20, -20},
-        BURST::Point2D{0, 0},
-        BURST::Point2D{20, -20}
+        BURST::Point2D<BURST::RationalKernel>{0, 20},
+        BURST::Point2D<BURST::RationalKernel>{-20, -20},
+        BURST::Point2D<BURST::RationalKernel>{0, 0},
+        BURST::Point2D<BURST::RationalKernel>{20, -20}
     });
 
     // Expect the WallGeometry to be non-degenerate
@@ -40,9 +41,9 @@ TEST(WallGeometryConstructionTest, DegenerateStraightLine) {
     // Construct a WallGeometry for a straight line
     // This is a degenerate polygon
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D{0, 0},
-        BURST::Point2D{10, 0},
-        BURST::Point2D{20, 0}
+        BURST::Point2D<BURST::RationalKernel>{0, 0},
+        BURST::Point2D<BURST::RationalKernel>{10, 0},
+        BURST::Point2D<BURST::RationalKernel>{20, 0}
     });
 
     // Expect the WallGeometry to be degenerate
@@ -55,7 +56,7 @@ TEST(WallGeometryConstructionTest, DegenerateSinglePoint) {
     // Construct a WallGeometry for a single point
     // This is a degenerate polygon
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D{0, 0}
+        BURST::Point2D<BURST::RationalKernel>{0, 0}
     });
 
     // Expect the WallGeometry to be degenerate
@@ -68,10 +69,10 @@ TEST(WallGeometryConstructionTest, DegenerateRepeatedPoint) {
     // Construct a WallGeometry for a repeated point
     // This is a degenerate polygon
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D{0, 0},
-        BURST::Point2D{10, 0},
-        BURST::Point2D{10, 0},
-        BURST::Point2D{0, 0}
+        BURST::Point2D<BURST::RationalKernel>{0, 0},
+        BURST::Point2D<BURST::RationalKernel>{10, 0},
+        BURST::Point2D<BURST::RationalKernel>{10, 0},
+        BURST::Point2D<BURST::RationalKernel>{0, 0}
     });
 
     // Expect the WallGeometry to be degenerate
@@ -86,10 +87,10 @@ TEST(WallGeometryConstructionTest, DegenerateSelfIntersectingPolygon) {
     // This polygon looks like an hourglass and intersects itself at the center
     // This is a degenerate polygon for our purposes
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D{-20, 20},
-        BURST::Point2D{20, 20},
-        BURST::Point2D{-20, -20},
-        BURST::Point2D{20, -20}
+        BURST::Point2D<BURST::RationalKernel>{-20, 20},
+        BURST::Point2D<BURST::RationalKernel>{20, 20},
+        BURST::Point2D<BURST::RationalKernel>{-20, -20},
+        BURST::Point2D<BURST::RationalKernel>{20, -20}
     });
 
     // Expect the WallGeometry to be degenerate
@@ -103,10 +104,10 @@ TEST(WallGeometryConstructionTest, DegenerateOutOfOrderPoints) {
     // This polygon is a square but the points are given in an order that creates a bowtie shape
     // This is a degenerate polygon for our purposes
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D{0, 0},
-        BURST::Point2D{10, 10},
-        BURST::Point2D{10, 0},
-        BURST::Point2D{0, 10}
+        BURST::Point2D<BURST::RationalKernel>{0, 0},
+        BURST::Point2D<BURST::RationalKernel>{10, 10},
+        BURST::Point2D<BURST::RationalKernel>{10, 0},
+        BURST::Point2D<BURST::RationalKernel>{0, 10}
     });
 
     // Expect the WallGeometry to be degenerate
