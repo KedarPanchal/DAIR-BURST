@@ -2,6 +2,7 @@
 #define ROBOT_HPP
 
 #include "types.hpp"
+#include "numeric_types.hpp"
 #include "renderable.hpp"
 #include "configuration_geometry.hpp"
 #include "models.hpp"
@@ -27,26 +28,26 @@ namespace BURST {
     static_assert(detail::is_valid_rotation_model<R>::value, "R must be a valid rotation model");
 
     private:
-        fscalar radius;
-        fscalar x_position;
-        fscalar y_position;
+        numeric::fscalar radius;
+        numeric::fscalar x_position;
+        numeric::fscalar y_position;
         std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_environment;
 
         std::unique_ptr<R> rotation_model;
         std::unique_ptr<M> movement_model;
 
     public:
-        Robot(fscalar robot_radius, fscalar max_rotation_error);
-        Robot(fscalar robot_radius, fscalar max_rotation_error, unsigned int rotation_seed);
+        Robot(numeric::fscalar robot_radius, numeric::fscalar max_rotation_error);
+        Robot(numeric::fscalar robot_radius, numeric::fscalar max_rotation_error, unsigned int rotation_seed);
 
         void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationGeometry> config_environment);
         const BURST::geometry::ConfigurationGeometry& getConfigurationEnvironment() const;
 
-        fscalar getRadius() const;
-        Point_2 shootRay(fscalar angle) const;
-        Polygon_2 generateStadium(fscalar angle) const;
-        Polygon_2 generateCCR(fscalar angle) const;
-        void move(fscalar angle);
+        numeric::fscalar getRadius() const;
+        Point_2 shootRay(numeric::fscalar angle) const;
+        Polygon_2 generateStadium(numeric::fscalar angle) const;
+        Polygon_2 generateCCR(numeric::fscalar angle) const;
+        void move(numeric::fscalar angle);
 
         void render(scene& scene) const override;
     };

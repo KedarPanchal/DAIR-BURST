@@ -11,6 +11,7 @@
 #include <CGAL/draw_polygon_2.h>
 
 #include "types.hpp"
+#include "numeric_types.hpp"
 #include "renderable.hpp"
 #include "configuration_geometry.hpp"
 #include "robot.hpp"
@@ -123,7 +124,7 @@ namespace BURST::geometry {
 
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
-        std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const fscalar& robot_radius) const noexcept {
+        std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const numeric::fscalar& robot_radius) const noexcept {
             /*
              * Algorithm -- this may not work with holed polygons (figure this out later)
              * 1. For each edge of the wall_shape polygon, identify the orthogonal vector pointing towards the interior of the polygon

@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "types.hpp"
+#include "numeric_types.hpp"
 #include "configuration_geometry.hpp"
 
 namespace BURST::models {
@@ -51,22 +52,22 @@ namespace BURST::models {
     template <typename PRNG = std::mt19937, typename Dist = std::uniform_real_distribution<double>>
     class RotationModel {
     private:
-        fscalar max_rotation_error;
+        numeric::fscalar max_rotation_error;
         mutable PRNG prng;
         mutable Dist rand_dist; // Generate from -1 to 1 to scale max_rotation_error by
 
     public:
-        RotationModel(fscalar max_rotation_error, unsigned int seed = std::random_device{}()) : max_rotation_error{max_rotation_error}, prng{seed}, rand_dist{-1.0, 1.0} {}
+        RotationModel(numeric::fscalar max_rotation_error, unsigned int seed = std::random_device{}()) : max_rotation_error{max_rotation_error}, prng{seed}, rand_dist{-1.0, 1.0} {}
 
-        fscalar operator() (fscalar angle) const {
+        numeric::fscalar operator() (numeric::fscalar angle) const {
             // Generate a random rotation error scaled by max_rotation_error
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
-        fscalar getMaxRotation(fscalar angle) const {
+        numeric::fscalar getMaxRotation(numeric::fscalar angle) const {
             return angle + this->max_rotation_error;
         }
-        fscalar getMinRotation(fscalar angle) const {
+        numeric::fscalar getMinRotation(numeric::fscalar angle) const {
             return angle - this->max_rotation_error;
         }
     };
@@ -88,7 +89,7 @@ namespace BURST::models {
     static_assert(detail::is_valid_path_type<typename ModelType::Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end Point_2s");
     static_assert(detail::is_valid_trajectory_type<typename ModelType::Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin Point_2 and a direction Vector_2");
     public:
-        std::optional<Point_2> operator() (const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
+        std::optional<Point_2> operator() (const Point_2& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
             // If the origin doesn't lie on the configuration geometry boundary, then the movement is invalid, so return nullopt
             if (CGAL::bounded_side_2(configuration_environment.vertex_begin(), configuration_environment.vertex_end(), origin) != CGAL::ON_BOUNDARY) return std::nullopt;
 
@@ -138,7 +139,7 @@ namespace BURST::models {
             // No intersections with any edge, so the movement is invalid, so return nullopt
             return std::nullopt;
         }
-        std::optional<typename ModelType::Path> generatePath(const Point_2& origin, fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
+        std::optional<typename ModelType::Path> generatePath(const Point_2& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
             // Identify the endpoint of the path by using the operator() function
             std::optional<Point_2> maybe_endpoint = (*this)(origin, angle, configuration_environment);
 
