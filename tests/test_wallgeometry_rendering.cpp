@@ -8,10 +8,10 @@
 TEST(WallGeometryRenderingTest, RenderRegularPolygon) {
     // Construct a WallGeometry for a square
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D<BURST::RationalKernel>{0, 0},
-        BURST::Point2D<BURST::RationalKernel>{10, 0},
-        BURST::Point2D<BURST::RationalKernel>{10, 10},
-        BURST::Point2D<BURST::RationalKernel>{0, 10}
+        BURST::Point2D{0, 0},
+        BURST::Point2D{10, 0},
+        BURST::Point2D{10, 10},
+        BURST::Point2D{0, 10}
     });
 
     // Expect the WallGeometry to be non-degenerate
@@ -34,10 +34,10 @@ TEST(WallGeometryRenderingTest, RenderSimplePolygon) {
     // Construct a WallGeometry for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = BURST::geometry::WallGeometry::create({
-        BURST::Point2D<BURST::RationalKernel>{0, 20},
-        BURST::Point2D<BURST::RationalKernel>{-20, -20},
-        BURST::Point2D<BURST::RationalKernel>{0, 0},
-        BURST::Point2D<BURST::RationalKernel>{20, -20}
+        BURST::Point2D{0, 20},
+        BURST::Point2D{-20, -20},
+        BURST::Point2D{0, 0},
+        BURST::Point2D{20, -20}
     });
 
     // Expect the WallGeometry to be non-degenerate

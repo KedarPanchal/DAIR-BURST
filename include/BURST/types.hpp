@@ -3,6 +3,7 @@
 
 #include <CGAL/Cartesian.h>
 #include <CGAL/CORE_algebraic_number_traits.h>
+#include <CGAL/Gps_traits_2.h>
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Arr_conic_traits_2.h>
 #include <CGAL/Arrangement_2.h>
@@ -20,6 +21,7 @@ namespace BURST {
     using AlgebraicKernel = CGAL::Cartesian<NumberTraits::Algebraic>; // Used for computation
     using RationalKernel = CGAL::Cartesian<NumberTraits::Rational>; // Used for polygon construction
     using ConicTraits = CGAL::Arr_conic_traits_2<RationalKernel, AlgebraicKernel, NumberTraits>; // Used for creating curved polygons
+    using GeneralPolygonTraits = CGAL::Gps_traits_2<ConicTraits>; // Used for polygon operations on curved polygons
     namespace bmp = boost::multiprecision;
     constexpr unsigned int HP_PRECISION = 100; // 100 decimal digits of precision for high-precision scalar type
     
@@ -29,34 +31,30 @@ namespace BURST {
     using hpscalar = bmp::number<bmp::mpfr_float_backend<HP_PRECISION>>; 
     
     // Geometric types
-    template <typename Kernel>
-    using Point2D = typename Kernel::Point_2;
-    template <typename Kernel>
-    using Segment2D = typename Kernel::Segment_2;
-    template <typename Kernel>
-    using Line2D = typename Kernel::Line_2;
-    template <typename Kernel>
-    using Ray2D = typename Kernel::Ray_2;
-    template <typename Kernel>
-    using Vector2D = typename Kernel::Vector_2;
+    using Point2D = AlgebraicKernel::Point_2;
+    using Segment2D = AlgebraicKernel::Segment_2;
+    using Line2D = AlgebraicKernel::Line_2;
+    using Ray2D = AlgebraicKernel::Ray_2;
     using Polygon2D = CGAL::Polygon_2<RationalKernel>;
-    using ClosedCurve2D = CGAL::Arrangement_2<ConicTraits>;
+    using CurvedPolygon2D = GeneralPolygonTraits::Polygon_2;
+    using CurvedPolygonArrangement2D = CGAL::Arrangement_2<ConicTraits>;
     using winding_order = CGAL::Orientation;
+    using Vector2D = CGAL::Vector_2<AlgebraicKernel>;
 
     // Iterator types
-    template <typename Shape>
-    using vertex_iterator = typename Shape::Vertex_const_iterator;
-    template <typename Shape>
-    using halfedge_iterator = typename Shape::Halfedge_const_iterator;
-    template <typename Shape>
-    using edge_iterator = typename Shape::Edge_const_iterator;
+    using vertex_iterator = Polygon2D::Vertex_const_iterator;
+    using edge_iterator = Polygon2D::Edge_const_iterator;
+    using curve_iterator = CurvedPolygon2D::Curve_const_iterator;
     
     // Rendering types
     using scene = CGAL::Graphics_scene;
-    template <typename Shape, typename VertexIter = vertex_iterator<Shape>, typename EdgeIter = edge_iterator<Shape>, typename FaceIter = void*>
-    using shape_options = CGAL::Graphics_scene_options<Shape, VertexIter, EdgeIter, FaceIter>;
-    using polygon_options = shape_options<Polygon2D>;
-    using closed_curve_options = shape_options<ClosedCurve2D, vertex_iterator<ClosedCurve2D>, halfedge_iterator<ClosedCurve2D>, ClosedCurve2D::Face_const_handle>;
+    using polygon_options = CGAL::Graphics_scene_options<Polygon2D, edge_iterator, edge_iterator, void*>;
+    using curved_polygon_options = CGAL::Graphics_scene_options<
+        CurvedPolygonArrangement2D,
+        CurvedPolygonArrangement2D::Vertex_const_handle,
+        CurvedPolygonArrangement2D::Halfedge_const_handle,
+        CurvedPolygonArrangement2D::Face_const_handle
+    >;
     using color = CGAL::IO::Color;
 
 }
