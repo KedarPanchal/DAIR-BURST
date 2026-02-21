@@ -4,7 +4,6 @@
 #include <optional>
 #include <initializer_list>
 #include <variant>
-#include <vector>
 
 #include <CGAL/Polygon_2_algorithms.h>
 #include <CGAL/intersections.h>
@@ -12,6 +11,7 @@
 
 #include "types.hpp"
 #include "numeric_types.hpp"
+#include "geometric_types.hpp"
 #include "renderable.hpp"
 #include "configuration_geometry.hpp"
 #include "robot.hpp"
@@ -23,9 +23,9 @@ namespace BURST::geometry {
         template <typename T>
         struct is_valid_intersection_type : std::false_type {};
         template <>
-        struct is_valid_intersection_type<Line_2> : std::true_type {};
+        struct is_valid_intersection_type<Line2D> : std::true_type {};
         template<>
-        struct is_valid_intersection_type<Segment_2> : std::true_type {};
+        struct is_valid_intersection_type<Segment2D> : std::true_type {};
     }
     // Forward declare WallGeometry for ConfigurationGeometryImpl
     class WallGeometry;
@@ -36,14 +36,14 @@ namespace BURST::geometry {
         // Thus it is a private nested class of WallGeometry
         class ConfigurationGeometryImpl : public ConfigurationGeometry {
         private:
-            Polygon_2 configuration_shape;
+            Polygon2D configuration_shape;
 
-            ConfigurationGeometryImpl(const Polygon_2& shape) noexcept : configuration_shape{shape} {}
-            ConfigurationGeometryImpl(Polygon_2&& shape) noexcept : configuration_shape{std::move(shape)} {}
+            ConfigurationGeometryImpl(const Polygon2D& shape) noexcept : configuration_shape{shape} {}
+            ConfigurationGeometryImpl(Polygon2D&& shape) noexcept : configuration_shape{std::move(shape)} {}
 
             template <typename Iter>
             static std::unique_ptr<ConfigurationGeometryImpl> create(Iter begin, Iter end) noexcept {
-                Polygon_2 configuration_polygon{begin, end};
+                Polygon2D configuration_polygon{begin, end};
                 return std::unique_ptr<ConfigurationGeometryImpl>{new ConfigurationGeometryImpl{std::move(configuration_polygon)}};
             }
 
@@ -69,10 +69,10 @@ namespace BURST::geometry {
                 // TODO: Add a z-offset to the configuration geometry rendering so that it's visible
                 // Right now, we're getting lucky with how we ordered the rendering, but this could change as the scene gets more complex
                 polygon_options graphics_options = polygon_options();
-                graphics_options.face_color = [](const Polygon_2& polygon, void* fh) noexcept {
+                graphics_options.face_color = [](const Polygon2D& polygon, void* fh) noexcept {
                     return color(138, 154, 91);  // Light green configuration space
                 };
-                graphics_options.colored_face = [](const Polygon_2& polygon, void* fh) noexcept {
+                graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
                     return true;
                 };
 
@@ -89,38 +89,38 @@ namespace BURST::geometry {
     class WallGeometry : public Renderable {
     private:
         
-        Polygon_2 wall_shape;
+        Polygon2D wall_shape;
         polygon_options wall_render_options;
 
         // Helper method to compute the intersection between two lines or rays or segments
         template <typename T1, typename T2>
-        std::optional<Point_2> computeIntersection(T1 linear1, T2 linear2) const noexcept {
+        std::optional<Point2D> computeIntersection(T1 linear1, T2 linear2) const noexcept {
             // Validate type traits
-            static_assert(detail::is_valid_intersection_type<T1>::value, "T1 must be a valid intersection type (Line_2 or Segment_2)");
-            static_assert(detail::is_valid_intersection_type<T2>::value, "T2 must be a valid intersection type (Line_2 or Segment_2)");
+            static_assert(detail::is_valid_intersection_type<T1>::value, "T1 must be a valid intersection type (Line2D or Segment2D)");
+            static_assert(detail::is_valid_intersection_type<T2>::value, "T2 must be a valid intersection type (Line2D or Segment2D)");
 
             auto maybe_intersection = CGAL::intersection(linear1, linear2);
             // Only enable the below cases if both T1 and T2 are segments, since it's only possible to have a disconnect in the intersection in that case
-            if constexpr (std::is_same_v<T1, Segment_2> && std::is_same_v<T2, Segment_2>) {
+            if constexpr (std::is_same_v<T1, Segment2D> && std::is_same_v<T2, Segment2D>) {
                 if (!maybe_intersection) {
                     // No intersection, which happens when the segments are disconnected
                     // To remedy this, extend the segments in both directions and check for a new intersection
                     // The quick and dirty way to extend a segment is to just make a line from it and then check for intersections
-                    Line_2 line1(linear1);
-                    Line_2 line2(linear2);
+                    Line2D line1(linear1);
+                    Line2D line2(linear2);
                     return this->computeIntersection(line1, line2);
                 }
             }
             // If we get a point (get_if isn't nullptr), return it
-            if (const Point_2* intersection = std::get_if<Point_2>(&*maybe_intersection)) return std::optional<Point_2>{*intersection};
+            if (const Point2D* intersection = std::get_if<Point2D>(&*maybe_intersection)) return std::optional<Point2D>{*intersection};
             else return std::nullopt; // The intersection is not a point, this shouldn't happen otherwise the polygon is degenerate
         }
 
     protected: 
         // Protected constructors since the public API is through the static create method
         // Abstracting this away to protected constructors allows subclassing WallGeometry in a test environment without depending on the static create method and its constraints
-        WallGeometry(const Polygon_2& shape) noexcept : wall_shape{shape} {}
-        WallGeometry(Polygon_2&& shape) noexcept : wall_shape{std::move(shape)} {}
+        WallGeometry(const Polygon2D& shape) noexcept : wall_shape{shape} {}
+        WallGeometry(Polygon2D&& shape) noexcept : wall_shape{std::move(shape)} {}
 
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
@@ -136,7 +136,7 @@ namespace BURST::geometry {
              *   a. This can be achieved by multiplying the orthogonal vector by the robot's radius
              * 3. Identify points of intersection and construct a new polygon using these points
              */
-            std::vector<Segment_2> translated_edges; // Hold the translated edges of the configuration geometry
+            std::vector<Segment2D> translated_edges; // Hold the translated edges of the configuration geometry
             // Find the transformed segments for each edge of the wall polygon
             for (auto edge_it = this->wall_shape.edges_begin(); edge_it != this->wall_shape.edges_end(); edge_it++) {
                 // Construct a perpendicular vector based on the shape's orientation (winding order)
@@ -153,10 +153,10 @@ namespace BURST::geometry {
 
             // For each pair of edges, identify the intersection points
             // For this implementation, use a pseudo-circular queue-style implementation to wrap around the edges
-            std::vector<Point_2> configuration_vertices; // Hold the vertices of the configuration geometry
+            std::vector<Point2D> configuration_vertices; // Hold the vertices of the configuration geometry
             for (size_t i = 0; i < translated_edges.size(); i++) {
-                Segment_2& current_edge = translated_edges.at(i);
-                Segment_2& next_edge = translated_edges.at((i + 1) % translated_edges.size());
+                Segment2D& current_edge = translated_edges.at(i);
+                Segment2D& next_edge = translated_edges.at((i + 1) % translated_edges.size());
                 // Attempt to compute the intersection between the current edge and the next edge
                 auto maybe_intersection = this->computeIntersection(current_edge, next_edge);
                 // No intersection, which occurs when the configuration geometry is degenerate but not necessarily disconnected (i.e. collinear edges)
@@ -174,7 +174,7 @@ namespace BURST::geometry {
             if (!CGAL::is_simple_2(configuration_vertices.begin(), configuration_vertices.end())) return nullptr;
             if (CGAL::orientation_2(configuration_vertices.begin(), configuration_vertices.end()) == CGAL::COLLINEAR) return nullptr;
             // Generate a configuration geometry from the vertices and set it as the robot's configuration environment
-            Polygon_2 config_polygon{configuration_vertices.begin(), configuration_vertices.end()};
+            Polygon2D config_polygon{configuration_vertices.begin(), configuration_vertices.end()};
             return detail::ConfigurationGeometryImpl::create(configuration_vertices.begin(), configuration_vertices.end());
         }
 
@@ -190,10 +190,10 @@ namespace BURST::geometry {
             // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
             if (CGAL::orientation_2(begin, end) == CGAL::COLLINEAR) return std::nullopt;
 
-            Polygon_2 wall_polygon{begin, end};
+            Polygon2D wall_polygon{begin, end};
             return std::optional<WallGeometry>{WallGeometry{std::move(wall_polygon)}};
         }
-        static std::optional<WallGeometry> create(std::initializer_list<Point_2> points) noexcept {
+        static std::optional<WallGeometry> create(std::initializer_list<Point2D> points) noexcept {
             return WallGeometry::create(points.begin(), points.end());
         }
         // Template is not needed for any implementation, but is needed for Robot
@@ -210,10 +210,10 @@ namespace BURST::geometry {
 
         void render(scene& scene) const noexcept override {
             polygon_options graphics_options = polygon_options();
-            graphics_options.face_color = [](const Polygon_2& polygon, void* fh) noexcept {
+            graphics_options.face_color = [](const Polygon2D& polygon, void* fh) noexcept {
                 return color(173, 216, 230);  // Light blue walls
             };
-            graphics_options.colored_face = [](const Polygon_2& polygon, void* fh) noexcept {
+            graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
                 return true;
             };
 

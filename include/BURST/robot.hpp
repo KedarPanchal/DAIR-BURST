@@ -44,9 +44,9 @@ namespace BURST {
         const BURST::geometry::ConfigurationGeometry& getConfigurationEnvironment() const;
 
         numeric::fscalar getRadius() const;
-        Point_2 shootRay(numeric::fscalar angle) const;
-        Polygon_2 generateStadium(numeric::fscalar angle) const;
-        Polygon_2 generateCCR(numeric::fscalar angle) const;
+        geometry::Point2D shootRay(numeric::fscalar angle) const;
+        geometry::Polygon2D generateStadium(numeric::fscalar angle) const;
+        geometry::Polygon2D generateCCR(numeric::fscalar angle) const;
         void move(numeric::fscalar angle);
 
         void render(scene& scene) const override;

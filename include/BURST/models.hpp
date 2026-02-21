@@ -2,12 +2,12 @@
 #define MODELS_HPP
 
 #include <CGAL/Polygon_2_algorithms.h>
+#include <boost/multiprecision/mpfr.hpp>
 
 #include <utility>
 #include <random>
 #include <optional>
 
-#include "types.hpp"
 #include "numeric_types.hpp"
 #include "configuration_geometry.hpp"
 
@@ -19,21 +19,21 @@ namespace BURST::models {
         template <typename T, typename = void>
         struct is_valid_builtin_intersection_type : std::false_type {};
         template <typename T>
-        struct is_valid_builtin_intersection_type<T, std::void_t<decltype(CGAL::intersection(std::declval<T>(), std::declval<Segment_2>()))>> : std::true_type {};
+        struct is_valid_builtin_intersection_type<T, std::void_t<decltype(CGAL::intersection(std::declval<T>(), std::declval<geometry::Segment2D>()))>> : std::true_type {};
         
         // Type traits for validating whether a type can be a Path for a movement model
-        // This requires a 2-argument constructor that accepts start and end Point_2s (like Segment_2)
+        // This requires a 2-argument constructor that accepts start and end geometry::Point2Ds (like geometry::Segment2D)
         template <typename T, typename = void>
         struct is_valid_path_type : std::false_type {};
         template <typename T>
-        struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<Point_2>(), std::declval<Point_2>()})>> : std::true_type {};
+        struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<geometry::Point2D>(), std::declval<geometry::Point2D>()})>> : std::true_type {};
 
         // Type traits for validating whether a type can be a Trajectory for a movement model
-        // This requires a 2-argument constructor that accepts an origin Point_2 and a direction Vector_2 (like Ray_2)
+        // This requires a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D (like geometry::Ray2D)
         template <typename T, typename = void>
         struct is_valid_trajectory_type : std::false_type {};
         template <typename T>
-        struct is_valid_trajectory_type<T, std::void_t<decltype(T{std::declval<Point_2>(), std::declval<Vector_2>()})>> : std::true_type {};
+        struct is_valid_trajectory_type<T, std::void_t<decltype(T{std::declval<geometry::Point2D>(), std::declval<geometry::Vector2D>()})>> : std::true_type {};
     }
     
     // Custom random number distribution that generates the same number for every RNG, which is useful for testing
@@ -76,8 +76,8 @@ namespace BURST::models {
    
     // Define Path-Trajectory pairs for movement models
     struct LinearModel {
-        using Path = Segment_2;
-        using Trajectory = Ray_2;
+        using Path = geometry::Segment2D;
+        using Trajectory = geometry::Ray2D;
     };
 
     /*
@@ -86,16 +86,16 @@ namespace BURST::models {
     template <typename ModelType>
     class MovementModel {
     // Validate type traits
-    static_assert(detail::is_valid_path_type<typename ModelType::Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end Point_2s");
-    static_assert(detail::is_valid_trajectory_type<typename ModelType::Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin Point_2 and a direction Vector_2");
+    static_assert(detail::is_valid_path_type<typename ModelType::Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
+    static_assert(detail::is_valid_trajectory_type<typename ModelType::Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D");
     public:
-        std::optional<Point_2> operator() (const Point_2& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
+        std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
             // If the origin doesn't lie on the configuration geometry boundary, then the movement is invalid, so return nullopt
             if (CGAL::bounded_side_2(configuration_environment.vertex_begin(), configuration_environment.vertex_end(), origin) != CGAL::ON_BOUNDARY) return std::nullopt;
 
             // Create a direction trajectory from the angle
-            hpscalar hp_angle = to_high_precision(angle);
-            Vector_2 direction_vector{bmp::cos(hp_angle), bmp::sin(hp_angle)};
+            numeric::hpscalar hp_angle = numeric::to_high_precision(angle);
+            geometry::Vector2D direction_vector{boost::multiprecision::cos(hp_angle), boost::multiprecision::sin(hp_angle)};
             
             /*
              * RIP Direction Checking Code (2026 - 2026)
@@ -120,7 +120,7 @@ namespace BURST::models {
                     if (!maybe_intersection.has_value()) continue;
 
                     // If the intersection is a point we found the next position of the robot, so return it
-                    if (const Point_2* intersection_point = std::get_if<Point_2>(&*maybe_intersection)) return std::optional<Point_2>{*intersection_point};
+                    if (const geometry::Point2D* intersection_point = std::get_if<geometry::Point2D>(&*maybe_intersection)) return std::optional<geometry::Point2D>{*intersection_point};
 
                     /*
                      * The case of the trajectory being collinear with the edge shouldn't occur since the edge intersecting with the origin isn't considered
@@ -139,9 +139,9 @@ namespace BURST::models {
             // No intersections with any edge, so the movement is invalid, so return nullopt
             return std::nullopt;
         }
-        std::optional<typename ModelType::Path> generatePath(const Point_2& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
+        std::optional<typename ModelType::Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
             // Identify the endpoint of the path by using the operator() function
-            std::optional<Point_2> maybe_endpoint = (*this)(origin, angle, configuration_environment);
+            std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_environment);
 
             // If the endpoint doesn't exist, then the path is invalid, so return nullopt
             if (!maybe_endpoint.has_value()) return std::nullopt;
