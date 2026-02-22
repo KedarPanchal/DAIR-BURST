@@ -3,10 +3,10 @@
 
 #include <optional>
 #include <initializer_list>
+#include <vector>
 #include <variant>
 
-#include <CGAL/Polygon_2_algorithms.h>
-#include <CGAL/intersections.h>
+#include <CGAL/approximated_offset_2.h>
 #include <CGAL/draw_polygon_2.h>
 
 #include "numeric_types.hpp"
@@ -24,7 +24,7 @@ namespace BURST::geometry {
     namespace detail {
         // This class is intended to be used internally and not as an API
         // This is because ConfigurationGeometry should never be instantiated directly
-        // Thus it is a private nested class of WallGeometry
+        // This is why its constructors are private and only accessible by WallGeometry
         class ConfigurationGeometryImpl : public ConfigurationGeometry {
         private:
             Polygon2D configuration_shape;
@@ -32,8 +32,8 @@ namespace BURST::geometry {
             ConfigurationGeometryImpl(const Polygon2D& shape) noexcept : configuration_shape{shape} {}
             ConfigurationGeometryImpl(Polygon2D&& shape) noexcept : configuration_shape{std::move(shape)} {}
 
-            template <typename Iter>
-            static std::unique_ptr<ConfigurationGeometryImpl> create(Iter begin, Iter end) noexcept {
+            template <typename VertexIter>
+            static std::unique_ptr<ConfigurationGeometryImpl> create(VertexIter begin, VertexIter end) noexcept {
                 Polygon2D configuration_polygon{begin, end};
                 return std::unique_ptr<ConfigurationGeometryImpl>{new ConfigurationGeometryImpl{std::move(configuration_polygon)}};
             }
@@ -95,6 +95,20 @@ namespace BURST::geometry {
             // TODO: Use an approximated_inset_2 algorithm to construct the Minkowski difference of the wall polygon and a disk of radius robot_radius
             // Do NOT under ANY CIRCUMSTANCE use the inset_2 algorithm, since this gives an exact result at the cost of going to a massive war against the type system
             // As tempting as it is, just find a nice epsilon and call it a day instead of going through template hell
+            
+            // Create a vector to store the outputted inset Minkowski difference polygons
+            std::vector<Polygon2D> inset_results;
+            // Compute the Minkowski difference
+            // TODO: Find an actually good epsilon instead of this approximation
+            CGAL::approximated_inset_2(this->wall_shape, robot_radius, 0.000001, std::back_inserter(inset_results));
+            /*
+             * If there are no polygons, then the wall is too small for the robot and no configuration space could be made
+             * If there are multiple polygons, then there were regions too tight for the robot to fit in, and no configuration space could be made
+             * In both cases, return nullptr
+             */
+            if (inset_results.size() != 1) return nullptr;
+            // Otherwise, create a pointer to a configuration space and return it
+            return detail::ConfigurationGeometryImpl::create(inset_results.front().vertices_begin(), inset_results.front().vertices_end());
         }
 
     public:
