@@ -74,20 +74,14 @@ namespace BURST::models {
 
     using MaximumRotationModel = RotationModel<std::mt19937, flat_distribution>;
    
-    // Define Path-Trajectory pairs for movement models
-    struct LinearModel {
-        using Path = geometry::Segment2D;
-        using Trajectory = geometry::Ray2D;
-    };
-
     /*
      * MovementModel defines how the robot's movement is affected by noise.
      */
-    template <typename ModelType>
+    template <typename Trajectory, typename Path>
     class MovementModel {
     // Validate type traits
-    static_assert(detail::is_valid_path_type<typename ModelType::Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
-    static_assert(detail::is_valid_trajectory_type<typename ModelType::Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D");
+    static_assert(detail::is_valid_trajectory_type<Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D");
+    static_assert(detail::is_valid_path_type<Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
     public:
         std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
@@ -97,12 +91,12 @@ namespace BURST::models {
             numeric::hpscalar hp_angle = numeric::to_high_precision(angle);
             geometry::Vector2D direction_vector{boost::multiprecision::cos(hp_angle), boost::multiprecision::sin(hp_angle)};
             // Create a trajectory from the origin and direction vector
-            typename ModelType::Trajectory trajectory{origin, direction_vector};
+            Trajectory trajectory{origin, direction_vector};
 
             // Get the intersection of the trajectory with the configuration space boundary, which is the endpoint of the path
             return configuration_space.intersection(trajectory);
         }
-        std::optional<typename ModelType::Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
+        std::optional<Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function
             std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_space);
 
@@ -111,11 +105,9 @@ namespace BURST::models {
             // If the origin and endpoint are the same, then the path is invalid, so return nullopt
             if (*maybe_endpoint == origin) return std::nullopt;
             // Otherwise generate a path from the origin to the endpoint and return it
-            return std::optional<typename ModelType::Path>{typename ModelType::Path{origin, *maybe_endpoint}};
+            return std::optional<Path>{Path{origin, *maybe_endpoint}};
         }
     };
-
-    using LinearMovementModel = MovementModel<LinearModel>;
     
 }
 #endif
