@@ -37,7 +37,7 @@ namespace BURST::numeric {
     }
     
     template <typename SqrtType>
-    inline fscalar to_fscalar(const SqrtType& value) {
+    inline fscalar sqrt_to_fscalar(const SqrtType& value) {
     static_assert(detail::is_valid_sqrt_type<SqrtType>::value, "The type provided to numeric::to_fscalar must have a0(), a1(), and root() member functions that return the components of the square root in the form a0 + a1 * sqrt(root)");
         // Get exact values of components
         fscalar a0 = value.a0();

@@ -117,21 +117,21 @@ protected:
             // Convert coordinates to double and store as the concave vertex
             auto x = (*vertex)->point().x();
             auto y = (*vertex)->point().y();
-            this->concave_vertex = BURST::geometry::Point2D{BURST::numeric::to_fscalar(x), BURST::numeric::to_fscalar(y)};
+            this->concave_vertex = BURST::geometry::Point2D{BURST::numeric::sqrt_to_fscalar(x), BURST::numeric::sqrt_to_fscalar(y)};
         } else if (auto* halfedge = std::get_if<decltype(arrangement)::Halfedge_const_handle>(&result)) {
             auto curve = (*halfedge)->curve();
 
             if (curve.is_linear()) {
                 // Solve for y = (-ax - c) / b using the line equation ax + by + c = 0
-                auto y = (-curve.supporting_line().c() - curve.supporting_line().a() * BURST::numeric::to_fscalar(query_origin.x())) / curve.supporting_line().b();
-                this->concave_vertex = BURST::geometry::Point2D{BURST::numeric::to_fscalar(query_origin.x()), y};
+                auto y = (-curve.supporting_line().c() - curve.supporting_line().a() * BURST::numeric::sqrt_to_fscalar(query_origin.x())) / curve.supporting_line().b();
+                this->concave_vertex = BURST::geometry::Point2D{BURST::numeric::sqrt_to_fscalar(query_origin.x()), y};
             } else if (curve.is_circular()) {
                 // Solve for y = cy + sqrt(r^2 - (x - cx)^2) using the circle equation (x - cx)^2 + (y - cy)^2 = r^2
                 auto center = curve.supporting_circle().center();
 
                 auto cx = center.x();
                 auto cy = center.y();
-                auto dx = BURST::numeric::to_fscalar(query_origin.x()) - cx;
+                auto dx = BURST::numeric::sqrt_to_fscalar(query_origin.x()) - cx;
                 auto radius_2 = curve.supporting_circle().squared_radius();
                 auto y = cy + CGAL::sqrt(radius_2 - dx*dx);
 
