@@ -116,7 +116,7 @@ namespace BURST::geometry {
                     // Convert the vertex point back to a Point2D and return it as the intersection point
                     auto intersection_point = vertex_it->point();
                     // Add the point to the output collection using the provided output iterator
-                    intersection_points = Point2D{intersection_point.x(), intersection_point.y()};
+                    intersection_points = Point2D{numeric::to_fscalar(intersection_point.x()), numeric::to_fscalar(intersection_point.y())};
                     // Increment the intersection count
                     intersection_count++;
                 }

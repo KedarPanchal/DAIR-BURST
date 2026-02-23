@@ -26,6 +26,15 @@ namespace BURST::numeric {
         str_representation << std::setprecision(100) << value; // 100-decimal precision string
         return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
     }
+    
+    inline fscalar to_fscalar(const CurvedTraits::CoordNT& value) {
+        // Get exact values of components
+        fscalar a0 = value.a0();
+        fscalar a1 = value.a1();
+        fscalar root = value.root();
+
+        return a0 + a1 * CGAL::sqrt(root);
+    }
 }
 
 #endif
