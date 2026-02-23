@@ -108,17 +108,25 @@ protected:
         // Shoot the ray up
         auto result = point_location.ray_shoot_up(query_origin);
         
-        // If the ray hits a vertex, then the vertex is the concave vertex
+        /*
+         * If the ray hits a vertex, the result is the concave vertex
+         * If the ray hits an edge, the result is the intersection between the ray and the edge, solved using the linear or circular curve equations
+         * Everything is lossily converted to double since the traits and fixtures and tests use incompatible number types
+         */
         if (auto* vertex = std::get_if<decltype(arrangement)::Vertex_const_handle>(&result)) {
+            // Convert coordinates to double and store as the concave vertex
             auto x = CGAL::to_double((*vertex)->point().x());
             auto y = CGAL::to_double((*vertex)->point().y());
             this->concave_vertex = BURST::geometry::Point2D{x, y};
         } else if (auto* halfedge = std::get_if<decltype(arrangement)::Halfedge_const_handle>(&result)) {
             auto curve = (*halfedge)->curve();
+
             if (curve.is_linear()) {
+                // Solve for y = (-ax - c) / b using the line equation ax + by + c = 0
                 auto y = CGAL::to_double((-curve.supporting_line().c() - curve.supporting_line().a() * query_origin.x()) / curve.supporting_line().b());
                 this->concave_vertex = BURST::geometry::Point2D{CGAL::to_double(query_origin.x()), y};
             } else if (curve.is_circular()) {
+                // Solve for y = cy + sqrt(r^2 - (x - cx)^2) using the circle equation (x - cx)^2 + (y - cy)^2 = r^2
                 auto center = curve.supporting_circle().center();
 
                 auto cx = CGAL::to_double(center.x());
@@ -128,10 +136,10 @@ protected:
                 auto y = cy + std::sqrt(radius_2 - dx * dx);
 
                 this->concave_vertex = BURST::geometry::Point2D{CGAL::to_double(query_origin.x()), y};
-            } else {
+            } else { // This should never happen since the configuration geometry should only have linear and circular edges, but handle it anyway
                 FAIL() << "Unexpected curve type in point location result during test fixture setup";
             }
-        } else {
+        } else { // If the ray hits nothing, then something has gone very wrong since a hit should occur
             FAIL() << "Unexpected point location result type during test fixture setup";
         }
     }
