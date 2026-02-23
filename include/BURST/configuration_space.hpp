@@ -14,6 +14,16 @@
 #include "renderable.hpp"
 
 namespace BURST::geometry {
+    
+    // Internal implementations not intended for public use
+    namespace detail {
+        // Type traits for validating whether a type can be a Path for the intersection function in ConfigurationSpace
+        // This requires a 2-argument constructor that accepts start and end geometry::Point2Ds (like geometry::Segment2D)
+        template <typename T, typename = void>
+        struct is_valid_path_type : std::false_type {};
+        template <typename T>
+        struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<geometry::Point2D>(), std::declval<geometry::Point2D>()})>> : std::true_type {};
+    }
 
     // Forward declare WallSpace for ConfigurationSpace
     class WallSpace;
@@ -68,6 +78,8 @@ namespace BURST::geometry {
                 SourceFunc source = &Trajectory::source,
                 VectorizeFunc vectorize = &Trajectory::to_vector
             ) const noexcept {
+            static_assert(detail::is_valid_path_type<Path>::value, "The Path type for ConfigurationSpace::intersection must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
+
             // Identify the margin of the bounding box to determine an extreme magnitude for the ray to be clipped at
             numeric::fscalar margin = this->bbox().xmax() - this->bbox().xmin() + this->bbox().ymax() - this->bbox().ymin();
             // Create a segment from the ray with the identified margin
