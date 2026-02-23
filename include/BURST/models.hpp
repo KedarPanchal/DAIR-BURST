@@ -99,9 +99,9 @@ namespace BURST::models {
             size_t intersection_count = configuration_space.intersection<Trajectory, Path>(trajectory, std::back_inserter(intersection_points));
             if (intersection_count == 0) return std::nullopt; // If there are no intersections, then the path is invalid, so return nullopt
              // Return the closest intersection point to the origin as the endpoint of the path
-            return std::min_element(intersection_points.begin(), intersection_points.end(), [&origin](const geometry::Point2D& a, const geometry::Point2D& b) {
+            return std::optional<geometry::Point2D>{*std::min_element(intersection_points.begin(), intersection_points.end(), [&origin](const geometry::Point2D& a, const geometry::Point2D& b) {
                 return CGAL::squared_distance(a, origin) < CGAL::squared_distance(b, origin);
-            });
+            })};
         }
         std::optional<Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function
