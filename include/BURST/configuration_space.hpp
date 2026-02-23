@@ -71,10 +71,10 @@ namespace BURST::geometry {
             return std::nullopt;
         }
         
-        // TODO: Make this return an array of intersection points instead of just one since there can be multiple intersections with a curvilinear polygon
-        template <typename Trajectory, typename Path, typename SourceFunc = Point2D(Trajectory::*)(), typename VectorizeFunc = Vector2D(Trajectory::*)()>
-        std::optional<Point2D> intersection(
-                const Trajectory& trajectory, 
+        template <typename Trajectory, typename Path, typename OutputIteratorCollection, typename SourceFunc = Point2D(Trajectory::*)(), typename VectorizeFunc = Vector2D(Trajectory::*)()>
+        size_t intersection(
+                const Trajectory& trajectory,
+                std::back_insert_iterator<OutputIteratorCollection> intersection_points,
                 SourceFunc source = &Trajectory::source,
                 VectorizeFunc vectorize = &Trajectory::to_vector
             ) const noexcept {
@@ -91,6 +91,8 @@ namespace BURST::geometry {
             CGAL::insert(arrangement, long_path);
             // Convert the ray source to the traits required for the source containment check
             auto converted_source = CurvedTraits::Point_2(std::invoke(source, trajectory).x(), std::invoke(source, trajectory).y());
+            // Count the number of intersections found
+            size_t intersection_count = 0;
             /*
              * Iterate through the arrangement vertices to find the intersection point
              * Existing polygon vertices will have a degree of 2
@@ -101,10 +103,13 @@ namespace BURST::geometry {
                 if (vertex_it->degree() > 2) {
                     // Convert the vertex point back to a Point2D and return it as the intersection point
                     auto intersection_point = vertex_it->point();
-                    return std::optional<Point2D>{Point2D(intersection_point.x(), intersection_point.y())};
+                    // Add the point to the output collection using the provided output iterator
+                    intersection_points = Point2D{intersection_point.x(), intersection_point.y()};
+                    // Increment the intersection count
+                    intersection_count++;
                 }
             }
-            return std::nullopt; // No intersection found
+            return intersection_count; // Return the number of intersections found
         }
 
         void render(graphics::Scene& scene) const noexcept {
