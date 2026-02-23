@@ -95,7 +95,6 @@ protected:
         // Construct a configuration geometry for a robot with radius 1
         this->configuration_geometry = wall_geometry->testConstructConfigurationSpace(1.0);
         ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
-        
 
         /*
          * Identify the concave vertex of the configuration geometry for use in tests
@@ -116,25 +115,25 @@ protected:
          */
         if (auto* vertex = std::get_if<decltype(arrangement)::Vertex_const_handle>(&result)) {
             // Convert coordinates to double and store as the concave vertex
-            auto x = CGAL::to_double((*vertex)->point().x());
-            auto y = CGAL::to_double((*vertex)->point().y());
-            this->concave_vertex = BURST::geometry::Point2D{x, y};
+            auto x = (*vertex)->point().x();
+            auto y = (*vertex)->point().y();
+            this->concave_vertex = BURST::geometry::Point2D{BURST::numeric::to_fscalar(x), BURST::numeric::to_fscalar(y)};
         } else if (auto* halfedge = std::get_if<decltype(arrangement)::Halfedge_const_handle>(&result)) {
             auto curve = (*halfedge)->curve();
 
             if (curve.is_linear()) {
                 // Solve for y = (-ax - c) / b using the line equation ax + by + c = 0
-                auto y = CGAL::to_double((-curve.supporting_line().c() - curve.supporting_line().a() * query_origin.x()) / curve.supporting_line().b());
-                this->concave_vertex = BURST::geometry::Point2D{CGAL::to_double(query_origin.x()), y};
+                auto y = (-curve.supporting_line().c() - curve.supporting_line().a() * BURST::numeric::to_fscalar(query_origin.x())) / curve.supporting_line().b();
+                this->concave_vertex = BURST::geometry::Point2D{BURST::numeric::to_fscalar(query_origin.x()), y};
             } else if (curve.is_circular()) {
                 // Solve for y = cy + sqrt(r^2 - (x - cx)^2) using the circle equation (x - cx)^2 + (y - cy)^2 = r^2
                 auto center = curve.supporting_circle().center();
 
-                auto cx = CGAL::to_double(center.x());
-                auto cy = CGAL::to_double(center.y());
-                auto dx = CGAL::to_double(query_origin.x()) - cx;
-                auto radius_2 = CGAL::to_double(curve.supporting_circle().squared_radius());
-                auto y = cy + std::sqrt(radius_2 - dx * dx);
+                auto cx = center.x();
+                auto cy = center.y();
+                auto dx = BURST::numeric::to_fscalar(query_origin.x()) - cx;
+                auto radius_2 = curve.supporting_circle().squared_radius();
+                auto y = cy + CGAL::sqrt(radius_2 - dx*dx);
 
                 this->concave_vertex = BURST::geometry::Point2D{CGAL::to_double(query_origin.x()), y};
             } else { // This should never happen since the configuration geometry should only have linear and circular edges, but handle it anyway
@@ -143,6 +142,8 @@ protected:
         } else { // If the ray hits nothing, then something has gone very wrong since a hit should occur
             FAIL() << "Unexpected point location result type during test fixture setup";
         }
+
+        std::cout << "Identified concave vertex at: (" << this->concave_vertex.x() << ", " << this->concave_vertex.y() << ")" << std::endl;
     }
 };
 
