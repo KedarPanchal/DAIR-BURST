@@ -89,59 +89,22 @@ namespace BURST::models {
     static_assert(detail::is_valid_path_type<typename ModelType::Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
     static_assert(detail::is_valid_trajectory_type<typename ModelType::Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D");
     public:
-        std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_environment) const noexcept {
-            // If the origin doesn't lie on the configuration geometry boundary, then the movement is invalid, so return nullopt
-            if (CGAL::bounded_side_2(configuration_environment.vertex_begin(), configuration_environment.vertex_end(), origin) != CGAL::ON_BOUNDARY) return std::nullopt;
+        std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
+            // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
+            if (!configuration_space.intersection(origin).has_value()) return std::nullopt;
 
-            // Create a direction trajectory from the angle
+            // Create a direction vector from the angle
             numeric::hpscalar hp_angle = numeric::to_high_precision(angle);
             geometry::Vector2D direction_vector{boost::multiprecision::cos(hp_angle), boost::multiprecision::sin(hp_angle)};
-            
-            /*
-             * RIP Direction Checking Code (2026 - 2026)
-             * There used to be code here to check whether the direction pointed outside the polygon.
-             * This wasn't needed in the first place as if it pointed outside the polygon, it would not intersect with any edges in the first place.
-             * TODO: Polygons with holes might put holes (heh) in this logic, so figure this out later.
-             */
-            
-            // Create a trajectory from the origin in the direction of the direction vector
+            // Create a trajectory from the origin and direction vector
             typename ModelType::Trajectory trajectory{origin, direction_vector};
 
-            // Find the first intersection of the trajectory with the configuration geometry edges
-            for (auto edge_it = configuration_environment.edge_begin(); edge_it != configuration_environment.edge_end(); ++edge_it) {
-                // Skip if the origin is on the current edge, since that's where the robot is currently located
-                if (edge_it->has_on(origin)) continue;
-                
-                // Use CGAL's inbuilt intersection function if Trajectory is a valid type for intersection with the polygon edge
-                if constexpr (detail::is_valid_builtin_intersection_type<typename ModelType::Trajectory>::value) {
-                    auto maybe_intersection = CGAL::intersection(trajectory, *edge_it);
-
-                    // No intersection, so continue to the next edge
-                    if (!maybe_intersection.has_value()) continue;
-
-                    // If the intersection is a point we found the next position of the robot, so return it
-                    if (const geometry::Point2D* intersection_point = std::get_if<geometry::Point2D>(&*maybe_intersection)) return std::optional<geometry::Point2D>{*intersection_point};
-
-                    /*
-                     * The case of the trajectory being collinear with the edge shouldn't occur since the edge intersecting with the origin isn't considered
-                     * For the sake of completeness, the following is considered:
-                     * If the trajectory is collinear with the edge, the robot should intersect with another edge in the polygon given:
-                     * 1. The intersecting edge forms a convex vertex with another edge, so the robot can intersect the next edge at that vertex
-                     * 2. The intersecting edge forms a concave vertex with another edge, so the robot slides along the edge's direction until it intersects with another edge
-                     * Because of this, we can just continue to the next edge
-                     */
-                    // Continue to the next edge...
-                } else {
-                    // TODO: Figure out some interface for handling the case where the trajectory type isn't directly compatible with CGAL's intersection function
-                }
-            }
-
-            // No intersections with any edge, so the movement is invalid, so return nullopt
-            return std::nullopt;
+            // Get the intersection of the trajectory with the configuration space boundary, which is the endpoint of the path
+            return configuration_space.intersection(trajectory);
         }
-        std::optional<typename ModelType::Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_environment) const noexcept {
+        std::optional<typename ModelType::Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function
-            std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_environment);
+            std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_space);
 
             // If the endpoint doesn't exist, then the path is invalid, so return nullopt
             if (!maybe_endpoint.has_value()) return std::nullopt;

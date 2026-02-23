@@ -58,6 +58,7 @@ namespace BURST::geometry {
             return std::nullopt;
         }
         
+        // TODO: Make this return an array of intersection points instead of just one since there can be multiple intersections with a curvilinear polygon
         template <typename Trajectory, typename Path>
         std::optional<Point2D> intersection(const Trajectory& trajectory) const noexcept {
             // Identify the margin of the bounding box to determine an extreme magnitude for the ray to be clipped at
