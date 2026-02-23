@@ -31,7 +31,7 @@ namespace BURST {
         numeric::fscalar radius;
         numeric::fscalar x_position;
         numeric::fscalar y_position;
-        std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_environment;
+        std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_environment;
 
         std::unique_ptr<R> rotation_model;
         std::unique_ptr<M> movement_model;
@@ -40,7 +40,7 @@ namespace BURST {
         Robot(numeric::fscalar robot_radius, numeric::fscalar max_rotation_error);
         Robot(numeric::fscalar robot_radius, numeric::fscalar max_rotation_error, unsigned int rotation_seed);
 
-        void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationGeometry> config_environment);
+        void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment);
         const BURST::geometry::ConfigurationGeometry& getConfigurationEnvironment() const;
 
         numeric::fscalar getRadius() const;

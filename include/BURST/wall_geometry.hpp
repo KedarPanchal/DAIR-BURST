@@ -7,6 +7,7 @@
 #include <variant>
 
 #include <CGAL/approximated_offset_2.h>
+#include <CGAL/General_polygon_set_2.h>
 #include <CGAL/draw_polygon_2.h>
 
 #include "numeric_types.hpp"
@@ -18,62 +19,6 @@
 
 namespace BURST::geometry {
     
-    // Forward declare WallGeometry for ConfigurationGeometryImpl
-    class WallGeometry;
-
-    namespace detail {
-        // This class is intended to be used internally and not as an API
-        // This is because ConfigurationGeometry should never be instantiated directly
-        // This is why its constructors are private and only accessible by WallGeometry
-        class ConfigurationGeometryImpl : public ConfigurationGeometry {
-        private:
-            Polygon2D configuration_shape;
-
-            ConfigurationGeometryImpl(const Polygon2D& shape) noexcept : configuration_shape{shape} {}
-            ConfigurationGeometryImpl(Polygon2D&& shape) noexcept : configuration_shape{std::move(shape)} {}
-
-            template <typename VertexIter>
-            static std::unique_ptr<ConfigurationGeometryImpl> create(VertexIter begin, VertexIter end) noexcept {
-                Polygon2D configuration_polygon{begin, end};
-                return std::unique_ptr<ConfigurationGeometryImpl>{new ConfigurationGeometryImpl{std::move(configuration_polygon)}};
-            }
-
-        public:
-            edge_iterator edge_begin() const noexcept override {
-                return this->configuration_shape.edges_begin();
-            }
-            edge_iterator edge_end() const noexcept override {
-                return this->configuration_shape.edges_end();
-            }
-            vertex_iterator vertex_begin() const noexcept override {
-                return this->configuration_shape.vertices_begin();
-            }
-            vertex_iterator vertex_end() const noexcept override {
-                return this->configuration_shape.vertices_end();
-            }
-
-            winding_order orientation() const noexcept override {
-                return this->configuration_shape.orientation();
-            }
-
-            void render(graphics::Scene& scene) const noexcept override {
-                // TODO: Add a z-offset to the configuration geometry rendering so that it's visible
-                // Right now, we're getting lucky with how we ordered the rendering, but this could change as the scene gets more complex
-                graphics::PolygonOptions graphics_options{};
-                graphics_options.face_color = [](const Polygon2D& polygon, void* fh) noexcept {
-                    return graphics::Color(138, 154, 91);  // Light green configuration space
-                };
-                graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
-                    return true;
-                };
-
-                CGAL::add_to_graphics_scene(this->configuration_shape, scene, graphics_options); 
-            }
-
-            friend class BURST::geometry::WallGeometry; // For access to private constructor
-        };
-    }
-
     /*
      * WallGeometry represents the geometry of the walls in the environment. It is defined by a polygon.
      */
@@ -91,13 +36,13 @@ namespace BURST::geometry {
 
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
-        std::unique_ptr<ConfigurationGeometry> constructConfigurationGeometry(const numeric::fscalar& robot_radius) const noexcept {
+        std::unique_ptr<ConfigurationSpace> constructConfigurationGeometry(const numeric::fscalar& robot_radius) const noexcept {
             // TODO: Use an approximated_inset_2 algorithm to construct the Minkowski difference of the wall polygon and a disk of radius robot_radius
             // Do NOT under ANY CIRCUMSTANCE use the inset_2 algorithm, since this gives an exact result at the cost of going to a massive war against the type system
             // As tempting as it is, just find a nice epsilon and call it a day instead of going through template hell
             
             // Create a vector to store the outputted inset Minkowski difference polygons
-            std::vector<Polygon2D> inset_results;
+            std::vector<CurvilinearPolygon2D> inset_results;
             // Compute the Minkowski difference
             // TODO: Find an actually good epsilon instead of this approximation
             CGAL::approximated_inset_2(this->wall_shape, robot_radius, 0.000001, std::back_inserter(inset_results));
@@ -108,7 +53,7 @@ namespace BURST::geometry {
              */
             if (inset_results.size() != 1) return nullptr;
             // Otherwise, create a pointer to a configuration space and return it
-            return detail::ConfigurationGeometryImpl::create(inset_results.front().vertices_begin(), inset_results.front().vertices_end());
+            return detail::ConfigurationGeometryImpl::create(inset_results.front());
         }
 
     public:

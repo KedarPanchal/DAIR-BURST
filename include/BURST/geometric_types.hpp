@@ -3,6 +3,8 @@
 
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Vector_2.h>
+#include <CGAL/Bbox_2.h>
+#include <CGAL/General_polygon_set_2.h>
 #include <CGAL/enum.h>
 #include <CGAL/Aff_transformation_2.h>
 
@@ -16,7 +18,12 @@ namespace BURST::geometry {
     using Line2D = Kernel::Line_2;
     using Ray2D = Kernel::Ray_2;
     using Polygon2D = CGAL::Polygon_2<Kernel>;
+    using CurvilinearPolygon2D = CurvedTraits::General_polygon_2;
     using Vector2D = CGAL::Vector_2<Kernel>;
+    
+    // Geometric helpers
+    using CurvilinearPolygonSet2D = CGAL::General_polygon_set_2<CurvedTraits>;
+    using BoundingBox2D = CGAL::Bbox_2;
     using winding_order = CGAL::Orientation;
 
     // Iterator types
