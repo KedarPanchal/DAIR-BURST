@@ -4,7 +4,7 @@
 #include "numeric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"
-#include "configuration_geometry.hpp"
+#include "configuration_space.hpp"
 #include "models.hpp"
 
 namespace BURST {

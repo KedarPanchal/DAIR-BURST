@@ -9,7 +9,7 @@
 #include <optional>
 
 #include "numeric_types.hpp"
-#include "configuration_geometry.hpp"
+#include "configuration_space.hpp"
 
 namespace BURST::models {
     

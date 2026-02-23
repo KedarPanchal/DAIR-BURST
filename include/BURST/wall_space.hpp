@@ -14,7 +14,7 @@
 #include "geometric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"
-#include "configuration_geometry.hpp"
+#include "configuration_space.hpp"
 #include "robot.hpp"
 
 namespace BURST::geometry {
