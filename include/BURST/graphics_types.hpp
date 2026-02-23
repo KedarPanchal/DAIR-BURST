@@ -4,7 +4,6 @@
 #include <CGAL/Graphics_scene.h>
 #include <CGAL/Graphics_scene_options.h>
 #include <CGAL/IO/Color.h>
-#include <CGAL/Basic_viewer.h>
 
 #include "geometric_types.hpp"
 

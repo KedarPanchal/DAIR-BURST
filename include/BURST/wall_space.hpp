@@ -8,7 +8,6 @@
 
 #include <CGAL/approximated_offset_2.h>
 #include <CGAL/General_polygon_set_2.h>
-#include <CGAL/draw_polygon_2.h>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -36,7 +35,7 @@ namespace BURST::geometry {
 
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
-        std::unique_ptr<ConfigurationSpace> constructConfigurationGeometry(const numeric::fscalar& robot_radius) const noexcept {
+        std::unique_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const noexcept {
             // TODO: Use an approximated_inset_2 algorithm to construct the Minkowski difference of the wall polygon and a disk of radius robot_radius
             // Do NOT under ANY CIRCUMSTANCE use the inset_2 algorithm, since this gives an exact result at the cost of going to a massive war against the type system
             // As tempting as it is, just find a nice epsilon and call it a day instead of going through template hell
@@ -78,7 +77,7 @@ namespace BURST::geometry {
         // Thus this can be ommitted when called and the template parameters can be inferred
         template <typename R, typename M>
         std::optional<std::monostate> generateConfigurationGeometry(Robot<R, M>& robot) const noexcept {
-            auto config_geometry = this->constructConfigurationGeometry(robot.getRadius());
+            auto config_geometry = this->constructConfigurationSpace(robot.getRadius());
             if (!config_geometry) return std::nullopt; // Degenerate configuration geometry, can't set it for the robot
             robot.setConfigurationEnvironment(std::move(config_geometry));
 
@@ -94,8 +93,8 @@ namespace BURST::geometry {
             graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
                 return true;
             };
-
-            CGAL::add_to_graphics_scene(this->wall_shape, scene, graphics_options);
+            // TODO: This import (CGAL/draw_polygon_2.h) is broken, find a way to fix
+            // CGAL::add_to_graphics_scene(this->wall_shape, scene, graphics_options);
         }
 
         friend class std::unique_ptr<WallSpace>;

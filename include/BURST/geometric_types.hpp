@@ -32,6 +32,7 @@ namespace BURST::geometry {
 
     // Transformation types
     using Transformation = CGAL::Aff_transformation_2<Kernel>;
+
 }
 
 #endif
