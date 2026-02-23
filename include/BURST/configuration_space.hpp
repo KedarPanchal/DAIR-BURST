@@ -5,6 +5,9 @@
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Graphics_scene.h>
 
+#include <optional>
+#include <functional>
+
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
 #include "graphics_types.hpp"
@@ -15,8 +18,7 @@ namespace BURST::geometry {
     // Forward declare WallSpace for ConfigurationSpace
     class WallSpace;
 
-    // This class is intended to be used internally and not as an API
-    // This is because InternalConfigurationSpace should never be instantiated directly
+    // ConfigurationSpace should never be instantiated directly
     // This is why its constructors are private and only accessible by WallSpace
     class ConfigurationSpace : public Renderable {
     private:
@@ -60,19 +62,23 @@ namespace BURST::geometry {
         }
         
         // TODO: Make this return an array of intersection points instead of just one since there can be multiple intersections with a curvilinear polygon
-        template <typename Trajectory, typename Path>
-        std::optional<Point2D> intersection(const Trajectory& trajectory) const noexcept {
+        template <typename Trajectory, typename Path, typename SourceFunc = Point2D(Trajectory::*)(), typename VectorizeFunc = Vector2D(Trajectory::*)()>
+        std::optional<Point2D> intersection(
+                const Trajectory& trajectory, 
+                SourceFunc source = &Trajectory::source,
+                VectorizeFunc vectorize = &Trajectory::to_vector
+            ) const noexcept {
             // Identify the margin of the bounding box to determine an extreme magnitude for the ray to be clipped at
             numeric::fscalar margin = this->bbox().xmax() - this->bbox().xmin() + this->bbox().ymax() - this->bbox().ymin();
             // Create a segment from the ray with the identified margin
-            Segment2D long_segment{trajectory.source(), trajectory.source() + trajectory.to_vector() * margin};
+            Path long_path{std::invoke(source, trajectory), std::invoke(source, trajectory) + std::invoke(vectorize, trajectory) * margin};
 
             // Get the arrangement of the configuration geometry to insert the segment into for intersection checking
             auto arrangement = this->set().arrangement();
             // Insert the long segment into the arrangement
-            CGAL::insert(arrangement, long_segment);
+            CGAL::insert(arrangement, long_path);
             // Convert the ray source to the traits required for the source containment check
-            auto converted_source = CurvedTraits::Point_2(trajectory.source().x(), trajectory.source().y());
+            auto converted_source = CurvedTraits::Point_2(std::invoke(source, trajectory).x(), std::invoke(source, trajectory).y());
             /*
              * Iterate through the arrangement vertices to find the intersection point
              * Existing polygon vertices will have a degree of 2
