@@ -83,7 +83,7 @@ namespace BURST::geometry {
             return std::nullopt;
         }
         
-        template <typename Trajectory, typename Path, typename OutputIteratorCollection, typename SourceFunc = Point2D(Trajectory::*)(), typename VectorizeFunc = Vector2D(Trajectory::*)()>
+        template <typename Trajectory, typename Path, typename OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
         size_t intersection(
                 const Trajectory& trajectory,
                 std::back_insert_iterator<OutputIteratorCollection> intersection_points,
