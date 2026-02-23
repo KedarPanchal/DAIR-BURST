@@ -11,7 +11,7 @@
 // Test for rendering a regular polygon and its configuration geometry
 TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
     // Construct a WallGeometry for a square
-    auto wall_geometry = TestWallGeometry::create({
+    auto wall_geometry = TestWallSpace::create({
         BURST::geometry::Point2D{0, 0},
         BURST::geometry::Point2D{10, 0},
         BURST::geometry::Point2D{10, 10},
@@ -23,7 +23,7 @@ TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry for a regular polygon";
 
     // Construct a configuration geometry for a robot with radius 1
-    auto configuration_geometry = wall_geometry->testConstructConfigurationGeometry(1);
+    auto configuration_geometry = wall_geometry->testConstructConfigurationSpace(1);
     // Expect the configuration geometry to be non-degenerate
     // i.e., it is not nullptr
     ASSERT_NE(configuration_geometry, nullptr) << "Failed to construct non-degenerate ConfigurationGeometry for a regular polygon";
@@ -33,8 +33,9 @@ TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
     configuration_geometry->render(scene);
     wall_geometry->render(scene);
 
-    // Draw the scene in a CGAL viewer
-    CGAL::draw_graphics_scene(scene);
+    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed
+    // CGAL::draw_graphics_scene(scene);
+    FAIL() << "Rendering tests are currently disabled";
     
     // If we reach this point without crashing, the test is successful
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";
@@ -44,7 +45,7 @@ TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
 TEST(ConfigurationGeometryRenderingTest, RenderSimplePolygon) {
     // Construct a WallGeometry for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
-    auto wall_geometry = TestWallGeometry::create({
+    auto wall_geometry = TestWallSpace::create({
         BURST::geometry::Point2D{0, 20},
         BURST::geometry::Point2D{-20, -20},
         BURST::geometry::Point2D{0, 0},
@@ -56,7 +57,7 @@ TEST(ConfigurationGeometryRenderingTest, RenderSimplePolygon) {
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry for a simple polygon";
 
     // Construct a configuration geometry for a robot with radius 1
-    auto configuration_geometry = wall_geometry->testConstructConfigurationGeometry(1);
+    auto configuration_geometry = wall_geometry->testConstructConfigurationSpace(1);
     // Expect the configuration geometry to be non-degenerate
     // i.e., it is not nullptr
     ASSERT_NE(configuration_geometry, nullptr) << "Failed to construct non-degenerate ConfigurationGeometry for a simple polygon";
@@ -66,8 +67,9 @@ TEST(ConfigurationGeometryRenderingTest, RenderSimplePolygon) {
     configuration_geometry->render(scene);
     wall_geometry->render(scene);
 
-    // Draw the scene in a CGAL viewer
-    CGAL::draw_graphics_scene(scene);
+    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed
+    // CGAL::draw_graphics_scene(scene);
+    FAIL() << "Rendering tests are currently disabled";
     
     // If we reach this point without crashing, the test is successful
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";

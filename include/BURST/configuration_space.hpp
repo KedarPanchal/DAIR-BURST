@@ -6,7 +6,7 @@
 #include <CGAL/Graphics_scene.h>
 
 #include <optional>
-#include <functional>
+#include <variant>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -43,14 +43,19 @@ namespace BURST::geometry {
             return std::unique_ptr<ConfigurationSpace>{new ConfigurationSpace{shape}};
         }
         
-        // Functions used to lazily compute bounding box and polygon set since these can be expensive to compute
-        BoundingBox2D& bbox() const noexcept {
+        /*
+         * Functions used to lazily compute bounding box and polygon set since these can be expensive to compute
+         * These return by reference to modify the mutable optionals in place
+         * They're distinguished from the const reference public API functions by taking a dummy std::monostate argument
+         * This is only used for preventing overload conflicts and has no semantic meaning
+         */
+        BoundingBox2D& bbox(const std::monostate& flag) const noexcept {
             if (!this->bounding_box.has_value()) {
                 this->bounding_box = this->configuration_shape.bbox();
             }
             return this->bounding_box.value();
         }
-        CurvilinearPolygonSet2D& set() const noexcept {
+        CurvilinearPolygonSet2D& set(const std::monostate& flag) const noexcept {
             if (!this->polygon_set.has_value()) {
                 this->polygon_set = CurvilinearPolygonSet2D{};
                 this->polygon_set->insert(this->configuration_shape);
@@ -59,6 +64,13 @@ namespace BURST::geometry {
         }
 
     public:
+        const BoundingBox2D& bbox() const noexcept {
+            return this->bbox(std::monostate{});
+        }
+        const CurvilinearPolygonSet2D& set() const noexcept {
+            return this->set(std::monostate{});
+        }
+
         winding_order orientation() const noexcept {
             return this->configuration_shape.orientation();
         }

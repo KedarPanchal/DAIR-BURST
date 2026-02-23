@@ -23,8 +23,9 @@ TEST(WallSpaceRenderingTest, RenderRegularPolygon) {
     BURST::graphics::Scene scene;
     wall_geometry->render(scene);
 
-    // Draw the scene in a CGAL viewer
-    CGAL::draw_graphics_scene(scene);
+    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed
+    // CGAL::draw_graphics_scene(scene);
+    FAIL() << "Rendering tests are currently disabled";
 
     // If we reach this point without crashing, the test is successful
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";
@@ -49,8 +50,9 @@ TEST(WallSpaceRenderingTest, RenderSimplePolygon) {
     BURST::graphics::Scene scene;
     wall_geometry->render(scene);
 
-    // Draw the scene in a CGAL viewer
-    CGAL::draw_graphics_scene(scene);
+    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed
+    // CGAL::draw_graphics_scene(scene);
+    FAIL() << "Rendering tests are currently disabled";
 
     // If we reach this point without crashing, the test is successful
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";

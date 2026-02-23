@@ -115,6 +115,8 @@ namespace BURST::models {
             return std::optional<Path>{Path{origin, *maybe_endpoint}};
         }
     };
+
+    using LinearMovementModel = MovementModel<geometry::Ray2D, geometry::Segment2D>;
     
 }
 #endif
