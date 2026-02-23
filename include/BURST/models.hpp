@@ -96,7 +96,7 @@ namespace BURST::models {
             // Create a vector to store the intersection points since there can be multiple with a curvilinear polygon
             std::vector<geometry::Point2D> intersection_points;
             // Get the intersection of the trajectory with the configuration space boundary
-            size_t intersection_count = configuration_space.intersection(trajectory, std::back_inserter(intersection_points));
+            size_t intersection_count = configuration_space.intersection<Trajectory, Path>(trajectory, std::back_inserter(intersection_points));
             if (intersection_count == 0) return std::nullopt; // If there are no intersections, then the path is invalid, so return nullopt
              // Return the closest intersection point to the origin as the endpoint of the path
             return std::min_element(intersection_points.begin(), intersection_points.end(), [&origin](const geometry::Point2D& a, const geometry::Point2D& b) {
