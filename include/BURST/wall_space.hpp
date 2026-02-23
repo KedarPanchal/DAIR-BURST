@@ -51,7 +51,11 @@ namespace BURST::geometry {
              * In both cases, return nullptr
              */
             if (inset_results.size() != 1) return nullptr;
-            // Otherwise, create a pointer to a configuration space and return it
+
+            // Reverse the resulting polygon's rotation if it's not counterclockwise
+            if (inset_results.front().orientation() != CGAL::COUNTERCLOCKWISE) {
+                inset_results.front().reverse_orientation();
+            }
             return ConfigurationSpace::create(inset_results.front());
         }
 

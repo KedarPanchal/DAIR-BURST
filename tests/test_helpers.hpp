@@ -60,6 +60,7 @@ protected:
         // Construct a configuration geometry for a robot with radius 1
         this->configuration_geometry = wall_geometry->testConstructConfigurationSpace(1.0);
         ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
+        ASSERT_EQ(this->configuration_geometry->orientation(), CGAL::COUNTERCLOCKWISE) << "Expected configuration geometry to be oriented counterclockwise, but got a different orientation in test fixture setup";
 
         // Define a corner and midpoint for use in tests
         this->corner_vertex = BURST::geometry::Point2D{1, 1};
