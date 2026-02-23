@@ -50,7 +50,8 @@ namespace BURST::geometry {
         winding_order orientation() const noexcept {
             return this->configuration_shape.orientation();
         }
-
+        
+        // TODO: Make this return the edge the point intersects with instead of just the point itself
         std::optional<Point2D> intersection(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
