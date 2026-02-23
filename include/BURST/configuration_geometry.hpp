@@ -1,64 +1,65 @@
-#ifndef CONFIGURATION_GEOMETRY_HPP
-#define CONFIGURATION_GEOMETRY_HPP
+#ifndef BURST_CONFIGURATION_SPACE_HPP
+#define BURST_CONFIGURATION_SPACE_HPP
 
 #include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Graphics_scene.h>
 
+#include "numeric_types.hpp"
 #include "geometric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"
 
 namespace BURST::geometry {
 
-    /*
-     * ConfigurationGeometry represents the geometry of the robot's configuration space.
-     * This uses a CRTP to allow for templated abstract functions
-     */
-    template <typename Derived>
-    class ConfigurationGeometry : public Renderable {
-    public:
-        // Initialize default destructor for use in unique_ptr
-        ConfigurationGeometry() = default;
-        virtual ~ConfigurationGeometry() = default;
-        // Delete copy constructor and assignment to only allow move semantics
-        ConfigurationGeometry(const ConfigurationGeometry&) = delete;
-        ConfigurationGeometry& operator= (const ConfigurationGeometry&) = delete;
-
-        ConfigurationGeometry(ConfigurationGeometry&&) = default;
-        ConfigurationGeometry& operator= (ConfigurationGeometry&&) = default;
-
-        winding_order orientation() const noexcept {
-            return static_cast<const Derived*>(this)->orientation();
-        }
-        std::optional<Point2D> intersection(const Point2D& point) const noexcept {
-            return static_cast<const Derived*>(this)->intersection(point);
-        }
-        template <typename Trajectory, typename Path>
-        std::optional<Point2D> intersection(const Trajectory& trajectory) const noexcept {
-            return static_cast<const Derived*>(this)->template intersection<Trajectory, Path>(trajectory);
-        }
-        virtual void render(graphics::Scene& scene) const override = 0;
-    };
-
-    // Forward declare WallGeometry for ConfigurationGeometryImpl
-    class WallGeometry;
+        // Forward declare WallSpace for InternalConfigurationSpaceImpl
+    class WallSpace;
 
     namespace detail {
+        /*
+         * InternalConfigurationSpace represents the geometry of the robot's configuration space.
+         * This uses a CRTP to allow for templated abstract functions
+         */
+        template <typename Derived>
+        class InternalConfigurationSpace : public Renderable {
+        public:
+            // Initialize default destructor for use in unique_ptr
+            InternalConfigurationSpace() = default;
+            virtual ~InternalConfigurationSpace() = default;
+            // Delete copy constructor and assignment to only allow move semantics
+            InternalConfigurationSpace(const InternalConfigurationSpace&) = delete;
+            InternalConfigurationSpace& operator= (const InternalConfigurationSpace&) = delete;
+
+            InternalConfigurationSpace(InternalConfigurationSpace&&) = default;
+            InternalConfigurationSpace& operator= (InternalConfigurationSpace&&) = default;
+
+            winding_order orientation() const noexcept {
+                return static_cast<const Derived*>(this)->orientation();
+            }
+            std::optional<Point2D> intersection(const Point2D& point) const noexcept {
+                return static_cast<const Derived*>(this)->intersection(point);
+            }
+            template <typename Trajectory, typename Path>
+            std::optional<Point2D> intersection(const Trajectory& trajectory) const noexcept {
+                return static_cast<const Derived*>(this)->template intersection<Trajectory, Path>(trajectory);
+            }
+            virtual void render(graphics::Scene& scene) const override = 0;
+        };
+
         // This class is intended to be used internally and not as an API
-        // This is because ConfigurationGeometry should never be instantiated directly
-        // This is why its constructors are private and only accessible by WallGeometry
-        class ConfigurationGeometryImpl : public ConfigurationGeometry<ConfigurationGeometryImpl> {
+        // This is because InternalConfigurationSpace should never be instantiated directly
+        // This is why its constructors are private and only accessible by WallSpace
+        class InternalConfigurationSpaceImpl : public InternalConfigurationSpace<InternalConfigurationSpaceImpl> {
         private:
             CurvilinearPolygon2D configuration_shape;
             mutable std::optional<BoundingBox2D> bounding_box;
             mutable std::optional<CurvilinearPolygonSet2D> polygon_set;
 
-            ConfigurationGeometryImpl(const CurvilinearPolygon2D& shape) noexcept : configuration_shape{shape}, bounding_box{} {}
-            ConfigurationGeometryImpl(CurvilinearPolygon2D&& shape) noexcept : configuration_shape{std::move(shape)}, bounding_box{} {}
+            InternalConfigurationSpaceImpl(const CurvilinearPolygon2D& shape) noexcept : configuration_shape{shape}, bounding_box{} {}
+            InternalConfigurationSpaceImpl(CurvilinearPolygon2D&& shape) noexcept : configuration_shape{std::move(shape)}, bounding_box{} {}
 
-            static std::unique_ptr<ConfigurationGeometryImpl> create(const CurvilinearPolygon2D& shape) noexcept {
-                return std::unique_ptr<ConfigurationGeometryImpl>{new ConfigurationGeometryImpl{shape}};
+            static std::unique_ptr<InternalConfigurationSpaceImpl> create(const CurvilinearPolygon2D& shape) noexcept {
+                return std::unique_ptr<InternalConfigurationSpaceImpl>{new InternalConfigurationSpaceImpl{shape}};
             }
             
             // Functions used to lazily compute bounding box and polygon set since these can be expensive to compute
@@ -121,15 +122,15 @@ namespace BURST::geometry {
                 // TODO: Figure out how to render a curvilinear polygon
             }
 
-            friend class BURST::geometry::WallGeometry; // For access to private constructor
+            friend class BURST::geometry::WallSpace; // For access to private constructor
         };
     }
     
     /*
-     * Create a type alias for the CRTP ConfigurationGeometry
-     * This allows for direct usage of ConfigurationGeometry while cleanly keeping the implementation details hidden behind the detail namespace
+     * Create a type alias for the CRTP InternalConfigurationSpace
+     * This allows for direct usage of InternalConfigurationSpace while cleanly keeping the implementation details hidden behind the detail namespace
      */
-    using ConfigurationSpace = ConfigurationGeometry<detail::ConfigurationGeometryImpl>;
+    using ConfigurationSpace = detail::InternalConfigurationSpace<detail::InternalConfigurationSpaceImpl>;
 
 
 }

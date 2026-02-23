@@ -1,5 +1,5 @@
-#ifndef MODELS_HPP
-#define MODELS_HPP
+#ifndef BURST_MODELS_HPP
+#define BURST_MODELS_HPP
 
 #include <CGAL/Polygon_2_algorithms.h>
 #include <boost/multiprecision/mpfr.hpp>
@@ -139,7 +139,7 @@ namespace BURST::models {
             // No intersections with any edge, so the movement is invalid, so return nullopt
             return std::nullopt;
         }
-        std::optional<typename ModelType::Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationGeometry& configuration_environment) const noexcept {
+        std::optional<typename ModelType::Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_environment) const noexcept {
             // Identify the endpoint of the path by using the operator() function
             std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_environment);
 

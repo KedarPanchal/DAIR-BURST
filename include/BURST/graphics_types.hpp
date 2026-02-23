@@ -1,5 +1,5 @@
-#ifndef GRAPHICS_TYPES_HPP
-#define GRAPHICS_TYPES_HPP
+#ifndef BURST_GRAPHICS_TYPES_HPP
+#define BURST_GRAPHICS_TYPES_HPP
 
 #include <CGAL/Graphics_scene.h>
 #include <CGAL/Graphics_scene_options.h>

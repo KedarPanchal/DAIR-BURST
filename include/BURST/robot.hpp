@@ -1,5 +1,5 @@
-#ifndef ROBOT_HPP
-#define ROBOT_HPP
+#ifndef BURST_ROBOT_HPP
+#define BURST_ROBOT_HPP
 
 #include "numeric_types.hpp"
 #include "graphics_types.hpp"
@@ -41,7 +41,7 @@ namespace BURST {
         Robot(numeric::fscalar robot_radius, numeric::fscalar max_rotation_error, unsigned int rotation_seed);
 
         void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment);
-        const BURST::geometry::ConfigurationGeometry& getConfigurationEnvironment() const;
+        const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const;
 
         numeric::fscalar getRadius() const;
         geometry::Point2D shootRay(numeric::fscalar angle) const;

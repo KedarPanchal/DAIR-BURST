@@ -1,5 +1,5 @@
-#ifndef GEOMETRIC_TYPES_HPP
-#define GEOMETRIC_TYPES_HPP
+#ifndef BURST_GEOMETRIC_TYPES_HPP
+#define BURST_GEOMETRIC_TYPES_HPP
 
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Vector_2.h>

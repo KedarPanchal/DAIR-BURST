@@ -1,5 +1,5 @@
-#ifndef WALL_GEOMETRY_HPP
-#define WALL_GEOMETRY_HPP
+#ifndef BURST_WALL_SPACE_HPP
+#define BURST_WALL_SPACE_HPP
 
 #include <optional>
 #include <initializer_list>
@@ -20,9 +20,9 @@
 namespace BURST::geometry {
     
     /*
-     * WallGeometry represents the geometry of the walls in the environment. It is defined by a polygon.
+     * WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
      */
-    class WallGeometry : public Renderable {
+    class WallSpace : public Renderable {
     private:
         
         Polygon2D wall_shape;
@@ -30,12 +30,12 @@ namespace BURST::geometry {
 
     protected: 
         // Protected constructors since the public API is through the static create method
-        // Abstracting this away to protected constructors allows subclassing WallGeometry in a test environment without depending on the static create method and its constraints
-        WallGeometry(const Polygon2D& shape) noexcept : wall_shape{shape} {}
-        WallGeometry(Polygon2D&& shape) noexcept : wall_shape{std::move(shape)} {}
+        // Abstracting this away to protected constructors allows subclassing WallSpace in a test environment without depending on the static create method and its constraints
+        WallSpace(const Polygon2D& shape) noexcept : wall_shape{shape} {}
+        WallSpace(Polygon2D&& shape) noexcept : wall_shape{std::move(shape)} {}
 
         // Protected method since the public API depends on the robot
-        // Abstracting this away to a protected method allows subclassing WallGeometry in a test environment without depending on the Robot class
+        // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
         std::unique_ptr<ConfigurationSpace> constructConfigurationGeometry(const numeric::fscalar& robot_radius) const noexcept {
             // TODO: Use an approximated_inset_2 algorithm to construct the Minkowski difference of the wall polygon and a disk of radius robot_radius
             // Do NOT under ANY CIRCUMSTANCE use the inset_2 algorithm, since this gives an exact result at the cost of going to a massive war against the type system
@@ -58,7 +58,7 @@ namespace BURST::geometry {
 
     public:
         template <typename Iter>
-        static std::optional<WallGeometry> create(Iter begin, Iter end) noexcept {
+        static std::optional<WallSpace> create(Iter begin, Iter end) noexcept {
             // Can't make a polygon with 2 or fewer points
             if (std::distance(begin, end) <= 2) return std::nullopt;
 
@@ -69,10 +69,10 @@ namespace BURST::geometry {
             if (CGAL::orientation_2(begin, end) == CGAL::COLLINEAR) return std::nullopt;
 
             Polygon2D wall_polygon{begin, end};
-            return std::optional<WallGeometry>{WallGeometry{std::move(wall_polygon)}};
+            return std::optional<WallSpace>{WallSpace{std::move(wall_polygon)}};
         }
-        static std::optional<WallGeometry> create(std::initializer_list<Point2D> points) noexcept {
-            return WallGeometry::create(points.begin(), points.end());
+        static std::optional<WallSpace> create(std::initializer_list<Point2D> points) noexcept {
+            return WallSpace::create(points.begin(), points.end());
         }
         // Template is not needed for any implementation, but is needed for Robot
         // Thus this can be ommitted when called and the template parameters can be inferred
@@ -98,7 +98,7 @@ namespace BURST::geometry {
             CGAL::add_to_graphics_scene(this->wall_shape, scene, graphics_options);
         }
 
-        friend class std::unique_ptr<WallGeometry>;
+        friend class std::unique_ptr<WallSpace>;
     };
 
 }

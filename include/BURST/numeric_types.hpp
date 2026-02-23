@@ -1,5 +1,5 @@
-#ifndef NUMERIC_TYPES_HPP
-#define NUMERIC_TYPES_HPP
+#ifndef BURST_NUMERIC_TYPES_HPP
+#define BURST_NUMERIC_TYPES_HPP
 
 #include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
 #include <boost/multiprecision/mpfr.hpp>
