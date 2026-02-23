@@ -15,12 +15,6 @@ namespace BURST::models {
     
     // Internal implementations not intended for public use
     namespace detail {
-        // Type traits for validating whether a type can be used in a CGAL intersection computation against a polygon edge
-        template <typename T, typename = void>
-        struct is_valid_builtin_intersection_type : std::false_type {};
-        template <typename T>
-        struct is_valid_builtin_intersection_type<T, std::void_t<decltype(CGAL::intersection(std::declval<T>(), std::declval<geometry::Segment2D>()))>> : std::true_type {};
-        
         // Type traits for validating whether a type can be a Path for a movement model
         // This requires a 2-argument constructor that accepts start and end geometry::Point2Ds (like geometry::Segment2D)
         template <typename T, typename = void>
