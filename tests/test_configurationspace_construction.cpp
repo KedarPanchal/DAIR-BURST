@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
-#include <BURST/configuration_geometry.hpp>
-#include <BURST/wall_geometry.hpp>
+#include <BURST/geometric_types.hpp>
+#include <BURST/configuration_space.hpp>
+#include <BURST/wall_space.hpp>
 
 #include "test_helpers.hpp"
 
