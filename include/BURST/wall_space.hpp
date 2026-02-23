@@ -53,7 +53,7 @@ namespace BURST::geometry {
              */
             if (inset_results.size() != 1) return nullptr;
             // Otherwise, create a pointer to a configuration space and return it
-            return detail::ConfigurationGeometryImpl::create(inset_results.front());
+            return ConfigurationSpace::create(inset_results.front());
         }
 
     public:
