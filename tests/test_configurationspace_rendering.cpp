@@ -8,9 +8,9 @@
 
 // Utility includes for tests
 
-// Test for rendering a regular polygon and its configuration geometry
+// Test for rendering a regular polygon and its ConfigurationSpace
 TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
-    // Construct a WallGeometry for a square
+    // Construct a WallSpace for a square
     auto wall_geometry = TestWallSpace::create({
         BURST::geometry::Point2D{0, 0},
         BURST::geometry::Point2D{10, 0},
@@ -18,13 +18,13 @@ TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
         BURST::geometry::Point2D{0, 10}
     });
 
-    // Expect the WallGeometry to be non-degenerate
+    // Expect the WallSpace to be non-degenerate
     // i.e., it is not nullopt
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry for a regular polygon";
 
-    // Construct a configuration geometry for a robot with radius 1
+    // Construct a ConfigurationSpace for a robot with radius 1
     auto configuration_geometry = wall_geometry->testConstructConfigurationSpace(1);
-    // Expect the configuration geometry to be non-degenerate
+    // Expect the ConfigurationSpace to be non-degenerate
     // i.e., it is not nullptr
     ASSERT_NE(configuration_geometry, nullptr) << "Failed to construct non-degenerate ConfigurationGeometry for a regular polygon";
 
@@ -41,9 +41,9 @@ TEST(ConfigurationGeometryRenderingTest, RenderRegularPolygon) {
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";
 }
 
-// Test for rendering a simple polygon and its configuration geometry
+// Test for rendering a simple polygon and its ConfigurationSpace
 TEST(ConfigurationGeometryRenderingTest, RenderSimplePolygon) {
-    // Construct a WallGeometry for a simple polygon
+    // Construct a WallSpace for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = TestWallSpace::create({
         BURST::geometry::Point2D{0, 20},
@@ -52,17 +52,17 @@ TEST(ConfigurationGeometryRenderingTest, RenderSimplePolygon) {
         BURST::geometry::Point2D{20, -20}
     });
 
-    // Expect the WallGeometry to be non-degenerate
+    // Expect the WallSpace to be non-degenerate
     // i.e., it is not nullopt
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry for a simple polygon";
 
-    // Construct a configuration geometry for a robot with radius 1
+    // Construct a ConfigurationSpace for a robot with radius 1
     auto configuration_geometry = wall_geometry->testConstructConfigurationSpace(1);
-    // Expect the configuration geometry to be non-degenerate
+    // Expect the ConfigurationSpace to be non-degenerate
     // i.e., it is not nullptr
     ASSERT_NE(configuration_geometry, nullptr) << "Failed to construct non-degenerate ConfigurationGeometry for a simple polygon";
 
-    // Create a CGAL Graphics Scene and render the WallGeometry and ConfigurationGeometry
+    // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace 
     BURST::graphics::Scene scene;
     configuration_geometry->render(scene);
     wall_geometry->render(scene);

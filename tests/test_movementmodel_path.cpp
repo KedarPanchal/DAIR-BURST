@@ -9,7 +9,7 @@
 TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a trajectory from the bottom edge towards the interior at a 45 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, CGAL_PI/4, *this->configuration_geometry);
@@ -23,7 +23,7 @@ TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryInSquare) {
 TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryAtCornerInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the corner vertex of the configuration geometry as the origin
+    // Use the corner vertex of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->corner_vertex;
     // Generate a trajectory from the corner towards the interior at a 45 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, CGAL_PI/4, *this->configuration_geometry);
@@ -37,7 +37,7 @@ TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryAtCornerInSquare) {
 TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryAlongEdgeInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a trajectory from the bottom edge towards the right along the edge at a 0 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, 0, *this->configuration_geometry);
@@ -51,7 +51,7 @@ TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryAlongEdgeInSquare) {
 TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryAtCornerAlongEdgeInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the corner vertex of the configuration geometry as the origin
+    // Use the corner vertex of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->corner_vertex;
     // Generate a trajectory from the corner towards the right along the edge at a 0 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, 0, *this->configuration_geometry);
@@ -61,11 +61,11 @@ TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryAtCornerAlongEdgeInSquare
     EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
 }
 
-// Test generating an invalid trajectory pointing outside the configuration geometry in a square
+// Test generating an invalid trajectory pointing outside the ConfigurationSpace in a square
 TEST_F(MovementModelInSquareTest, InvalidLinearTrajectoryPointingOutwardInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a trajectory from the edge towards the exterior at a 45 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, -CGAL_PI/4, *this->configuration_geometry);
@@ -75,11 +75,11 @@ TEST_F(MovementModelInSquareTest, InvalidLinearTrajectoryPointingOutwardInSquare
     EXPECT_FALSE(maybe_path.has_value()) << "Expected invalid path to not have a trajectory, but got a valid trajectory";
 }
 
-// Test generating a valid trajectory with a linear movement model in a concave configuration geometry
+// Test generating a valid trajectory with a linear movement model in a concave ConfigurationSpace
 TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
+    // Use the midpoint of the edge containing the concave vertex of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a trajectory from the first edge towards the interior at a 90 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, CGAL_PI/2, *this->configuration_geometry);
@@ -89,11 +89,11 @@ TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryInConcave) {
     EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
 }
 
-// Test generating an valid trajectory with a linear movement model in a concave configuration geometry at a concave vertex
+// Test generating an valid trajectory with a linear movement model in a concave ConfigurationSpace at a concave vertex
 TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryAtConcaveCornerInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the concave vertex of the configuration geometry as the origin
+    // Use the concave vertex of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->concave_vertex;
     // Generate a trajectory from the concave vertex towards the interior at a 90 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, CGAL_PI/2, *this->configuration_geometry);
@@ -103,11 +103,11 @@ TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryAtConcaveCornerInConcave
     EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
 }
 
-// Test generating a valid trajectory with a linear movement model in a concave configuration geometry along the edge
+// Test generating a valid trajectory with a linear movement model in a concave ConfigurationSpace along the edge
 TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryAlongEdgeInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
+    // Use the midpoint of the edge containing the concave vertex of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a trajectory from the first edge towards the right along the edge at a 45 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, CGAL_PI/4, *this->configuration_geometry);
@@ -117,11 +117,11 @@ TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryAlongEdgeInConcave) {
     EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
 }
 
-// Test generating an invalid trajectory pointing outside the configuration geometry in a concave configuration geometry
+// Test generating an invalid trajectory pointing outside the ConfigurationSpace in a concave ConfigurationSpace
 TEST_F(MovementModelInConcaveTest, InvalidLinearTrajectoryPointingOutwardInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
+    // Use the midpoint of the edge containing the concave vertex of the ConfigurationSpace as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a trajectory from the edge towards the exterior at a 45 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, -CGAL_PI/4, *this->configuration_geometry);

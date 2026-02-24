@@ -7,7 +7,7 @@
 
 // Utility includes for tests
 
-// Test for intended non-degeneracy of the configuration geometry with a regular polygon
+// Test for intended non-degeneracy of the ConfigurationSpace with a regular polygon
 TEST(ConfigurationGeometryConstructionTest, NonDegenerateRegularPolygon) {
     // Construct an already known non-degenerate WallSpace for a square
     auto wall_geometry = TestWallSpace::create({
@@ -19,14 +19,14 @@ TEST(ConfigurationGeometryConstructionTest, NonDegenerateRegularPolygon) {
     // For some reason if the WallSpace is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallSpace";
 
-    // Construct a configuration geometry for a robot with radius 1
+    // Construct a ConfigurationSpace for a robot with radius 1
     auto config_geometry = wall_geometry->testConstructConfigurationSpace(1);
-    // Expect the configuration geometry to be non-degenerate
+    // Expect the ConfigurationSpace to be non-degenerate
     // i.e., it is not nullptr
     EXPECT_NE(config_geometry, nullptr) << "Expected non-degenerate ConfigurationGeometry for a regular polygon, but got nullptr.";
 }
 
-// Test for intended non-degeneracy of the configuration geometry with a simple polygon
+// Test for intended non-degeneracy of the ConfigurationSpace with a simple polygon
 TEST(ConfigurationGeometryConstructionTest, NonDegenerateSimplePolygon) {
     // Construct an already known non-degenerate WallSpace for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
@@ -39,14 +39,14 @@ TEST(ConfigurationGeometryConstructionTest, NonDegenerateSimplePolygon) {
     // For some reason if the WallSpace is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallSpace";
 
-    // Construct a configuration geometry for a robot with radius 1
+    // Construct a ConfigurationSpace for a robot with radius 1
     auto config_geometry = wall_geometry->testConstructConfigurationSpace(1);
-    // Expect the configuration geometry to be non-degenerate
+    // Expect the ConfigurationSpace to be non-degenerate
     // i.e., it is not nullptr
     EXPECT_NE(config_geometry, nullptr) << "Expected non-degenerate ConfigurationGeometry for a simple polygon, but got nullptr.";
 }
 
-// Test for intended degeneracy of the configuration geometry with a too-small WallSpace
+// Test for intended degeneracy of the ConfigurationSpace with a too-small WallSpace
 // In this case, it's too small to even fit the robot
 TEST(ConfigurationGeometryConstructionTest, DegenerateTooSmallWallSpace) {
     // Construct a tiny square WallSpace that's smaller than the robot's radius
@@ -59,15 +59,15 @@ TEST(ConfigurationGeometryConstructionTest, DegenerateTooSmallWallSpace) {
     // For some reason if the WallSpace is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallSpace";
 
-    // Construct a configuration geometry for a robot with radius 1
+    // Construct a ConfigurationSpace for a robot with radius 1
     auto config_geometry = wall_geometry->testConstructConfigurationSpace(1);
-    // Expect the configuration geometry to be degenerate
+    // Expect the ConfigurationSpace to be degenerate
     // i.e., it is nullptr
     EXPECT_EQ(config_geometry, nullptr) << "Expected degenerate ConfigurationGeometry for a too-small WallSpace, but got a valid geometry.";
 }
 
-// Test for intended degeneracy of the configuration geometry with a tight-fitting WallSpace
-// This should cause the configuration geometry to be degenerate since the translated edges will coincide and the intersection points will be collinear
+// Test for intended degeneracy of the ConfigurationSpace with a tight-fitting WallSpace
+// This should cause the ConfigurationSpace to be degenerate since the translated edges will coincide and the intersection points will be collinear
 TEST(ConfigurationGeometryConstructionTest, DegenerateTightFittingWallSpace) {
     // Construct a tight-fitting rectangular WallSpace that's exactly the height of the robot's diameter
     auto wall_geometry = TestWallSpace::create({
@@ -79,9 +79,9 @@ TEST(ConfigurationGeometryConstructionTest, DegenerateTightFittingWallSpace) {
     // For some reason if the WallSpace is degenerate, crash the test
     ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallSpace";
 
-    // Construct a configuration geometry for a robot with radius 1
+    // Construct a ConfigurationSpace for a robot with radius 1
     auto config_geometry = wall_geometry->testConstructConfigurationSpace(1);
-    // Expect the configuration geometry to be degenerate
+    // Expect the ConfigurationSpace to be degenerate
     // i.e., it is nullptr
     EXPECT_EQ(config_geometry, nullptr) << "Expected degenerate ConfigurationGeometry for a tight-fitting WallSpace, but got a valid geometry.";
 }
