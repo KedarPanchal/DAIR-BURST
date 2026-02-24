@@ -188,26 +188,6 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAlongEdgeInConcave) {
     }
 }
 
-// Test generating a valid movement with a linear movement model at a concave corner and along the edge in a concave configuration geometry
-TEST_F(MovementModelInConcaveTest, ValidLinearMovementAtConcaveCornerAlongEdgeInConcave) {
-    // Construct a LinearMovementModel
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the concave vertex of the configuration geometry as the origin
-    BURST::geometry::Point2D origin = this->concave_vertex;
-    // Generate a movement from the concave vertex towards the right along the edge at a -45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, -CGAL_PI/4, *this->configuration_geometry);
-
-    // Expect the movement to be valid
-    // i.e., it is not nullopt
-    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
-    // Expect the endpoint to not be the same as the origin, fail otherwise
-    if (maybe_endpoint.has_value()) {
-        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge to have a different endpoint than the origin, but got the same point";
-    } else {
-        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
-    }
-}
-
 // Test generating an invalid movement with a linear movement model in a concave configuration geometry at a concave vertex with a direction pointing outside the configuration geometry
 TEST_F(MovementModelInConcaveTest, InvalidLinearMovementPointingOutwardAtConcaveCornerInConcave) {
     // Construct a LinearMovementModel

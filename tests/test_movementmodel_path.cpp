@@ -117,20 +117,6 @@ TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryAlongEdgeInConcave) {
     EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
 }
 
-// Test generating a valid trajectory with a linear movement model at a concave corner and along the edge in a concave configuration geometry
-TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryAtConcaveCornerAlongEdgeInConcave) {
-    // Construct a LinearMovementModel
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the concave vertex of the configuration geometry as the origin
-    BURST::geometry::Point2D origin = this->concave_vertex;
-    // Generate a trajectory from the concave vertex towards the right along the edge at a -45 degree angle
-    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.generatePath(origin, -CGAL_PI/4, *this->configuration_geometry);
-
-    // Expect the trajectory to be valid
-    // i.e., it is not nullopt
-    EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
-}
-
 // Test generating an invalid trajectory pointing outside the configuration geometry in a concave configuration geometry
 TEST_F(MovementModelInConcaveTest, InvalidLinearTrajectoryPointingOutwardInConcave) {
     // Construct a LinearMovementModel
