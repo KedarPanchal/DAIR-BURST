@@ -1,18 +1,22 @@
-#ifndef TEST_WALLGEOMETRY_CLASS_HPP
-#define TEST_WALLGEOMETRY_CLASS_HPP
+#ifndef TEST_HELPERS_HPP
+#define TEST_HELPERS_HPP
 
 #include <gtest/gtest.h>
-#include <BURST/wall_geometry.hpp>
-#include <BURST/configuration_geometry.hpp>
-#include <BURST/types.hpp>
+#include <BURST/wall_space.hpp>
+#include <BURST/configuration_space.hpp>
+#include <BURST/numeric_types.hpp>
+#include <BURST/geometric_types.hpp>
+#include <BURST/kernel_types.hpp>
 
-// WallGeometry subclass to forward the constructConfigurationGeometry method for testing
-class TestWallGeometry : public BURST::geometry::WallGeometry {
+#include <CGAL/Arr_walk_along_line_point_location.h>
+
+// WallSpace subclass to forward the constructConfigurationSpace method for testing
+class TestWallSpace : public BURST::geometry::WallSpace {
 private:
-    using WallGeometry::WallGeometry; // Inherit constructors
+    using WallSpace::WallSpace; // Inherit constructors
 public:
-    static std::optional<TestWallGeometry> create(std::initializer_list<BURST::Point_2> points) noexcept {
-        // Copy over logic from WallGeometry::create to construct a TestWallGeometry instead
+    static std::optional<TestWallSpace> create(std::initializer_list<BURST::geometry::Point2D> points) noexcept {
+        // Copy over logic from WallSpace::create to construct a TestWallSpace instead
         // Can't make a polygon with 2 or fewer points
         if (std::distance(points.begin(), points.end()) <= 2) return std::nullopt;
 
@@ -22,87 +26,132 @@ public:
         // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
         if (CGAL::orientation_2(points.begin(), points.end()) == CGAL::COLLINEAR) return std::nullopt;
 
-        BURST::Polygon_2 wall_polygon{points.begin(), points.end()};
-        return std::optional<TestWallGeometry>{TestWallGeometry{std::move(wall_polygon)}};
+        BURST::geometry::Polygon2D wall_polygon{points.begin(), points.end()};
+        return std::optional<TestWallSpace>{TestWallSpace{std::move(wall_polygon)}};
     }
-    std::unique_ptr<BURST::geometry::ConfigurationGeometry> testConstructConfigurationGeometry(BURST::fscalar robot_radius) const {
-        return this->constructConfigurationGeometry(robot_radius);
+    std::unique_ptr<BURST::geometry::ConfigurationSpace> testConstructConfigurationSpace(BURST::numeric::fscalar robot_radius) const {
+        return this->constructConfigurationSpace(robot_radius);
     }
 };
 
-// Define a test fixture containing a valid ConfigurationGeometry for testing the MovementModel
-// This should be reused across multiple tests for the MovementModel to keep the geometry consistent
-// This test fixture uses a square configuration geometry
+/*
+ * Define a test fixture containing a valid ConfigurationSpace for testing the MovementModel
+ * This should be reused across multiple tests for the MovementModel to keep the geometry consistent
+ * This test fixture uses a square configuration geometry
+ */
 class MovementModelInSquareTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_geometry;
-    BURST::Point_2 corner_vertex;
-    BURST::Point_2 edge_midpoint;
+    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_geometry;
+    BURST::geometry::Point2D corner_vertex;
+    BURST::geometry::Point2D edge_midpoint;
 
     void SetUp() override {
-        // Construct a TestWallGeometry for a square and generate a ConfigurationGeometry with a robot radius of 1
-        auto wall_geometry = TestWallGeometry::create({
-            BURST::Point_2{0, 0},
-            BURST::Point_2{10, 0},
-            BURST::Point_2{10, 10},
-            BURST::Point_2{0, 10}
+        // Construct a TestWallSpace for a square and generate a ConfigurationSpace with a robot radius of 1
+        auto wall_geometry = TestWallSpace::create({
+            BURST::geometry::Point2D{0, 0},
+            BURST::geometry::Point2D{10, 0},
+            BURST::geometry::Point2D{10, 10},
+            BURST::geometry::Point2D{0, 10}
         });
-        // Expect the WallGeometry to be non-degenerate
+        // Expect the WallSpace to be non-degenerate
         // i.e. it is not nullopt
-        ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry for a regular polygon in test fixture setup";
+        ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon in test fixture setup";
 
         // Construct a configuration geometry for a robot with radius 1
-        this->configuration_geometry = wall_geometry->testConstructConfigurationGeometry(1.0);
-        ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationGeometry from WallGeometry in test fixture setup";
+        this->configuration_geometry = wall_geometry->testConstructConfigurationSpace(1.0);
+        ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
+        ASSERT_EQ(this->configuration_geometry->orientation(), CGAL::COUNTERCLOCKWISE) << "Expected configuration geometry to be oriented counterclockwise, but got a different orientation in test fixture setup";
 
         // Define a corner and midpoint for use in tests
-        this->corner_vertex = BURST::Point_2{1, 1};
-        this->edge_midpoint = BURST::Point_2{5, 1};
+        this->corner_vertex = BURST::geometry::Point2D{1, 1};
+        this->edge_midpoint = BURST::geometry::Point2D{5, 1};
     }
 };
 
-// Define test fixture containing a valid ConfigurationGeometry for testing the MovementModel
-// This should be reused across multiple tests for the MovementModel to keep the geometry consistent
-// This test fixture uses a concave configuration geometry
-// In this case, an arrowhead shape
+/*
+ * Define test fixture containing a valid ConfigurationSpace for testing the MovementModel
+ * This should be reused across multiple tests for the MovementModel to keep the geometry consistent
+ * This test fixture uses a concave configuration geometry
+ * In this case, an arrowhead shape
+ */
 class MovementModelInConcaveTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationGeometry> configuration_geometry;
-    BURST::Point_2 concave_vertex;
-    BURST::Point_2 edge_midpoint;
+    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_geometry;
+    BURST::geometry::Point2D concave_vertex;
+    BURST::geometry::Point2D edge_midpoint;
+
+    void find_point_on_configuration_geometry(BURST::numeric::fscalar origin_x, BURST::geometry::Point2D& result_point) {
+        // Create a query point way lower than the expected concave vertex
+        BURST::CurvedTraits::Point_2 query_origin{origin_x, -100};
+        // Create a point location object for the configuration geometry and attach it to the arrangement
+        auto arrangement = this->configuration_geometry->set().arrangement();
+        CGAL::Arr_walk_along_line_point_location point_location{arrangement};
+        // Shoot the ray up
+        auto result = point_location.ray_shoot_up(query_origin);
+        
+        /*
+         * If the ray hits a vertex, the result is the concave vertex
+         * If the ray hits an edge, the result is the intersection between the ray and the edge, solved using the linear or circular curve equations
+         * Everything is lossily converted to double since the traits and fixtures and tests use incompatible number types
+         */
+        if (auto* vertex = std::get_if<decltype(arrangement)::Vertex_const_handle>(&result)) {
+            // Convert coordinates to double and store as the concave vertex
+            auto x = (*vertex)->point().x();
+            auto y = (*vertex)->point().y();
+            result_point = BURST::geometry::Point2D{BURST::numeric::sqrt_to_fscalar(x), BURST::numeric::sqrt_to_fscalar(y)};
+        } else if (auto* halfedge = std::get_if<decltype(arrangement)::Halfedge_const_handle>(&result)) {
+            auto curve = (*halfedge)->curve();
+
+            if (curve.is_linear()) {
+                // Solve for y = (-c - ax) / b using the line equation ax + by + c = 0
+                auto y = (-1 * curve.supporting_line().c() - curve.supporting_line().a() * origin_x) / curve.supporting_line().b();
+                result_point = BURST::geometry::Point2D{origin_x, y};
+            } else if (curve.is_circular()) {
+                // Solve for y = cy + sqrt(r^2 - (x - cx)^2) using the circle equation (x - cx)^2 + (y - cy)^2 = r^2
+                auto center = curve.supporting_circle().center();
+
+                auto cx = center.x();
+                auto cy = center.y();
+                auto dx = origin_x - cx;
+                auto radius_2 = curve.supporting_circle().squared_radius();
+                auto y1 = cy + CGAL::sqrt(radius_2 - dx*dx);
+                auto y2 = cy - CGAL::sqrt(radius_2 - dx*dx);
+                // Choose the solution that lies on the configuration geometry
+                auto y = this->configuration_geometry->intersection(BURST::geometry::Point2D{origin_x, y1}).has_value() ? y1 : y2;
+
+                result_point = BURST::geometry::Point2D{origin_x, y};
+            } else { // This should never happen since the configuration geometry should only have linear and circular edges, but handle it anyway
+                FAIL() << "Unexpected curve type in point location result during test fixture setup";
+            }
+        } else { // If the ray hits nothing, then something has gone very wrong since a hit should occur
+            FAIL() << "Unexpected point location result type during test fixture setup";
+        }
+    }
     
     void SetUp() override {
-        // Construct a TestWallGeometry for a concave polygon and generate a ConfigurationGeometry with a robot radius of 1
-        auto wall_geometry = TestWallGeometry::create({
-            BURST::Point_2{0, 20},
-            BURST::Point_2{-20, -20},
-            BURST::Point_2{0, 0},
-            BURST::Point_2{20, -20}
+        // Construct a TestWallSpace for a concave polygon and generate a ConfigurationSpace with a robot radius of 1
+        auto wall_geometry = TestWallSpace::create({
+            BURST::geometry::Point2D{0, 20},
+            BURST::geometry::Point2D{-20, -20},
+            BURST::geometry::Point2D{0, 0},
+            BURST::geometry::Point2D{20, -20}
         });
-        // Expect the WallGeometry to be non-degenerate
+        // Expect the WallSpace to be non-degenerate
         // i.e. it is not nullopt
-        ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallGeometry for a simple polygon in test fixture setup";
+        ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallSpace for a simple polygon in test fixture setup";
 
         // Construct a configuration geometry for a robot with radius 1
-        this->configuration_geometry = wall_geometry->testConstructConfigurationGeometry(1.0);
-        ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationGeometry from WallGeometry in test fixture setup";
-        
+        this->configuration_geometry = wall_geometry->testConstructConfigurationSpace(1.0);
+        ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
 
-        // Identify the concave vertex of the configuration geometry for use in tests
-        for (auto vertex_it = this->configuration_geometry->vertex_begin(); vertex_it != this->configuration_geometry->vertex_end(); vertex_it++) {
-            if (vertex_it->x() == 0 && vertex_it->y() < 2) {
-                this->concave_vertex = *vertex_it;
-                break;
-            }
-        }
-        
-        // Find an edge of the configuration geometry that contains the concave vertex and identify its midpoint for use in tests
-        for (auto edge_it = this->configuration_geometry->edge_begin(); edge_it != this->configuration_geometry->edge_end(); edge_it++) {
-            if (edge_it->target().x() == 0 && edge_it->target().y() < 2) {
-                this->edge_midpoint = CGAL::midpoint(edge_it->source(), edge_it->target());
-                break;
-            }
-        }
+        /*
+         * Identify the concave vertex of the configuration geometry for use in tests
+         * This can be done using a PointLocation query with a vertical raycast, since the x-value of the concave vertex is known
+         */
+        this->find_point_on_configuration_geometry(0, this->concave_vertex);
+
+        // Identify a point on the edge containing the concave vertex for use in tests using the same raycast method with a different x-value
+        this->find_point_on_configuration_geometry(-10, this->edge_midpoint);
     }
 };
 

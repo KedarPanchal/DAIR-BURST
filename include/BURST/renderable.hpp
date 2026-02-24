@@ -1,7 +1,7 @@
-#ifndef RENDERABLE_HPP
-#define RENDERABLE_HPP
+#ifndef BURST_RENDERABLE_HPP
+#define BURST_RENDERABLE_HPP
 
-#include "types.hpp"
+#include "graphics_types.hpp"
 
 namespace BURST {
     
@@ -10,7 +10,7 @@ namespace BURST {
      */
     class Renderable {
     public:
-        virtual void render(scene& scene) const = 0;
+        virtual void render(graphics::Scene& scene) const = 0;
     };
 }
 

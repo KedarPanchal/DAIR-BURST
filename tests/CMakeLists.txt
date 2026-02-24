@@ -11,10 +11,10 @@ FetchContent_MakeAvailable(googletest)
 if (TEST_SCOPE STREQUAL "all")
     # All tests
     add_executable(test_all
-        test_wallgeometry_construction.cpp
-        test_configurationgeometry_construction.cpp
-        test_wallgeometry_rendering.cpp
-        test_configurationgeometry_rendering.cpp
+        test_wallspace_construction.cpp
+        test_configurationspace_construction.cpp
+        test_wallspace_rendering.cpp
+        test_configurationspace_rendering.cpp
         test_rotationmodel.cpp
         test_movementmodel_functor.cpp
         test_movementmodel_path.cpp
@@ -25,22 +25,22 @@ if (TEST_SCOPE STREQUAL "all")
     )
     target_compile_options(test_all PRIVATE -g)
 elseif(TEST_SCOPE STREQUAL "categorized")
-    # Build only geometry-related tests
-    add_executable(test_geometry
-        test_wallgeometry_construction.cpp
-        test_configurationgeometry_construction.cpp
+    # Build only space-related tests
+    add_executable(test_space
+        test_wallspace_construction.cpp
+        test_configurationspace_construction.cpp
     )
-    target_link_libraries(test_geometry
+    target_link_libraries(test_space
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_definitions(test_geometry PRIVATE CGAL_USE_BASIC_VIEWER)
-    target_compile_options(test_geometry PRIVATE -g)
+    target_compile_definitions(test_space PRIVATE CGAL_USE_BASIC_VIEWER)
+    target_compile_options(test_space PRIVATE -g)
     
     # Build only rendering-related tests
     add_executable(test_rendering
-        test_wallgeometry_rendering.cpp
-        test_configurationgeometry_rendering.cpp
+        test_wallspace_rendering.cpp
+        test_configurationspace_rendering.cpp
     )
     target_link_libraries(test_rendering
         PRIVATE BURST
@@ -62,45 +62,45 @@ elseif(TEST_SCOPE STREQUAL "categorized")
 else()
     # Build individual test executables for each test file
 
-    # Wall geometry construction tests
-    add_executable(test_wallgeometry_construction
-        test_wallgeometry_construction.cpp
+    # Wall space construction tests
+    add_executable(test_wallspace_construction
+        test_wallspace_construction.cpp
     )
-    target_link_libraries(test_wallgeometry_construction
+    target_link_libraries(test_wallspace_construction
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_wallgeometry_construction PRIVATE -g)
+    target_compile_options(test_wallspace_construction PRIVATE -g)
 
-    # Configuration geometry construction tests
-    add_executable(test_configurationgeometry_construction
-        test_configurationgeometry_construction.cpp
+    # Configuration space construction tests
+    add_executable(test_configurationspace_construction
+        test_configurationspace_construction.cpp
     )
-    target_link_libraries(test_configurationgeometry_construction
+    target_link_libraries(test_configurationspace_construction
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_configurationgeometry_construction PRIVATE -g)
+    target_compile_options(test_configurationspace_construction PRIVATE -g)
 
-    # Wall geometry rendering tests
-    add_executable(test_wallgeometry_rendering
-        test_wallgeometry_rendering.cpp
+    # Wall space rendering tests
+    add_executable(test_wallspace_rendering
+        test_wallspace_rendering.cpp
     )
-    target_link_libraries(test_wallgeometry_rendering
+    target_link_libraries(test_wallspace_rendering
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_wallgeometry_rendering PRIVATE -g)
+    target_compile_options(test_wallspace_rendering PRIVATE -g)
 
-    # Configuration geometry rendering tests
-    add_executable(test_configurationgeometry_rendering
-        test_configurationgeometry_rendering.cpp
+    # Configuration space rendering tests
+    add_executable(test_configurationspace_rendering
+        test_configurationspace_rendering.cpp
     )
-    target_link_libraries(test_configurationgeometry_rendering
+    target_link_libraries(test_configurationspace_rendering
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_configurationgeometry_rendering PRIVATE -g)
+    target_compile_options(test_configurationspace_rendering PRIVATE -g)
 
     # Rotation model tests
     add_executable(test_rotationmodel
