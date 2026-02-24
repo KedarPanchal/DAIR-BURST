@@ -82,7 +82,7 @@ namespace BURST::geometry {
         // Template is not needed for any implementation, but is needed for Robot
         // Thus this can be ommitted when called and the template parameters can be inferred
         template <typename R, typename M>
-        std::optional<std::monostate> generateConfigurationGeometry(Robot<R, M>& robot) const noexcept {
+        std::optional<std::monostate> generateConfigurationSpace(Robot<R, M>& robot) const noexcept {
             auto config_geometry = this->constructConfigurationSpace(robot.getRadius());
             if (!config_geometry) return std::nullopt; // Degenerate configuration geometry, can't set it for the robot
             robot.setConfigurationEnvironment(std::move(config_geometry));
