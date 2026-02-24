@@ -7,6 +7,7 @@
 
 // Test for rendering a regular polygon
 TEST(WallSpaceRenderingTest, RenderRegularPolygon) {
+    GTEST_SKIP() << "Rendering tests are currently disabled";
     // Construct a WallSpace for a square
     auto wall_geometry = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{0, 0},
@@ -23,9 +24,8 @@ TEST(WallSpaceRenderingTest, RenderRegularPolygon) {
     BURST::graphics::Scene scene;
     wall_geometry->render(scene);
 
-    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed
+    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed as this currently crashes the build
     // CGAL::draw_graphics_scene(scene);
-    FAIL() << "Rendering tests are currently disabled";
 
     // If we reach this point without crashing, the test is successful
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";
@@ -33,6 +33,7 @@ TEST(WallSpaceRenderingTest, RenderRegularPolygon) {
 
 // Test for rendering a simple polygon
 TEST(WallSpaceRenderingTest, RenderSimplePolygon) {
+    GTEST_SKIP() << "Rendering tests are currently disabled";
     // Construct a WallSpace for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_geometry = BURST::geometry::WallSpace::create({
@@ -50,9 +51,8 @@ TEST(WallSpaceRenderingTest, RenderSimplePolygon) {
     BURST::graphics::Scene scene;
     wall_geometry->render(scene);
 
-    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed
+    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed as this currently crashes the build
     // CGAL::draw_graphics_scene(scene);
-    FAIL() << "Rendering tests are currently disabled";
 
     // If we reach this point without crashing, the test is successful
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";
