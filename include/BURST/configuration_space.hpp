@@ -103,8 +103,9 @@ namespace BURST::geometry {
             CGAL::insert(arrangement, long_path);
             // Convert the ray source to the traits required for the source containment check
             auto converted_source = CurvedTraits::Point_2(std::invoke(source, trajectory).x(), std::invoke(source, trajectory).y());
-            // Count the number of intersections found
+            // Track the number of intersections found
             size_t intersection_count = 0;
+
             /*
              * Iterate through the arrangement vertices to find the intersection point
              * Existing polygon vertices will have a degree of 2
@@ -112,12 +113,15 @@ namespace BURST::geometry {
              */
             for (auto vertex_it = arrangement.vertices_begin(); vertex_it != arrangement.vertices_end(); ++vertex_it) {
                 if (vertex_it->point() == converted_source) continue; // Skip the source of the ray since that's not an intersection
-                if (vertex_it->degree() > 2) {
-                    // Convert the vertex point back to a Point2D and return it as the intersection point
-                    auto intersection_point = vertex_it->point();
-                    // Add the point to the output collection using the provided output iterator
-                    intersection_points = Point2D{numeric::sqrt_to_fscalar(intersection_point.x()), numeric::sqrt_to_fscalar(intersection_point.y())};
-                    // Increment the intersection count
+                // Skip if edge or endpoint
+                if (vertex_it->degree() <= 2) continue;
+
+                // Convert the vertex point back to a Point2D and return it as the intersection point
+                auto intersection_point = vertex_it->point();
+                // Add the point to the output collection using the provided output iterator, given it is not the source of the ray
+                Point2D to_add = Point2D{numeric::sqrt_to_fscalar(intersection_point.x()), numeric::sqrt_to_fscalar(intersection_point.y())};
+                if (to_add != std::invoke(source, trajectory)) {
+                    intersection_points = to_add;
                     intersection_count++;
                 }
             }

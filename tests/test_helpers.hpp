@@ -79,6 +79,54 @@ protected:
     std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_geometry;
     BURST::geometry::Point2D concave_vertex;
     BURST::geometry::Point2D edge_midpoint;
+
+    void find_point_on_configuration_geometry(BURST::numeric::fscalar origin_x, BURST::geometry::Point2D& result_point) {
+        // Create a query point way lower than the expected concave vertex
+        BURST::CurvedTraits::Point_2 query_origin{origin_x, -100};
+        // Create a point location object for the configuration geometry and attach it to the arrangement
+        auto arrangement = this->configuration_geometry->set().arrangement();
+        CGAL::Arr_walk_along_line_point_location point_location{arrangement};
+        // Shoot the ray up
+        auto result = point_location.ray_shoot_up(query_origin);
+        
+        /*
+         * If the ray hits a vertex, the result is the concave vertex
+         * If the ray hits an edge, the result is the intersection between the ray and the edge, solved using the linear or circular curve equations
+         * Everything is lossily converted to double since the traits and fixtures and tests use incompatible number types
+         */
+        if (auto* vertex = std::get_if<decltype(arrangement)::Vertex_const_handle>(&result)) {
+            // Convert coordinates to double and store as the concave vertex
+            auto x = (*vertex)->point().x();
+            auto y = (*vertex)->point().y();
+            result_point = BURST::geometry::Point2D{BURST::numeric::sqrt_to_fscalar(x), BURST::numeric::sqrt_to_fscalar(y)};
+        } else if (auto* halfedge = std::get_if<decltype(arrangement)::Halfedge_const_handle>(&result)) {
+            auto curve = (*halfedge)->curve();
+
+            if (curve.is_linear()) {
+                // Solve for y = (-c - ax) / b using the line equation ax + by + c = 0
+                auto y = (-1 * curve.supporting_line().c() - curve.supporting_line().a() * origin_x) / curve.supporting_line().b();
+                result_point = BURST::geometry::Point2D{origin_x, y};
+            } else if (curve.is_circular()) {
+                // Solve for y = cy + sqrt(r^2 - (x - cx)^2) using the circle equation (x - cx)^2 + (y - cy)^2 = r^2
+                auto center = curve.supporting_circle().center();
+
+                auto cx = center.x();
+                auto cy = center.y();
+                auto dx = origin_x - cx;
+                auto radius_2 = curve.supporting_circle().squared_radius();
+                auto y1 = cy + CGAL::sqrt(radius_2 - dx*dx);
+                auto y2 = cy - CGAL::sqrt(radius_2 - dx*dx);
+                // Choose the solution that lies on the configuration geometry
+                auto y = this->configuration_geometry->intersection(BURST::geometry::Point2D{origin_x, y1}).has_value() ? y1 : y2;
+
+                result_point = BURST::geometry::Point2D{origin_x, y};
+            } else { // This should never happen since the configuration geometry should only have linear and circular edges, but handle it anyway
+                FAIL() << "Unexpected curve type in point location result during test fixture setup";
+            }
+        } else { // If the ray hits nothing, then something has gone very wrong since a hit should occur
+            FAIL() << "Unexpected point location result type during test fixture setup";
+        }
+    }
     
     void SetUp() override {
         // Construct a TestWallSpace for a concave polygon and generate a ConfigurationSpace with a robot radius of 1
@@ -100,50 +148,10 @@ protected:
          * Identify the concave vertex of the configuration geometry for use in tests
          * This can be done using a PointLocation query with a vertical raycast, since the x-value of the concave vertex is known
          */
-        // Create a query point way lower than the expected concave vertex
-        BURST::CurvedTraits::Point_2 query_origin{0, -100};
-        // Create a point location object for the configuration geometry and attach it to the arrangement
-        auto arrangement = this->configuration_geometry->set().arrangement();
-        CGAL::Arr_walk_along_line_point_location point_location{arrangement};
-        // Shoot the ray up
-        auto result = point_location.ray_shoot_up(query_origin);
-        
-        /*
-         * If the ray hits a vertex, the result is the concave vertex
-         * If the ray hits an edge, the result is the intersection between the ray and the edge, solved using the linear or circular curve equations
-         * Everything is lossily converted to double since the traits and fixtures and tests use incompatible number types
-         */
-        if (auto* vertex = std::get_if<decltype(arrangement)::Vertex_const_handle>(&result)) {
-            // Convert coordinates to double and store as the concave vertex
-            auto x = (*vertex)->point().x();
-            auto y = (*vertex)->point().y();
-            this->concave_vertex = BURST::geometry::Point2D{BURST::numeric::sqrt_to_fscalar(x), BURST::numeric::sqrt_to_fscalar(y)};
-        } else if (auto* halfedge = std::get_if<decltype(arrangement)::Halfedge_const_handle>(&result)) {
-            auto curve = (*halfedge)->curve();
+        this->find_point_on_configuration_geometry(0, this->concave_vertex);
 
-            if (curve.is_linear()) {
-                // Solve for y = (-ax - c) / b using the line equation ax + by + c = 0
-                auto y = (-curve.supporting_line().c() - curve.supporting_line().a() * BURST::numeric::sqrt_to_fscalar(query_origin.x())) / curve.supporting_line().b();
-                this->concave_vertex = BURST::geometry::Point2D{BURST::numeric::sqrt_to_fscalar(query_origin.x()), y};
-            } else if (curve.is_circular()) {
-                // Solve for y = cy + sqrt(r^2 - (x - cx)^2) using the circle equation (x - cx)^2 + (y - cy)^2 = r^2
-                auto center = curve.supporting_circle().center();
-
-                auto cx = center.x();
-                auto cy = center.y();
-                auto dx = BURST::numeric::sqrt_to_fscalar(query_origin.x()) - cx;
-                auto radius_2 = curve.supporting_circle().squared_radius();
-                auto y = cy + CGAL::sqrt(radius_2 - dx*dx);
-
-                this->concave_vertex = BURST::geometry::Point2D{CGAL::to_double(query_origin.x()), y};
-            } else { // This should never happen since the configuration geometry should only have linear and circular edges, but handle it anyway
-                FAIL() << "Unexpected curve type in point location result during test fixture setup";
-            }
-        } else { // If the ray hits nothing, then something has gone very wrong since a hit should occur
-            FAIL() << "Unexpected point location result type during test fixture setup";
-        }
-
-        std::cout << "Identified concave vertex at: (" << this->concave_vertex.x() << ", " << this->concave_vertex.y() << ")" << std::endl;
+        // Identify a point on the edge containing the concave vertex for use in tests using the same raycast method with a different x-value
+        this->find_point_on_configuration_geometry(-10, this->edge_midpoint);
     }
 };
 
