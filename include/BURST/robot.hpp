@@ -1,6 +1,9 @@
 #ifndef BURST_ROBOT_HPP
 #define BURST_ROBOT_HPP
 
+#include <type_traits>
+#include <memory>
+
 #include "numeric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"

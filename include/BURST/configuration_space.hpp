@@ -5,8 +5,13 @@
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Graphics_scene.h>
 
+#include <utility>
+#include <type_traits>
 #include <optional>
 #include <variant>
+#include <memory>
+#include <iterator>
+#include <functional>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -97,7 +102,7 @@ namespace BURST::geometry {
             // Create a segment from the ray with the identified margin
             Path long_path{std::invoke(source, trajectory), std::invoke(source, trajectory) + std::invoke(vectorize, trajectory) * margin};
 
-            // Get the arrangement of the configuration geometry to insert the segment into for intersection checking
+            // Get the arrangement of the ConfigurationSpace to insert the segment into for intersection checking
             auto arrangement = this->set().arrangement();
             // Insert the long segment into the arrangement
             CGAL::insert(arrangement, long_path);

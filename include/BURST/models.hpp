@@ -5,8 +5,12 @@
 #include <boost/multiprecision/mpfr.hpp>
 
 #include <utility>
+#include <type_traits>
 #include <random>
 #include <optional>
+#include <algorithm>
+#include <iterator>
+#include <vector>
 
 #include "numeric_types.hpp"
 #include "configuration_space.hpp"

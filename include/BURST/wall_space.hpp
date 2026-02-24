@@ -3,7 +3,9 @@
 
 #include <optional>
 #include <initializer_list>
+#include <memory>
 #include <vector>
+#include <iterator>
 #include <variant>
 
 #include <CGAL/approximated_offset_2.h>

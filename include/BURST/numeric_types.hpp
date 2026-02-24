@@ -4,7 +4,9 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
 #include <boost/multiprecision/mpfr.hpp>
 
+#include <type_traits>
 #include <sstream>
+#include <iomanip>
 
 #include "kernel_types.hpp"
 
