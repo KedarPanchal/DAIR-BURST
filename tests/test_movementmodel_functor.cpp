@@ -6,14 +6,14 @@
 #include <optional>
 
 // Test generating a valid movement with a linear movement model in a square
-// This means that the movement should be in a straight line towards the interior of the configuration geometry
+// This means that the movement should be in a straight line towards the interior of the configuration space
 TEST_F(MovementModelInSquareTest, ValidLinearMovementInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    // Use the midpoint of the bottom edge of the configuration space as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a movement from the bottom edge towards the interior at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
 
     // Expect the movement to be valid
     // i.e., it is not nullopt
@@ -30,10 +30,10 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementInSquare) {
 TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the corner vertex of the configuration geometry as the origin
+    // Use the corner vertex of the configuration space as the origin
     BURST::geometry::Point2D origin = this->corner_vertex;
     // Generate a movement from the corner towards the interior at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
 
     // Expect the movement to be valid
     // i.e., it is not nullopt
@@ -50,10 +50,10 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerInSquare) {
 TEST_F(MovementModelInSquareTest, ValidLinearMovementAlongEdgeInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    // Use the midpoint of the bottom edge of the configuration space as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a movement from the bottom edge towards the right along the edge at a 0 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, 0, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, 0, *this->configuration_space);
 
     // Expect the movement to be valid
     // i.e., it is not nullopt
@@ -70,10 +70,10 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAlongEdgeInSquare) {
 TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerAlongEdgeInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the corner vertex of the configuration geometry as the origin
+    // Use the corner vertex of the configuration space as the origin
     BURST::geometry::Point2D origin = this->corner_vertex;
     // Generate a movement from the corner towards the right along the edge at a 0 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, 0, *this->configuration_geometry);  
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, 0, *this->configuration_space);  
 
     // Expect the movement to be valid
     // i.e., it is not nullopt
@@ -86,56 +86,56 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerAlongEdgeInSquare) 
     }
 }
 
-// Test generating an invalid movement with a linear movement model with a point inside but not on the configuration geometry edge in a square
+// Test generating an invalid movement with a linear movement model with a point inside but not on the configuration space edge in a square
 TEST_F(MovementModelInSquareTest, InvalidInteriorLinearMovementInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the center of the configuration geometry
+    // Specify an origin at the center of the configuration space
     BURST::geometry::Point2D origin{5, 5};
     // Generate a movement from the interior towards the interior at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
 }
 
-// Test generating an invalid movement with a linear movement model with a point outside the configuration geometry in a square
+// Test generating an invalid movement with a linear movement model with a point outside the configuration space in a square
 TEST_F(MovementModelInSquareTest, InvalidExteriorLinearMovementInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin outside the configuration geometry
+    // Specify an origin outside the configuration space
     BURST::geometry::Point2D origin{67, 67};
     // Generate a movement from the exterior towards the interior at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
 }
 
-// Test generating an invalid movement with a linear movement model with a point on the edge but a direction pointing outside the configuration geometry in a square
+// Test generating an invalid movement with a linear movement model with a point on the edge but a direction pointing outside the configuration space in a square
 TEST_F(MovementModelInSquareTest, InvalidLinearMovementPointingOutwardInSquare) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the bottom edge of the configuration geometry as the origin
+    // Use the midpoint of the bottom edge of the configuration space as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a movement from the edge towards the exterior at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, -CGAL_PI/4, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, -CGAL_PI/4, *this->configuration_space);
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
 }
 
-// Test generating a valid movement with a linear movement model in a concave configuration geometry
+// Test generating a valid movement with a linear movement model in a concave configuration space
 TEST_F(MovementModelInConcaveTest, ValidLinearMovementInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
+    // Use the midpoint of the edge containing the concave vertex of the configuration space as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a movement from the first edge towards the interior at a 90 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_space);
 
     // Expect the movement to be valid
     // i.e., it is not nullopt
@@ -148,14 +148,14 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementInConcave) {
     }
 }
 
-// Test generating an valid movement with a linear movement model in a concave configuration geometry at a concave vertex
+// Test generating an valid movement with a linear movement model in a concave configuration space at a concave vertex
 TEST_F(MovementModelInConcaveTest, ValidLinearMovementAtConcaveCornerInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the concave vertex of the configuration geometry as the origin
+    // Use the concave vertex of the configuration space as the origin
     BURST::geometry::Point2D origin = this->concave_vertex;
     // Generate a movement from the concave vertex towards the interior at a 90 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_space);
 
     // Expect the movement to be valid
     // i.e., it is not nullopt
@@ -168,14 +168,14 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAtConcaveCornerInConcave) 
     }
 }
 
-// Test generating a valid movement with a linear movement model in a concave configuration geometry along the edge
+// Test generating a valid movement with a linear movement model in a concave configuration space along the edge
 TEST_F(MovementModelInConcaveTest, ValidLinearMovementAlongEdgeInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the edge containing the concave vertex of the configuration geometry as the origin
+    // Use the midpoint of the edge containing the concave vertex of the configuration space as the origin
     BURST::geometry::Point2D origin = this->edge_midpoint;
     // Generate a movement from the first edge towards the right along the edge at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
 
     // Expect the movement to be valid
     // i.e., it is not nullopt
@@ -188,14 +188,14 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAlongEdgeInConcave) {
     }
 }
 
-// Test generating an invalid movement with a linear movement model in a concave configuration geometry at a concave vertex with a direction pointing outside the configuration geometry
+// Test generating an invalid movement with a linear movement model in a concave configuration space at a concave vertex with a direction pointing outside the configuration geometry
 TEST_F(MovementModelInConcaveTest, InvalidLinearMovementPointingOutwardAtConcaveCornerInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the concave vertex of the configuration geometry as the origin
+    // Use the concave vertex of the configuration space as the origin
     BURST::geometry::Point2D origin = this->concave_vertex;
     // Generate a movement from the concave vertex towards the exterior at a -90 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, -CGAL_PI/2, *this->configuration_geometry);
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, -CGAL_PI/2, *this->configuration_space);
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
