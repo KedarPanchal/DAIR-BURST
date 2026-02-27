@@ -15,6 +15,7 @@ if (TEST_SCOPE STREQUAL "all")
         test_configurationspace_construction.cpp
         test_wallspace_rendering.cpp
         test_configurationspace_rendering.cpp
+        test_configurationspace_intersections.cpp
         test_rotationmodel.cpp
         test_movementmodel_functor.cpp
         test_movementmodel_path.cpp
@@ -29,6 +30,7 @@ elseif(TEST_SCOPE STREQUAL "categorized")
     add_executable(test_space
         test_wallspace_construction.cpp
         test_configurationspace_construction.cpp
+        test_configurationspace_intersections.cpp
     )
     target_link_libraries(test_space
         PRIVATE BURST
@@ -81,6 +83,16 @@ else()
         GTest::gtest_main
     )
     target_compile_options(test_configurationspace_construction PRIVATE -g)
+
+    # Configuration space intersection tests
+    add_executable(test_configurationspace_intersections
+        test_configurationspace_intersections.cpp
+    )
+    target_link_libraries(test_configurationspace_intersections
+        PRIVATE BURST
+        GTest::gtest_main
+    )
+    target_compile_options(test_configurationspace_intersections PRIVATE -g)
 
     # Wall space rendering tests
     add_executable(test_wallspace_rendering
