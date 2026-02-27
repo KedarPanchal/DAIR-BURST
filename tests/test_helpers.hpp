@@ -41,13 +41,13 @@ public:
  */
 class MovementModelInSquareTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_geometry;
+    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
     BURST::geometry::Point2D corner_vertex;
     BURST::geometry::Point2D edge_midpoint;
 
     void SetUp() override {
         // Construct a TestWallSpace for a square and generate a ConfigurationSpace with a robot radius of 1
-        auto wall_geometry = TestWallSpace::create({
+        auto wall_space = TestWallSpace::create({
             BURST::geometry::Point2D{0, 0},
             BURST::geometry::Point2D{10, 0},
             BURST::geometry::Point2D{10, 10},
@@ -55,12 +55,12 @@ protected:
         });
         // Expect the WallSpace to be non-degenerate
         // i.e. it is not nullopt
-        ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon in test fixture setup";
+        ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon in test fixture setup";
 
         // Construct a configuration geometry for a robot with radius 1
-        this->configuration_geometry = wall_geometry->testConstructConfigurationSpace(1.0);
-        ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
-        ASSERT_EQ(this->configuration_geometry->orientation(), CGAL::COUNTERCLOCKWISE) << "Expected configuration geometry to be oriented counterclockwise, but got a different orientation in test fixture setup";
+        this->configuration_space = wall_space->testConstructConfigurationSpace(1.0);
+        ASSERT_NE(this->configuration_space, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
+        ASSERT_EQ(this->configuration_space->orientation(), CGAL::COUNTERCLOCKWISE) << "Expected configuration geometry to be oriented counterclockwise, but got a different orientation in test fixture setup";
 
         // Define a corner and midpoint for use in tests
         this->corner_vertex = BURST::geometry::Point2D{1, 1};
@@ -76,15 +76,15 @@ protected:
  */
 class MovementModelInConcaveTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_geometry;
+    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
     BURST::geometry::Point2D concave_vertex;
     BURST::geometry::Point2D edge_midpoint;
 
-    void find_point_on_configuration_geometry(BURST::numeric::fscalar origin_x, BURST::geometry::Point2D& result_point) {
+    void find_point_on_configuration_space(BURST::numeric::fscalar origin_x, BURST::geometry::Point2D& result_point) {
         // Create a query point way lower than the expected concave vertex
         BURST::CurvedTraits::Point_2 query_origin{origin_x, -100};
         // Create a point location object for the configuration geometry and attach it to the arrangement
-        auto arrangement = this->configuration_geometry->set().arrangement();
+        auto arrangement = this->configuration_space->set().arrangement();
         CGAL::Arr_walk_along_line_point_location point_location{arrangement};
         // Shoot the ray up
         auto result = point_location.ray_shoot_up(query_origin);
@@ -117,7 +117,7 @@ protected:
                 auto y1 = cy + CGAL::sqrt(radius_2 - dx*dx);
                 auto y2 = cy - CGAL::sqrt(radius_2 - dx*dx);
                 // Choose the solution that lies on the configuration geometry
-                auto y = this->configuration_geometry->intersection(BURST::geometry::Point2D{origin_x, y1}).has_value() ? y1 : y2;
+                auto y = this->configuration_space->intersection(BURST::geometry::Point2D{origin_x, y1}).has_value() ? y1 : y2;
 
                 result_point = BURST::geometry::Point2D{origin_x, y};
             } else { // This should never happen since the configuration geometry should only have linear and circular edges, but handle it anyway
@@ -130,7 +130,7 @@ protected:
     
     void SetUp() override {
         // Construct a TestWallSpace for a concave polygon and generate a ConfigurationSpace with a robot radius of 1
-        auto wall_geometry = TestWallSpace::create({
+        auto wall_space = TestWallSpace::create({
             BURST::geometry::Point2D{0, 20},
             BURST::geometry::Point2D{-20, -20},
             BURST::geometry::Point2D{0, 0},
@@ -138,20 +138,20 @@ protected:
         });
         // Expect the WallSpace to be non-degenerate
         // i.e. it is not nullopt
-        ASSERT_TRUE(wall_geometry.has_value()) << "Failed to construct non-degenerate WallSpace for a simple polygon in test fixture setup";
+        ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a simple polygon in test fixture setup";
 
         // Construct a configuration geometry for a robot with radius 1
-        this->configuration_geometry = wall_geometry->testConstructConfigurationSpace(1.0);
-        ASSERT_NE(this->configuration_geometry, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
+        this->configuration_space = wall_space->testConstructConfigurationSpace(1.0);
+        ASSERT_NE(this->configuration_space, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
 
         /*
          * Identify the concave vertex of the configuration geometry for use in tests
          * This can be done using a PointLocation query with a vertical raycast, since the x-value of the concave vertex is known
          */
-        this->find_point_on_configuration_geometry(0, this->concave_vertex);
+        this->find_point_on_configuration_space(0, this->concave_vertex);
 
         // Identify a point on the edge containing the concave vertex for use in tests using the same raycast method with a different x-value
-        this->find_point_on_configuration_geometry(-10, this->edge_midpoint);
+        this->find_point_on_configuration_space(-10, this->edge_midpoint);
     }
 };
 
