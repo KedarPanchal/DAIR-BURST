@@ -153,9 +153,9 @@ TEST(ConfigurationSpaceIntersectionTest, RatIntersectionAtCornerRegularPolygon) 
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
-    // Expect the ray to intersect with the ConfigurationSpace exactly twice, since it should intersect with both edges that meet at the corner endpoint
-    // i.e., ConfigurationSpace::intersection == 2
-    EXPECT_EQ(intersection_count, 2) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
+    // Expect the ray to intersect with the ConfigurationSpace exactly once, since it should intersect only at a corner
+    // i.e., ConfigurationSpace::intersection == 1
+    EXPECT_EQ(intersection_count, 1) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
 }
 
 // Test ray intersection for a ConfigurationSpace with a regular polygon with a ray that starts interior to the ConfigurationSpace
