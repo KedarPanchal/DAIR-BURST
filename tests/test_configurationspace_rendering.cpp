@@ -21,7 +21,7 @@ TEST(ConfigurationSpaceRenderingTest, RenderRegularPolygon) {
 
     // Expect the WallSpace to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallGeometry for a regular polygon";
+    ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon";
 
     // Construct a ConfigurationSpace for a robot with radius 1
     auto configuration_space = wall_space->testConstructConfigurationSpace(1);
@@ -29,7 +29,7 @@ TEST(ConfigurationSpaceRenderingTest, RenderRegularPolygon) {
     // i.e., it is not nullptr
     ASSERT_NE(configuration_space, nullptr) << "Failed to construct non-degenerate ConfigurationSpace for a regular polygon";
 
-    // Create a CGAL Graphics Scene and render the WallGeometry and ConfigurationSpace
+    // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace
     BURST::graphics::Scene scene;
     configuration_space->render(scene);
     wall_space->render(scene);
@@ -55,7 +55,7 @@ TEST(ConfigurationSpaceRenderingTest, RenderSimplePolygon) {
 
     // Expect the WallSpace to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallGeometry for a simple polygon";
+    ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a simple polygon";
 
     // Construct a ConfigurationSpace for a robot with radius 1
     auto configuration_space = wall_space->testConstructConfigurationSpace(1);
