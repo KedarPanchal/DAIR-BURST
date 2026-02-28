@@ -23,7 +23,7 @@ public:
         // Check for self-intersection and overall simplicity of the polygon
         if (!CGAL::is_simple_2(points.begin(), points.end())) return std::nullopt;
 
-        // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
+        // If there's collinear points, the polygon is degenerate, so we can't create a wall space
         if (CGAL::orientation_2(points.begin(), points.end()) == CGAL::COLLINEAR) return std::nullopt;
 
         BURST::geometry::Polygon2D wall_polygon{points.begin(), points.end()};
@@ -37,7 +37,7 @@ public:
 /*
  * Define a test fixture containing a valid ConfigurationSpace for testing the MovementModel
  * This should be reused across multiple tests for the MovementModel to keep the geometry consistent
- * This test fixture uses a square configuration geometry
+ * This test fixture uses a square configuration space
  */
 class MovementModelInSquareTest : public ::testing::Test {
 protected:
@@ -57,10 +57,10 @@ protected:
         // i.e. it is not nullopt
         ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon in test fixture setup";
 
-        // Construct a configuration geometry for a robot with radius 1
+        // Construct a configuration space for a robot with radius 1
         this->configuration_space = wall_space->testConstructConfigurationSpace(1.0);
         ASSERT_NE(this->configuration_space, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
-        ASSERT_EQ(this->configuration_space->orientation(), CGAL::COUNTERCLOCKWISE) << "Expected configuration geometry to be oriented counterclockwise, but got a different orientation in test fixture setup";
+        ASSERT_EQ(this->configuration_space->orientation(), CGAL::COUNTERCLOCKWISE) << "Expected configuration space to be oriented counterclockwise, but got a different orientation in test fixture setup";
 
         // Define a corner and midpoint for use in tests
         this->corner_vertex = BURST::geometry::Point2D{1, 1};
@@ -71,7 +71,7 @@ protected:
 /*
  * Define test fixture containing a valid ConfigurationSpace for testing the MovementModel
  * This should be reused across multiple tests for the MovementModel to keep the geometry consistent
- * This test fixture uses a concave configuration geometry
+ * This test fixture uses a concave configuration space
  * In this case, an arrowhead shape
  */
 class MovementModelInConcaveTest : public ::testing::Test {
@@ -83,7 +83,7 @@ protected:
     void find_point_on_configuration_space(BURST::numeric::fscalar origin_x, BURST::geometry::Point2D& result_point) {
         // Create a query point way lower than the expected concave vertex
         BURST::CurvedTraits::Point_2 query_origin{origin_x, -100};
-        // Create a point location object for the configuration geometry and attach it to the arrangement
+        // Create a point location object for the configuration space and attach it to the arrangement
         auto arrangement = this->configuration_space->set().arrangement();
         CGAL::Arr_walk_along_line_point_location point_location{arrangement};
         // Shoot the ray up
@@ -116,11 +116,11 @@ protected:
                 auto radius_2 = curve.supporting_circle().squared_radius();
                 auto y1 = cy + CGAL::sqrt(radius_2 - dx*dx);
                 auto y2 = cy - CGAL::sqrt(radius_2 - dx*dx);
-                // Choose the solution that lies on the configuration geometry
+                // Choose the solution that lies on the configuration space
                 auto y = this->configuration_space->intersection(BURST::geometry::Point2D{origin_x, y1}).has_value() ? y1 : y2;
 
                 result_point = BURST::geometry::Point2D{origin_x, y};
-            } else { // This should never happen since the configuration geometry should only have linear and circular edges, but handle it anyway
+            } else { // This should never happen since the configuration space should only have linear and circular edges, but handle it anyway
                 FAIL() << "Unexpected curve type in point location result during test fixture setup";
             }
         } else { // If the ray hits nothing, then something has gone very wrong since a hit should occur
@@ -140,12 +140,12 @@ protected:
         // i.e. it is not nullopt
         ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a simple polygon in test fixture setup";
 
-        // Construct a configuration geometry for a robot with radius 1
+        // Construct a configuration space for a robot with radius 1
         this->configuration_space = wall_space->testConstructConfigurationSpace(1.0);
         ASSERT_NE(this->configuration_space, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
 
         /*
-         * Identify the concave vertex of the configuration geometry for use in tests
+         * Identify the concave vertex of the configuration space for use in tests
          * This can be done using a PointLocation query with a vertical raycast, since the x-value of the concave vertex is known
          */
         this->find_point_on_configuration_space(0, this->concave_vertex);
