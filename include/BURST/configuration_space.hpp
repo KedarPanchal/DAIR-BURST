@@ -12,6 +12,7 @@
 #include <memory>
 #include <iterator>
 #include <functional>
+#include <algorithm>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
