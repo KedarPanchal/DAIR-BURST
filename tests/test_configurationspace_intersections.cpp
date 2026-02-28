@@ -130,7 +130,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionInterior
 // Test ray intersection for a ConfigurationSpace with a regular polygon with a ray that starts exterior to the ConfigurationSpace
 TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionExteriorRegularPolygon) {
     // Create a ray that starts at the exterior of the ConfigurationSpace and points towards the ConfigurationSpace
-    BURST::geometry::Ray2D ray{BURST::geometry::Point2D{15, 5}, BURST::geometry::Vector2D{-1, 0}};
+    BURST::geometry::Ray2D ray{BURST::geometry::Point2D{-100, 5}, BURST::geometry::Vector2D{1, 0}};
     // Create a collection for the intersections
     std::vector<BURST::geometry::Point2D> intersections;
 
