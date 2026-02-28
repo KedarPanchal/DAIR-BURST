@@ -188,7 +188,7 @@ TEST_F(MovementModelInConcaveTest, ValidLinearMovementAlongEdgeInConcave) {
     }
 }
 
-// Test generating an invalid movement with a linear movement model in a concave configuration space at a concave vertex with a direction pointing outside the configuration geometry
+// Test generating an invalid movement with a linear movement model in a concave configuration space at a concave vertex with a direction pointing outside the configuration space
 TEST_F(MovementModelInConcaveTest, InvalidLinearMovementPointingOutwardAtConcaveCornerInConcave) {
     // Construct a LinearMovementModel
     auto movement_model = BURST::models::LinearMovementModel{};
