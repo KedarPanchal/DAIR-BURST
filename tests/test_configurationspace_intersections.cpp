@@ -167,7 +167,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionOutwardA
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
-    // Expect the ray to not intersect with the ConfigurationSpace no times
+    // Expect the ray to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection == 0
     EXPECT_EQ(intersection_count, 0) << "Expected ray to not intersect with the ConfigurationSpace, but got " << intersection_count << " intersections";
 }
@@ -182,7 +182,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionOutwardE
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
-    // Expect the ray to not intersect with the ConfigurationSpace no times
+    // Expect the ray to not intersect with the ConfigurationSpace 
     // i.e., ConfigurationSpace::intersection == 0
     EXPECT_EQ(intersection_count, 0) << "Expected ray to not intersect with the ConfigurationSpace, but got " << intersection_count << " intersections";
 }
@@ -247,4 +247,79 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, InvalidPointIntersectio
     // Expect the point to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection is nullopt
     EXPECT_FALSE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+}
+
+// Test ray intersection for a ConfigurationSpace with a concave polygon with a ray that starts on the edge of the ConfigurationSpace and points inward
+TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionConcavePolygon) {
+    // Create a ray that starts on the edge of the ConfigurationSpace and points inward
+    BURST::geometry::Ray2D ray{BURST::geometry::Point2D{0, 1}, BURST::geometry::Vector2D{0, 1}};
+    // Create a collection for the intersections
+    std::vector<BURST::geometry::Point2D> intersections;
+
+    // Compute the intersections of the ray with the ConfigurationSpace
+    size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the ray to intersect with the ConfigurationSpace exactly once
+    // i.e., ConfigurationSpace::intersection == 1
+    EXPECT_EQ(intersection_count, 1) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
+}
+
+// Test ray intersection for a ConfigurationSpace with a concave polygon that starts at the interior of the ConfigurationSpace and points inward
+TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionInteriorConcavePolygon) {
+    // Create a ray that starts at the interior of the ConfigurationSpace and points inward
+    BURST::geometry::Ray2D ray{BURST::geometry::Point2D{0, 5}, BURST::geometry::Vector2D{0, -1}};
+    // Create a collection for the intersections
+    std::vector<BURST::geometry::Point2D> intersections;
+
+    // Compute the intersections of the ray with the ConfigurationSpace
+    size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the ray to intersect with the ConfigurationSpace exactly once
+    // i.e., ConfigurationSpace::intersection == 1
+    EXPECT_EQ(intersection_count, 1) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
+}
+
+// Test ray intersection for a ConfigurationSpace with a concave polygon that starts at the exterior of the ConfigurationSpace and points inward
+TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionExteriorConcavePolygon) {
+    // Create a ray that starts at the exterior of the ConfigurationSpace and points inward
+    BURST::geometry::Ray2D ray{BURST::geometry::Point2D{0, 100}, BURST::geometry::Vector2D{0, -1}};
+    // Create a collection for the intersections
+    std::vector<BURST::geometry::Point2D> intersections;
+
+    // Compute the intersections of the ray with the ConfigurationSpace
+    size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the ray to intersect with the ConfigurationSpace exactly twice, since it should intersect with both the top and bottom edges of the ConfigurationSpace
+    // i.e., ConfigurationSpace::intersection == 2
+    EXPECT_EQ(intersection_count, 2) << "Expected ray to intersect with the ConfigurationSpace exactly twice, but got " << intersection_count << " intersections";
+}
+
+// Test ray intersection for a ConfigurationSpace with a concave polygon with a ray that starts on the edge of the ConfigurationSpace and points outward
+TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionOutwardConcavePolygon) {
+    // Create a ray that starts at the edge of the ConfigurationSpace and points outside the Configuration
+    BURST::geometry::Ray2D ray{BURST::geometry::Point2D{0, 1}, BURST::geometry::Vector2D{0, -1}};
+    // Create a collection for the intersections
+    std::vector<BURST::geometry::Point2D> intersections;
+
+    // Compute the intersections of the ray with the ConfigurationSpace
+    size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the ray to not intersect with the ConfigurationSpace
+    // i.e., ConfigurationSpace::intersection == 0
+    EXPECT_EQ(intersection_count, 0) << "Expected ray to not intersect with the ConfigurationSpace, but got " << intersection_count << " intersections";
+}
+
+// Test ray intersection for a ConfigurationSpace with a concave polygon with a ray that starts at the exterior of the ConfigurationSpace and points outward
+TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionOutwardExteriorConcavePolygon) {
+    // Create a ray that starts at the exterior of the ConfigurationSpace and points outside the Configuration
+    BURST::geometry::Ray2D ray{BURST::geometry::Point2D{0, 100}, BURST::geometry::Vector2D{0, 1}};
+    // Create a collection for the intersections
+    std::vector<BURST::geometry::Point2D> intersections;
+
+    // Compute the intersections of the ray with the ConfigurationSpace
+    size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the ray to not intersect with the ConfigurationSpace 
+    // i.e., ConfigurationSpace::intersection == 0
+    EXPECT_EQ(intersection_count, 0) << "Expected ray to not intersect with the ConfigurationSpace, but got " << intersection_count << " intersections";
 }
