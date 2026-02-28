@@ -12,6 +12,7 @@
 #include <memory>
 #include <iterator>
 #include <functional>
+#include <algorithm>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -96,18 +97,27 @@ namespace BURST::geometry {
                 VectorizeFunc vectorize = &Trajectory::to_vector
             ) const noexcept {
             static_assert(detail::is_valid_path_type<Path>::value, "The Path type for ConfigurationSpace::intersection must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
+            Point2D ray_source = std::invoke(source, trajectory);
+            Vector2D ray_vector = std::invoke(vectorize, trajectory);
 
             // Identify the margin of the bounding box to determine an extreme magnitude for the ray to be clipped at
             numeric::fscalar margin = this->bbox().xmax() - this->bbox().xmin() + this->bbox().ymax() - this->bbox().ymin();
+            // Compute the maximum distance between the ray source and an edge of the bounding box to guarantee the ray passes through the bounding box in its entirety
+            numeric::fscalar displacement = std::max({
+                numeric::abs(ray_source.x() - this->bbox().xmin()), 
+                numeric::abs(ray_source.x() - this->bbox().xmax()),
+                numeric::abs(ray_source.y() - this->bbox().ymin()),
+                numeric::abs(ray_source.y() - this->bbox().ymax())
+            });
             // Create a segment from the ray with the identified margin
-            Path long_path{std::invoke(source, trajectory), std::invoke(source, trajectory) + std::invoke(vectorize, trajectory) * margin};
+            Path long_path{ray_source, ray_source + ray_vector * (margin + displacement)};
 
             // Get the arrangement of the ConfigurationSpace to insert the segment into for intersection checking
             auto arrangement = this->set().arrangement();
             // Insert the long segment into the arrangement
             CGAL::insert(arrangement, long_path);
             // Convert the ray source to the traits required for the source containment check
-            auto converted_source = CurvedTraits::Point_2(std::invoke(source, trajectory).x(), std::invoke(source, trajectory).y());
+            auto converted_source = CurvedTraits::Point_2(ray_source.x(), ray_source.y());
             // Track the number of intersections found
             size_t intersection_count = 0;
 
@@ -125,7 +135,7 @@ namespace BURST::geometry {
                 auto intersection_point = vertex_it->point();
                 // Add the point to the output collection using the provided output iterator, given it is not the source of the ray
                 Point2D to_add = Point2D{numeric::sqrt_to_fscalar(intersection_point.x()), numeric::sqrt_to_fscalar(intersection_point.y())};
-                if (to_add != std::invoke(source, trajectory)) {
+                if (to_add != ray_source) {
                     intersection_points = to_add;
                     intersection_count++;
                 }

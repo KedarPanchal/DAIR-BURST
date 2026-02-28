@@ -29,8 +29,12 @@ namespace BURST::numeric {
     using fscalar = Kernel::FT;
     using rscalar = Kernel::RT;
     using hpscalar = boost::multiprecision::number<boost::multiprecision::mpfr_float_backend<HP_PRECISION>>;
-
-    // Type conversion functions
+    
+    // Helper functions
+    template <typename FT>
+    FT abs(const FT& value) {
+        return value < 0 ? -value : value;
+    }
     template <typename FT>
     hpscalar to_high_precision(const FT& value) {
         std::ostringstream str_representation;
