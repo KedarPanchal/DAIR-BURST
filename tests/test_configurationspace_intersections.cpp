@@ -98,7 +98,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionRegularP
 }  
 
 // Test ray intersection for a ConfigurationSpace with a regular polygon with a ray that starts at the corner of the ConfigurationSpace and points inward along the angle bisector of the corner
-TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RatIntersectionAtCornerRegularPolygon) {
+TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionAtCornerRegularPolygon) {
     // Create a ray that starts at the corner of the ConfigurationSpace and points inward along the angle bisector of the corner
     BURST::geometry::Ray2D ray{BURST::geometry::Point2D{1, 1}, BURST::geometry::Vector2D{1, 1}};
     // Create a collection for the intersections
