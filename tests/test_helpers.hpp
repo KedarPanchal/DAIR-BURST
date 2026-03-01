@@ -10,6 +10,8 @@
 
 #include <CGAL/Arr_walk_along_line_point_location.h>
 
+// -- HELPER CLASSES -----------------------------------------------------------
+
 // WallSpace subclass to forward the constructConfigurationSpace method for testing
 class TestWallSpace : public BURST::geometry::WallSpace {
 private:
