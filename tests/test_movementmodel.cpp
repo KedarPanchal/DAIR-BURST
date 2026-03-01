@@ -4,6 +4,8 @@
 // Utility includes for tests
 #include "test_helpers.hpp"
 #include <optional>
+#include <memory>
+#include <variant>
 
 // -- TEST FIXTURE SETUP -------------------------------------------------------
 
