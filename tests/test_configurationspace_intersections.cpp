@@ -11,7 +11,7 @@
 #include <vector>
 #include <iterator>
 
-// -- SIMPLE POLYGON INTERSECTION TESTS ----------------------------------------
+// -- REGULAR POLYGON INTERSECTION TESTS ---------------------------------------
 
 // Create a test fixture for ConfigurationSpace intersection tests with a regular polygon
 class ConfigurationSpaceRegularPolygonIntersectionTest : public ::testing::Test {
