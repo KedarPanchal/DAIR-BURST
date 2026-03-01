@@ -63,7 +63,6 @@ protected:
         /*
          * If the ray hits a vertex, the result is the concave vertex
          * If the ray hits an edge, the result is the intersection between the ray and the edge, solved using the linear or circular curve equations
-         * Everything is lossily converted to double since the traits and fixtures and tests use incompatible number types
          */
         if (auto* vertex = std::get_if<decltype(arrangement)::Vertex_const_handle>(&result)) {
             // Convert coordinates to double and store as the concave vertex

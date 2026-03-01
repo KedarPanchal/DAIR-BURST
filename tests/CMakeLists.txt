@@ -122,7 +122,7 @@ else()
     )
     target_compile_options(test_rotationmodel PRIVATE -g)
 
-    # Movement model operator() tests
+    # Movement model tests
     add_executable(test_movementmodel
         test_movementmodel.cpp
     )
