@@ -30,9 +30,6 @@ namespace BURST {
      */
     template <valid_rotation_model R, typename M>
     class Robot : public Renderable {
-    // Validate type traits
-    static_assert(detail::is_valid_rotation_model<R>::value, "R must be a valid rotation model");
-
     private:
         numeric::fscalar radius;
         numeric::fscalar x_position;

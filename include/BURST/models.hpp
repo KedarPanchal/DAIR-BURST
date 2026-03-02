@@ -4,6 +4,7 @@
 #include <CGAL/Polygon_2_algorithms.h>
 #include <boost/multiprecision/mpfr.hpp>
 
+#include <concepts>
 #include <random>
 #include <optional>
 #include <algorithm>
@@ -15,10 +16,18 @@
 
 namespace BURST::models {
     
+    template <typename D>
+    concept valid_distribution = requires(D dist, std::mt19937 rng) {
+        {D{}};
+        {dist.min()} -> std::convertible_to<double>;
+        {dist.max()} -> std::convertible_to<double>;
+        {dist(rng)} -> std::convertible_to<double>;
+    };
+
     /*
      * RotationModel defines how the robot's rotation is affected by noise.
      */
-    template <typename PRNG = std::mt19937, typename Dist = std::uniform_real_distribution<double>>
+    template <typename PRNG = std::mt19937, valid_distribution Dist = std::uniform_real_distribution<double>>
     class RotationModel {
     private:
         numeric::fscalar max_rotation_error;
@@ -48,7 +57,6 @@ namespace BURST::models {
      */
     template <geometry::valid_trajectory_type Trajectory, geometry::valid_path_type Path>
     class MovementModel {
-    // Validate type traits
     public:
         std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
