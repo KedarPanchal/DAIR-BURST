@@ -1,7 +1,6 @@
 #ifndef BURST_ROBOT_HPP
 #define BURST_ROBOT_HPP
 
-#include <type_traits>
 #include <memory>
 
 #include "numeric_types.hpp"
@@ -12,28 +11,11 @@
 
 namespace BURST {
 
-    // Internal implementations not intended for public use
-    namespace detail {
-        /*
-         * Declare type traits to check if a type is a valid rotaition model
-         * This means it must be an instantiation of the RotationModel template
-         * Since the library is targeting C++20, this SFINAE needs to be used in tandem with concepts, since is_specialization_of is a C++23 feature
-         */
-        template <typename T>
-        struct is_valid_rotation_model : std::false_type {};
-        template <typename PRNG, typename Dist>
-        struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
-    }
-    
-    // Checks if a type is a valid rotation model, as defined above, and wraps it as a concept
-    template <typename R>
-    concept valid_rotation_model = detail::is_valid_rotation_model<R>::value;
-
     /*
      * The robot class represents a circular, blind, unreliable robot.
      * Its rotational and translational movements are affected by noise and uses models to determine the impact of this noise.
      */
-    template <valid_rotation_model R, typename M>
+    template <models::valid_rotation_model R, typename M>
     class Robot : public Renderable {
     private:
         numeric::fscalar radius;

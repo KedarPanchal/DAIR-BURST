@@ -5,6 +5,7 @@
 #include <boost/multiprecision/mpfr.hpp>
 
 #include <concepts>
+#include <random>
 #include <sstream>
 #include <iomanip>
 
@@ -21,6 +22,22 @@ namespace BURST::numeric {
         { value.a1() } -> std::convertible_to<Kernel::FT>;
         { value.root() } -> std::convertible_to<Kernel::FT>;
     };
+
+    /*
+     * Checks if a type is a valid random number distribution, which must be:
+     * Default constructible
+     * Have min() and max() functions that return values convertible to double
+     * Be callable with a random number generator to produce a value convertible to double
+     */
+    template <typename D>
+    concept valid_distribution = requires(D dist, std::mt19937 rng) {
+        {D{}};
+        {dist.min()} -> std::convertible_to<double>;
+        {dist.max()} -> std::convertible_to<double>;
+        {dist(rng)} -> std::convertible_to<double>;
+    };
+
+
 
     // Top-level types and constants
     constexpr unsigned int HP_PRECISION = 100; // 100 decimal digits of precision for high-precision scalar type

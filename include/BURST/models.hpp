@@ -4,7 +4,7 @@
 #include <CGAL/Polygon_2_algorithms.h>
 #include <boost/multiprecision/mpfr.hpp>
 
-#include <concepts>
+#include <type_traits>
 #include <random>
 #include <optional>
 #include <algorithm>
@@ -15,25 +15,11 @@
 #include "configuration_space.hpp"
 
 namespace BURST::models {
-    
-    /*
-     * Checks if a type is a valid random number distribution, which must be:
-     * Default constructible
-     * Have min() and max() functions that return values convertible to double
-     * Be callable with a random number generator to produce a value convertible to double
-     */
-    template <typename D>
-    concept valid_distribution = requires(D dist, std::mt19937 rng) {
-        {D{}};
-        {dist.min()} -> std::convertible_to<double>;
-        {dist.max()} -> std::convertible_to<double>;
-        {dist(rng)} -> std::convertible_to<double>;
-    };
-
+   
     /*
      * RotationModel defines how the robot's rotation is affected by noise.
      */
-    template <typename PRNG = std::mt19937, valid_distribution Dist = std::uniform_real_distribution<double>>
+    template <typename PRNG = std::mt19937, numeric::valid_distribution Dist = std::uniform_real_distribution<double>>
     class RotationModel {
     private:
         numeric::fscalar max_rotation_error;
@@ -57,7 +43,24 @@ namespace BURST::models {
     };
 
     using MaximumRotationModel = RotationModel<std::mt19937, numeric::flat_distribution>;
-   
+
+    // Internal implementations not intended for public use
+    namespace detail {
+        /*
+         * Declare type traits to check if a type is a valid rotaition model
+         * This means it must be an instantiation of the RotationModel template
+         * Since the library is targeting C++20, this SFINAE needs to be used in tandem with concepts, since is_specialization_of is a C++23 feature
+         */
+        template <typename T>
+        struct is_valid_rotation_model : std::false_type {};
+        template <typename PRNG, typename Dist>
+        struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
+    }
+    
+    // Checks if a type is a valid rotation model, as defined above, and wraps it as a concept
+    template <typename R>
+    concept valid_rotation_model = detail::is_valid_rotation_model<R>::value;
+
     /*
      * MovementModel defines how the robot's movement is affected by noise.
      */
