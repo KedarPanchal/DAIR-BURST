@@ -87,7 +87,7 @@ namespace BURST::numeric {
     class flat_distribution {
     public:
         flat_distribution(double = 0.0, double = 0.0) {} // Dummy constructor to match the interface of std::uniform_real_distribution
-        template <typename RNG> double operator() (RNG& rng) const {
+        template <typename RNG> double operator() (RNG&) const {
             return 1.0;
         }
         double min() const { return 1.0; }
