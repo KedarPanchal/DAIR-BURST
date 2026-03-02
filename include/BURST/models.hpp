@@ -4,7 +4,6 @@
 #include <CGAL/Polygon_2_algorithms.h>
 #include <boost/multiprecision/mpfr.hpp>
 
-#include <utility>
 #include <type_traits>
 #include <random>
 #include <optional>
@@ -15,39 +14,15 @@
 #include "numeric_types.hpp"
 #include "configuration_space.hpp"
 
+// Contains models for how the robot's rotation and movement are affected by noise
 namespace BURST::models {
     
-    // Internal implementations not intended for public use
-    namespace detail {
-        // Type traits for validating whether a type can be a Path for a movement model
-        // This requires a 2-argument constructor that accepts start and end geometry::Point2Ds (like geometry::Segment2D)
-        template <typename T, typename = void>
-        struct is_valid_path_type : std::false_type {};
-        template <typename T>
-        struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<geometry::Point2D>(), std::declval<geometry::Point2D>()})>> : std::true_type {};
-
-        // Type traits for validating whether a type can be a Trajectory for a movement model
-        // This requires a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D (like geometry::Ray2D)
-        template <typename T, typename = void>
-        struct is_valid_trajectory_type : std::false_type {};
-        template <typename T>
-        struct is_valid_trajectory_type<T, std::void_t<decltype(T{std::declval<geometry::Point2D>(), std::declval<geometry::Vector2D>()})>> : std::true_type {};
-    }
-    
-    // Custom random number distribution that generates the same number for every RNG, which is useful for testing
-    // This allows for templating the rotation model and avoiding inheritance
-    class flat_distribution {
-    public:
-        flat_distribution(double = 0.0, double = 0.0) {} // Dummy constructor to match the interface of std::uniform_real_distribution
-        template <typename RNG> double operator() (RNG& rng) const {
-            return 1.0;
-        }
-    };
+    // -- ROTATION MODEL -------------------------------------------------------
 
     /*
      * RotationModel defines how the robot's rotation is affected by noise.
      */
-    template <typename PRNG = std::mt19937, typename Dist = std::uniform_real_distribution<double>>
+    template <typename PRNG = std::mt19937, numeric::valid_distribution<PRNG> Dist = std::uniform_real_distribution<double>>
     class RotationModel {
     private:
         numeric::fscalar max_rotation_error;
@@ -62,24 +37,41 @@ namespace BURST::models {
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
-        numeric::fscalar getMaxRotation(numeric::fscalar angle) const {
+        numeric::fscalar max(numeric::fscalar angle) const {
             return angle + this->max_rotation_error;
         }
-        numeric::fscalar getMinRotation(numeric::fscalar angle) const {
+        numeric::fscalar min(numeric::fscalar angle) const {
             return angle - this->max_rotation_error;
         }
     };
 
-    using MaximumRotationModel = RotationModel<std::mt19937, flat_distribution>;
-   
+    using MaximumRotationModel = RotationModel<std::mt19937, numeric::flat_distribution>;
+
+    // Internal implementations not intended for public use
+    namespace detail {
+        /*
+         * Declare type traits to check if a type is a valid rotation model
+         * This means it must be an instantiation of the RotationModel template
+         * Since the library is targeting C++20, this SFINAE needs to be used in tandem with concepts, since is_specialization_of is a C++23 feature
+         */
+        template <typename T>
+        struct is_valid_rotation_model : std::false_type {};
+        template <typename PRNG, typename Dist>
+        struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
+    }
+    
+    // Checks if a type is a valid rotation model, as defined above, and wraps it as a concept
+    template <typename R>
+    concept valid_rotation_model = detail::is_valid_rotation_model<R>::value;
+
+    
+    // -- MOVEMENT MODEL -------------------------------------------------------
+
     /*
      * MovementModel defines how the robot's movement is affected by noise.
      */
-    template <typename Trajectory, typename Path>
+    template <geometry::valid_trajectory_type Trajectory, geometry::valid_path_type Path>
     class MovementModel {
-    // Validate type traits
-    static_assert(detail::is_valid_trajectory_type<Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D");
-    static_assert(detail::is_valid_path_type<Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
     public:
         std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
@@ -101,7 +93,7 @@ namespace BURST::models {
                 return CGAL::squared_distance(a, origin) < CGAL::squared_distance(b, origin);
             })};
         }
-        std::optional<Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
+        std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function
             std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_space);
 

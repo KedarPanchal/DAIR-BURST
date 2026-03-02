@@ -6,7 +6,6 @@
 #include <CGAL/Graphics_scene.h>
 
 #include <utility>
-#include <type_traits>
 #include <optional>
 #include <variant>
 #include <memory>
@@ -21,16 +20,6 @@
 
 namespace BURST::geometry {
     
-    // Internal implementations not intended for public use
-    namespace detail {
-        // Type traits for validating whether a type can be a Path for the intersection function in ConfigurationSpace
-        // This requires a 2-argument constructor that accepts start and end geometry::Point2Ds (like geometry::Segment2D)
-        template <typename T, typename = void>
-        struct is_valid_path_type : std::false_type {};
-        template <typename T>
-        struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<geometry::Point2D>(), std::declval<geometry::Point2D>()})>> : std::true_type {};
-    }
-
     // Forward declare WallSpace for ConfigurationSpace
     class WallSpace;
 
@@ -69,6 +58,7 @@ namespace BURST::geometry {
             return this->polygon_set.value();
         }
 
+
     public:
         const BoundingBox2D& bbox() const noexcept {
             return this->bbox(std::monostate{});
@@ -77,7 +67,7 @@ namespace BURST::geometry {
             return this->set(std::monostate{});
         }
 
-        winding_order orientation() const noexcept {
+        WindingOrder orientation() const noexcept {
             return this->configuration_shape.orientation();
         }
         
@@ -89,14 +79,13 @@ namespace BURST::geometry {
             return std::nullopt;
         }
         
-        template <typename Trajectory, typename Path, typename OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
+        template <valid_trajectory_type Trajectory, valid_path_type Path, typename OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
         size_t intersection(
                 const Trajectory& trajectory,
                 std::back_insert_iterator<OutputIteratorCollection> intersection_points,
                 SourceFunc source = &Trajectory::source,
                 VectorizeFunc vectorize = &Trajectory::to_vector
             ) const noexcept {
-            static_assert(detail::is_valid_path_type<Path>::value, "The Path type for ConfigurationSpace::intersection must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
             Point2D ray_source = std::invoke(source, trajectory);
             Vector2D ray_vector = std::invoke(vectorize, trajectory);
 

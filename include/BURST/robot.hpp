@@ -1,7 +1,6 @@
 #ifndef BURST_ROBOT_HPP
 #define BURST_ROBOT_HPP
 
-#include <type_traits>
 #include <memory>
 
 #include "numeric_types.hpp"
@@ -12,24 +11,12 @@
 
 namespace BURST {
 
-    // Internal implementations not intended for public use
-    namespace detail {
-        // Declare type traits for validating Robot class template parameters
-        template <typename T>
-        struct is_valid_rotation_model : std::false_type {};
-        template <typename PRNG, typename Dist>
-        struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
-    }
-
     /*
      * The robot class represents a circular, blind, unreliable robot.
      * Its rotational and translational movements are affected by noise and uses models to determine the impact of this noise.
      */
-    template <typename R, typename M>
+    template <models::valid_rotation_model R, typename M>
     class Robot : public Renderable {
-    // Validate type traits
-    static_assert(detail::is_valid_rotation_model<R>::value, "R must be a valid rotation model");
-
     private:
         numeric::fscalar radius;
         numeric::fscalar x_position;
