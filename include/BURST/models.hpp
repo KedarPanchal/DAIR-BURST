@@ -4,6 +4,7 @@
 #include <CGAL/Polygon_2_algorithms.h>
 #include <boost/multiprecision/mpfr.hpp>
 
+#include <concepts>
 #include <utility>
 #include <type_traits>
 #include <random>
@@ -17,23 +18,16 @@
 
 namespace BURST::models {
     
-    // Internal implementations not intended for public use
-    namespace detail {
-        // Type traits for validating whether a type can be a Path for a movement model
-        // This requires a 2-argument constructor that accepts start and end geometry::Point2Ds (like geometry::Segment2D)
-        template <typename T, typename = void>
-        struct is_valid_path_type : std::false_type {};
-        template <typename T>
-        struct is_valid_path_type<T, std::void_t<decltype(T{std::declval<geometry::Point2D>(), std::declval<geometry::Point2D>()})>> : std::true_type {};
+    template <typename T>
+    concept valid_path_type = requires (geometry::Point2D start, geometry::Point2D end) {
+        T{start, end};
+    };
 
-        // Type traits for validating whether a type can be a Trajectory for a movement model
-        // This requires a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D (like geometry::Ray2D)
-        template <typename T, typename = void>
-        struct is_valid_trajectory_type : std::false_type {};
-        template <typename T>
-        struct is_valid_trajectory_type<T, std::void_t<decltype(T{std::declval<geometry::Point2D>(), std::declval<geometry::Vector2D>()})>> : std::true_type {};
-    }
-    
+    template <typename T>
+    concept valid_trajectory_type = requires (geometry::Point2D origin, geometry::Vector2D direction) {
+        T{origin, direction};
+    };
+
     // Custom random number distribution that generates the same number for every RNG, which is useful for testing
     // This allows for templating the rotation model and avoiding inheritance
     class flat_distribution {
@@ -75,11 +69,9 @@ namespace BURST::models {
     /*
      * MovementModel defines how the robot's movement is affected by noise.
      */
-    template <typename Trajectory, typename Path>
+    template <valid_trajectory_type Trajectory, valid_path_type Path>
     class MovementModel {
     // Validate type traits
-    static_assert(detail::is_valid_trajectory_type<Trajectory>::value, "The ModelType's Trajectory must have a 2-argument constructor that accepts an origin geometry::Point2D and a direction geometry::Vector2D");
-    static_assert(detail::is_valid_path_type<Path>::value, "The ModelType's Path must have a 2-argument constructor that accepts start and end geometry::Point2Ds");
     public:
         std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
