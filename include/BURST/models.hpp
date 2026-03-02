@@ -14,8 +14,11 @@
 #include "numeric_types.hpp"
 #include "configuration_space.hpp"
 
+// Contains models for how the robot's rotation and movement are affected by noise
 namespace BURST::models {
-   
+    
+    // -- ROTATION MODEL -------------------------------------------------------
+
     /*
      * RotationModel defines how the robot's rotation is affected by noise.
      */
@@ -34,10 +37,10 @@ namespace BURST::models {
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
-        numeric::fscalar getMaxRotation(numeric::fscalar angle) const {
+        numeric::fscalar min(numeric::fscalar angle) const {
             return angle + this->max_rotation_error;
         }
-        numeric::fscalar getMinRotation(numeric::fscalar angle) const {
+        numeric::fscalar max(numeric::fscalar angle) const {
             return angle - this->max_rotation_error;
         }
     };
@@ -60,6 +63,9 @@ namespace BURST::models {
     // Checks if a type is a valid rotation model, as defined above, and wraps it as a concept
     template <typename R>
     concept valid_rotation_model = detail::is_valid_rotation_model<R>::value;
+
+    
+    // -- MOVEMENT MODEL -------------------------------------------------------
 
     /*
      * MovementModel defines how the robot's movement is affected by noise.
@@ -87,7 +93,7 @@ namespace BURST::models {
                 return CGAL::squared_distance(a, origin) < CGAL::squared_distance(b, origin);
             })};
         }
-        std::optional<Path> generatePath(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
+        std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function
             std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_space);
 

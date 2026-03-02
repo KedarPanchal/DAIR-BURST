@@ -67,7 +67,7 @@ namespace BURST::geometry {
             return this->set(std::monostate{});
         }
 
-        winding_order orientation() const noexcept {
+        WindingOrder orientation() const noexcept {
             return this->configuration_shape.orientation();
         }
         

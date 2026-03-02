@@ -12,7 +12,9 @@
 
 namespace BURST::geometry {
 
-    // Geometric types
+    // -- GEOMETRIC TYPES ------------------------------------------------------
+    
+    // Primitive types
     using Point2D = Kernel::Point_2;
     using Segment2D = Kernel::Segment_2;
     using Line2D = Kernel::Line_2;
@@ -21,10 +23,10 @@ namespace BURST::geometry {
     using CurvilinearPolygon2D = CurvedTraits::General_polygon_2;
     using Vector2D = CGAL::Vector_2<Kernel>;
     
-    // Geometric helpers
+    // Composite/complex types
     using CurvilinearPolygonSet2D = CGAL::General_polygon_set_2<CurvedTraits>;
     using BoundingBox2D = CGAL::Bbox_2;
-    using winding_order = CGAL::Orientation;
+    using WindingOrder = CGAL::Orientation;
 
     // Iterator types
     using vertex_iterator = Polygon2D::Vertex_const_iterator;
@@ -33,7 +35,8 @@ namespace BURST::geometry {
     // Transformation types
     using Transformation = CGAL::Aff_transformation_2<Kernel>;
 
-    // Geometric type traits
+    // -- GEOMETRIC CONCEPTS ---------------------------------------------------
+
     // Checks if a type is a valid path type, which can be constructed from a start and end point
     template <typename T>
     concept valid_path_type = requires (geometry::Point2D start, geometry::Point2D end) {

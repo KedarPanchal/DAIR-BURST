@@ -14,7 +14,8 @@
 // This namespace contains numeric types for CGAL
 namespace BURST::numeric {
     
-    // Numeric type traits
+    // -- NUMERIC CONCEPTS -----------------------------------------------------
+
     // Checks if a type is a valid square root number type, which models the form a0 + a1 * sqrt(root) where a0, a1, and root are convertible to the kernel's field type
     template <typename T>
     concept valid_sqrt_type = requires (T value) {
@@ -38,20 +39,27 @@ namespace BURST::numeric {
     };
 
 
+    // -- NUMERIC CONSTANTS ----------------------------------------------------
 
-    // Top-level types and constants
     constexpr unsigned int HP_PRECISION = 100; // 100 decimal digits of precision for high-precision scalar type
-                                               
-    // Scalar/numeric types
+
+
+    // -- NUMERIC TYPES --------------------------------------------------------
+
     using fscalar = Kernel::FT;
     using rscalar = Kernel::RT;
     using hpscalar = boost::multiprecision::number<boost::multiprecision::mpfr_float_backend<HP_PRECISION>>;
-    
-    // Helper functions
+   
+
+    // -- NUMERIC FUNCTIONS ----------------------------------------------------
+
+    // Computes the absolute value of a number
     template <typename FT>
     FT abs(const FT& value) {
         return value < 0 ? -value : value;
     }
+
+    // Converts a number to a high-precision scalar
     template <typename FT>
     hpscalar to_high_precision(const FT& value) {
         std::ostringstream str_representation;
@@ -59,6 +67,7 @@ namespace BURST::numeric {
         return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
     }
     
+    // Converts a number of the form a0 + a1 * sqrt(root) to an fscalar
     template <valid_sqrt_type SqrtType>
     inline fscalar sqrt_to_fscalar(const SqrtType& value) {
         // Get exact values of components
@@ -69,7 +78,7 @@ namespace BURST::numeric {
         return a0 + a1 * CGAL::sqrt(root);
     }
 
-    // Utility classes
+    // -- UTILITY TYPES --------------------------------------------------------
     
     /*
      * Custom random number distribution that generates the same number for every RNG, which is useful for testing
@@ -84,7 +93,6 @@ namespace BURST::numeric {
         double min() const { return 1.0; }
         double max() const { return 1.0; }
     };
-
 
 }
 
