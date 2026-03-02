@@ -37,10 +37,10 @@ namespace BURST::models {
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
-        numeric::fscalar min(numeric::fscalar angle) const {
+        numeric::fscalar max(numeric::fscalar angle) const {
             return angle + this->max_rotation_error;
         }
-        numeric::fscalar max(numeric::fscalar angle) const {
+        numeric::fscalar min(numeric::fscalar angle) const {
             return angle - this->max_rotation_error;
         }
     };
