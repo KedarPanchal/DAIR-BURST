@@ -4,6 +4,7 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
 #include <boost/multiprecision/mpfr.hpp>
 
+#include <concepts>
 #include <sstream>
 #include <iomanip>
 
@@ -11,7 +12,9 @@
 
 // This namespace contains numeric types for CGAL
 namespace BURST::numeric {
-
+    
+    // Numeric type traits
+    // Checks if a type is a valid square root number type, which models the form a0 + a1 * sqrt(root) where a0, a1, and root are convertible to the kernel's field type
     template <typename T>
     concept valid_sqrt_type = requires (T value) {
         { value.a0() } -> std::convertible_to<Kernel::FT>;

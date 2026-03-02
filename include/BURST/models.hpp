@@ -16,6 +16,12 @@
 
 namespace BURST::models {
     
+    /*
+     * Checks if a type is a valid random number distribution, which must be:
+     * Default constructible
+     * Have min() and max() functions that return values convertible to double
+     * Be callable with a random number generator to produce a value convertible to double
+     */
     template <typename D>
     concept valid_distribution = requires(D dist, std::mt19937 rng) {
         {D{}};

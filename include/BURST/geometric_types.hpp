@@ -34,11 +34,13 @@ namespace BURST::geometry {
     using Transformation = CGAL::Aff_transformation_2<Kernel>;
 
     // Geometric type traits
-   template <typename T>
+    // Checks if a type is a valid path type, which can be constructed from a start and end point
+    template <typename T>
     concept valid_path_type = requires (geometry::Point2D start, geometry::Point2D end) {
         T{start, end};
     };
-
+    
+    // Checks if a type is a valid trajectory type, which can be constructed from an origin point and a direction vector
     template <typename T>
     concept valid_trajectory_type = requires (geometry::Point2D origin, geometry::Vector2D direction) {
         T{origin, direction};
