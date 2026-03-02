@@ -52,6 +52,22 @@ namespace BURST::numeric {
 
         return a0 + a1 * CGAL::sqrt(root);
     }
+
+    // Utility classes
+    
+    /*
+     * Custom random number distribution that generates the same number for every RNG, which is useful for testing
+     * This allows for templating the rotation model and avoiding inheritance
+     */
+    class flat_distribution {
+    public:
+        flat_distribution(double = 0.0, double = 0.0) {} // Dummy constructor to match the interface of std::uniform_real_distribution
+        template <typename RNG> double operator() (RNG& rng) const {
+            return 1.0;
+        }
+    };
+
+
 }
 
 #endif

@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "numeric_types.hpp"
-#include "traits.hpp"
 #include "configuration_space.hpp"
 
 namespace BURST::models {
@@ -42,12 +41,12 @@ namespace BURST::models {
         }
     };
 
-    using MaximumRotationModel = RotationModel<std::mt19937, flat_distribution>;
+    using MaximumRotationModel = RotationModel<std::mt19937, numeric::flat_distribution>;
    
     /*
      * MovementModel defines how the robot's movement is affected by noise.
      */
-    template <valid_trajectory_type Trajectory, valid_path_type Path>
+    template <geometry::valid_trajectory_type Trajectory, geometry::valid_path_type Path>
     class MovementModel {
     // Validate type traits
     public:

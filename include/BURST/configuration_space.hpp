@@ -16,7 +16,6 @@
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
 #include "graphics_types.hpp"
-#include "traits.hpp"
 #include "renderable.hpp"
 
 namespace BURST::geometry {
@@ -59,6 +58,7 @@ namespace BURST::geometry {
             return this->polygon_set.value();
         }
 
+
     public:
         const BoundingBox2D& bbox() const noexcept {
             return this->bbox(std::monostate{});
@@ -79,7 +79,7 @@ namespace BURST::geometry {
             return std::nullopt;
         }
         
-        template <models::valid_trajectory_type Trajectory, models::valid_path_type Path, typename OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
+        template <valid_trajectory_type Trajectory, valid_path_type Path, typename OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
         size_t intersection(
                 const Trajectory& trajectory,
                 std::back_insert_iterator<OutputIteratorCollection> intersection_points,

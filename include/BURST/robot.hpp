@@ -21,11 +21,14 @@ namespace BURST {
         struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
     }
 
+    template <typename R>
+    concept valid_rotation_model = detail::is_valid_rotation_model<R>::value;
+
     /*
      * The robot class represents a circular, blind, unreliable robot.
      * Its rotational and translational movements are affected by noise and uses models to determine the impact of this noise.
      */
-    template <typename R, typename M>
+    template <valid_rotation_model R, typename M>
     class Robot : public Renderable {
     // Validate type traits
     static_assert(detail::is_valid_rotation_model<R>::value, "R must be a valid rotation model");
