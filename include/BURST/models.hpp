@@ -50,7 +50,7 @@ namespace BURST::models {
     // Internal implementations not intended for public use
     namespace detail {
         /*
-         * Declare type traits to check if a type is a valid rotaition model
+         * Declare type traits to check if a type is a valid rotation model
          * This means it must be an instantiation of the RotationModel template
          * Since the library is targeting C++20, this SFINAE needs to be used in tandem with concepts, since is_specialization_of is a C++23 feature
          */
