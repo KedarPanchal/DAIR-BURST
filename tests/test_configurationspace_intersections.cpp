@@ -150,6 +150,13 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, InvalidPointIntersectio
 
 // -- REGULAR POLYGON RAY INTERSECTION TESTS -----------------------------------
 
+// Helper function to check that the intersection points of a ray with the ConfigurationSpace do not include the ray origin
+template <template <typename> typename Collection>
+void check_origin_membership(Collection<BURST::geometry::Point2D> vertices, BURST::geometry::Point2D origin) {
+    if (vertices.size() == 0) ADD_FAILURE() << "Duplicate failure: Expected ray to intersect with the ConfigurationSpace at a point different from the ray origin, but got no intersections at all";
+    else EXPECT_TRUE(std::none_of(vertices.begin(), vertices.end(), [&origin](const BURST::geometry::Point2D& intersection) {return intersection == origin;})) << "Expected ray to intersect with the ConfigurationSpace at a point different from the ray origin, but got an intersection at the ray origin";
+}
+
 // Test ray intersection for a ConfigurationSpace with a regular polygon with a ray that starts on the edge of the ConfigurationSpace and points inward
 TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionRegularPolygon) {
     // Create a ray that starts on the edge of the ConfigurationSpace and points inward
@@ -160,9 +167,15 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionRegularP
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
+
     // Expect the ray to intersect with the ConfigurationSpace exactly once
     // i.e., ConfigurationSpace::intersection == 1
     EXPECT_EQ(intersection_count, 1) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
+
+    // Expect the intersection points to not have the ray origin
+    check_origin_membership(intersections, ray.source());
 }  
 
 // Test ray intersection for a ConfigurationSpace with a regular polygon with a ray that starts at the corner of the ConfigurationSpace and points inward along the angle bisector of the corner
@@ -175,9 +188,15 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionAtCorner
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
+
     // Expect the ray to intersect with the ConfigurationSpace exactly once, since it should intersect only at a corner
     // i.e., ConfigurationSpace::intersection == 1
     EXPECT_EQ(intersection_count, 1) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
+
+    // Expect the intersection points to not have the ray origin
+    check_origin_membership(intersections, ray.source());
 }
 
 // Test ray intersection for a ConfigurationSpace with a regular polygon with a ray that starts interior to the ConfigurationSpace
@@ -190,9 +209,15 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionInterior
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
+
     // Expect the ray to intersect with the ConfigurationSpace exactly once, since it should only intersect with the edge that the ray points towards
     // i.e., ConfigurationSpace::intersection == 1
     EXPECT_EQ(intersection_count, 1) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
+
+    // Expect the intersection points to not have the ray origin
+    check_origin_membership(intersections, ray.source());
 }
 
 // Test ray intersection for a ConfigurationSpace with a regular polygon with a ray that starts exterior to the ConfigurationSpace
@@ -205,9 +230,15 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionExterior
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
+
     // Expect the ray to intersect with the ConfigurationSpace exactly twice, since it should intersect with both the top and bottom edges of the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection == 2
     EXPECT_EQ(intersection_count, 2) << "Expected ray to intersect with the ConfigurationSpace exactly twice, but got " << intersection_count << " intersections";
+
+    // Expect the intersection points to not have the ray origin
+    check_origin_membership(intersections, ray.source());
 }
 
 // Test ray intersection for a ConfigurationSpace with a regular polygon with a ray that starts on the edge of the ConfigurationSpace and points outward
@@ -219,6 +250,9 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionOutwardR
 
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
 
     // Expect the ray to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection == 0
@@ -235,6 +269,9 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionOutwardA
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
+
     // Expect the ray to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection == 0
     EXPECT_EQ(intersection_count, 0) << "Expected ray to not intersect with the ConfigurationSpace, but got " << intersection_count << " intersections";
@@ -249,6 +286,9 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, RayIntersectionOutwardE
 
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
 
     // Expect the ray to not intersect with the ConfigurationSpace 
     // i.e., ConfigurationSpace::intersection == 0
@@ -268,9 +308,15 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionConcaveP
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
+
     // Expect the ray to intersect with the ConfigurationSpace exactly once
     // i.e., ConfigurationSpace::intersection == 1
     EXPECT_EQ(intersection_count, 1) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
+
+    // Expect the intersection points to not have the ray origin
+    check_origin_membership(intersections, ray.source());
 }
 
 // Test ray intersection for a ConfigurationSpace with a concave polygon that starts at the interior of the ConfigurationSpace and points inward
@@ -283,9 +329,15 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionInterior
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
+
     // Expect the ray to intersect with the ConfigurationSpace exactly once
     // i.e., ConfigurationSpace::intersection == 1
     EXPECT_EQ(intersection_count, 1) << "Expected ray to intersect with the ConfigurationSpace exactly once, but got " << intersection_count << " intersections";
+
+    // Expect the intersection points to not have the ray origin
+    check_origin_membership(intersections, ray.source());
 }
 
 // Test ray intersection for a ConfigurationSpace with a concave polygon that starts at the exterior of the ConfigurationSpace and points inward
@@ -298,9 +350,15 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionExterior
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
 
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
+
     // Expect the ray to intersect with the ConfigurationSpace exactly twice, since it should intersect with both the top and bottom edges of the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection == 2
     EXPECT_EQ(intersection_count, 2) << "Expected ray to intersect with the ConfigurationSpace exactly twice, but got " << intersection_count << " intersections";
+
+    // Expect the intersection points to not have the ray origin
+    check_origin_membership(intersections, ray.source());
 }
 
 // Test ray intersection for a ConfigurationSpace with a concave polygon with a ray that starts on the edge of the ConfigurationSpace and points outward
@@ -312,6 +370,9 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionOutwardC
 
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
 
     // Expect the ray to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection == 0
@@ -327,6 +388,9 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, RayIntersectionOutwardE
 
     // Compute the intersections of the ray with the ConfigurationSpace
     size_t intersection_count = this->configuration_space->intersection<BURST::geometry::Ray2D, BURST::geometry::Segment2D>(ray, std::back_inserter(intersections));
+
+    // Expect the intersection count to match the size of the intersections collection
+    EXPECT_EQ(intersection_count, intersections.size()) << "Expected intersection count to match the size of the intersections collection, but got an intersection count of " << intersection_count << " and a collection size of " << intersections.size();
 
     // Expect the ray to not intersect with the ConfigurationSpace 
     // i.e., ConfigurationSpace::intersection == 0
