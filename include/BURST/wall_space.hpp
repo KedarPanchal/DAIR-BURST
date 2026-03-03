@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <initializer_list>
+#include <ranges>
 #include <memory>
 #include <vector>
 #include <iterator>
@@ -10,6 +11,7 @@
 
 #include <CGAL/approximated_offset_2.h>
 #include <CGAL/General_polygon_set_2.h>
+#include <CGAL/Boolean_set_operations_2.h>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -20,32 +22,54 @@
 
 namespace BURST::geometry {
     
+    // Internal namespace for implementation details of WallSpace, not intended for public API
+    namespace detail {
+        template <typename C, typename V>
+        concept valid_wall_space_input_collection = std::ranges::sized_range<C> && std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, V>;
+    }
     /*
      * WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
      */
     class WallSpace : public Renderable {
     private:
         
-        Polygon2D wall_shape;
+        HoledPolygon2D wall_shape;
         graphics::PolygonOptions wall_render_options;
 
     protected: 
-        // Protected constructors since the public API is through the static create method
-        // Abstracting this away to protected constructors allows subclassing WallSpace in a test environment without depending on the static create method and its constraints
+        /* 
+         * Protected constructors since the public API is through the static create method
+         * Abstracting this away to protected constructors allows subclassing WallSpace in a test environment without depending on the static create method and its constraints
+         */
         WallSpace(const Polygon2D& shape) noexcept : wall_shape{shape} {}
-        WallSpace(Polygon2D&& shape) noexcept : wall_shape{std::move(shape)} {}
+        template <detail::valid_wall_space_input_collection<Polygon2D> C>
+        WallSpace(const Polygon2D& shape, C holes) noexcept : wall_shape{shape} {
+            for (const Polygon2D& hole : holes) {
+                // Holes must be oriented clockwise, so reverse the orientation if it's not
+                if (hole.orientation() != CGAL::CLOCKWISE) {
+                    Polygon2D oriented_hole = hole;
+                    oriented_hole.reverse_orientation();
+                    this->wall_shape.add_hole(oriented_hole);
+                } else {
+                    this->wall_shape.add_hole(hole);
+                }
+            }
+        }
 
         // Protected method since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
         std::unique_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const noexcept {
-            // TODO: Use an approximated_inset_2 algorithm to construct the Minkowski difference of the wall polygon and a disk of radius robot_radius
-            // Do NOT under ANY CIRCUMSTANCE use the inset_2 algorithm, since this gives an exact result at the cost of going to a massive war against the type system
-            // As tempting as it is, just find a nice epsilon and call it a day instead of going through template hell
+            /* 
+             * Use an approximated_inset_2 algorithm to construct the Minkowski difference of the wall polygon and a disk of radius robot_radius
+             * Do NOT under ANY CIRCUMSTANCE use the inset_2 algorithm, since this gives an exact result at the cost of going to a massive war against the type system
+             * As tempting as it is, just find a nice epsilon and call it a day instead of going through template hell
+             */
             
             // Create a vector to store the outputted inset Minkowski difference polygons
             std::vector<CurvilinearPolygon2D> inset_results;
             // Compute the Minkowski difference
             // TODO: Find an actually good epsilon instead of this approximation
+            // TODO: Split this inset to compute the inset of the outer boundary and the outsets of the holes separately, and then combine into a polygon set
             CGAL::approximated_inset_2(this->wall_shape, robot_radius, 0.000001, std::back_inserter(inset_results));
             /*
              * If there are no polygons, then the wall is too small for the robot and no configuration space could be made
@@ -55,30 +79,75 @@ namespace BURST::geometry {
             if (inset_results.size() != 1) return nullptr;
 
             // Reverse the resulting polygon's rotation if it's not counterclockwise
-            if (inset_results.front().orientation() != CGAL::COUNTERCLOCKWISE) {
-                inset_results.front().reverse_orientation();
-            }
+            if (inset_results.front().orientation() != CGAL::COUNTERCLOCKWISE) inset_results.front().reverse_orientation();
             return ConfigurationSpace::create(inset_results.front());
         }
 
     public:
-        template <typename Iter>
-        static std::optional<WallSpace> create(Iter begin, Iter end) noexcept {
+        template <detail::valid_wall_space_input_collection<Point2D> C>
+        static std::optional<WallSpace> create(C points) noexcept {
             // Can't make a polygon with 2 or fewer points
-            if (std::distance(begin, end) <= 2) return std::nullopt;
-
+            if (points.size() <= 2) return std::nullopt;
             // Check for self-intersection and overall simplicity of the polygon
-            if (!CGAL::is_simple_2(begin, end)) return std::nullopt;
-
+            if (!CGAL::is_simple_2(points.begin(), points.end())) return std::nullopt;
             // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
-            if (CGAL::orientation_2(begin, end) == CGAL::COLLINEAR) return std::nullopt;
+            if (CGAL::orientation_2(points.begin(), points.end()) == CGAL::COLLINEAR) return std::nullopt;
 
-            Polygon2D wall_polygon{begin, end};
-            return std::optional<WallSpace>{WallSpace{std::move(wall_polygon)}};
+            // Create the wall polygon from the input points
+            Polygon2D wall_polygon{points.begin(), points.end()};
+            // If the polygon is not oriented counterclockwise, reverse the orientation to ensure it's a valid polygon for CGAL
+            if (wall_polygon.orientation() != CGAL::COUNTERCLOCKWISE) wall_polygon.reverse_orientation();
+
+            return WallSpace{wall_polygon};
         }
-        static std::optional<WallSpace> create(std::initializer_list<Point2D> points) noexcept {
-            return WallSpace::create(points.begin(), points.end());
+        template <detail::valid_wall_space_input_collection<Point2D> C1, detail::valid_wall_space_input_collection<Polygon2D> C2>
+        static std::optional<WallSpace> create(C1 points, C2 holes) noexcept {
+            // Can't make a polygon with 2 or fewer points
+            if (points.size() <= 2) return std::nullopt;
+            // Check for self intersection and overall simplicity of the polygon
+            if (!CGAL::is_simple_2(points.begin(), points.end())) return std::nullopt;
+            // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
+            if (CGAL::orientation_2(points.begin(), points.end()) == CGAL::COLLINEAR) return std::nullopt;
+
+            // Create the wall polygon from the input points now for use in the hole validation checks
+            Polygon2D wall_polygon{points.begin(), points.end()};
+            // If the polygon is not oriented counterclockwise, reverse the orientation to ensure it's a valid polygon for CGAL
+            if (wall_polygon.orientation() != CGAL::COUNTERCLOCKWISE) wall_polygon.reverse_orientation();
+            
+            // Validation checks for holes
+            // Collection to store all polygons for the containment check
+            std::vector<Polygon2D> all_polygons{wall_polygon};
+            // Check if the holes overlap
+            if (CGAL::do_intersect(holes.begin(), holes.end())) return std::nullopt;
+            for (const Polygon2D& hole : holes) {
+                // Check for self intersection and overall simplicity of the hole polygon
+                if (!CGAL::is_simple_2(hole.vertices_begin(), hole.vertices_end())) return std::nullopt;
+                // If there's collinear points, the hole polygon is degenerate, so we can't create a wall geometry
+                if (hole.orientation() == CGAL::COLLINEAR) return std::nullopt;
+
+                // Holes need to be oriented counterclockwise for the union operation, so reverse the orientation if it's not
+                if (hole.orientation() != CGAL::COUNTERCLOCKWISE) {
+                    Polygon2D oriented_hole = hole;
+                    oriented_hole.reverse_orientation();
+                    all_polygons.push_back(oriented_hole);
+                } else {
+                    all_polygons.push_back(hole);
+                }
+            }
+            /* 
+             * Check if the holes are contained within the wall polygon by performing a union of all the polygons and checking if the result is just the wall polygon
+             * If the result of the union is not a single polygon,
+             * or if the resulting polygon is not the same as the wall polygon,
+             * or if the resulting polygon has holes,
+             * then the holes are not contained within the wall polygon
+             */
+            // Collection to store results for containment check
+            std::vector<HoledPolygon2D> join_result;
+            if (join_result.size() != 1 || join_result.front().outer_boundary() != wall_polygon || join_result.front().has_holes()) return std::nullopt;
+
+            return WallSpace{wall_polygon, holes};
         }
+
         // Template is not needed for any implementation, but is needed for Robot
         // Thus this can be ommitted when called and the template parameters can be inferred
         template <typename R, typename M>
