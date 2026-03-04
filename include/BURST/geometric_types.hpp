@@ -20,8 +20,8 @@ namespace BURST::geometry {
     using Segment2D = Kernel::Segment_2;
     using Line2D = Kernel::Line_2;
     using Ray2D = Kernel::Ray_2;
-    using HoledPolygon2D = CGAL::Polygon_with_holes_2<Kernel>;
     using Polygon2D = CGAL::Polygon_2<Kernel>;
+    using HoledPolygon2D = CGAL::Polygon_with_holes_2<Kernel>;
     using CurvilinearPolygon2D = CurvedTraits::General_polygon_2;
     using Vector2D = CGAL::Vector_2<Kernel>;
     
