@@ -1,17 +1,18 @@
 #ifndef BURST_CONFIGURATION_SPACE_HPP
 #define BURST_CONFIGURATION_SPACE_HPP
 
-#include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
-#include <CGAL/Polygon_2.h>
-#include <CGAL/Graphics_scene.h>
-
-#include <utility>
 #include <optional>
 #include <variant>
 #include <memory>
 #include <iterator>
 #include <functional>
 #include <algorithm>
+
+#include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
+#include <CGAL/Polygon_2.h>
+#include <CGAL/Graphics_scene.h>
+
+#include <boost/container/small_vector.hpp>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -27,14 +28,12 @@ namespace BURST::geometry {
     // This is why its constructors are private and only accessible by WallSpace
     class ConfigurationSpace : public Renderable {
     private:
-        CurvilinearPolygon2D configuration_shape;
+        CurvilinearPolygonSet2D configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;
-        mutable std::optional<CurvilinearPolygonSet2D> polygon_set;
 
-        ConfigurationSpace(const CurvilinearPolygon2D& shape) noexcept : configuration_shape{shape}, bounding_box{} {}
-        ConfigurationSpace(CurvilinearPolygon2D&& shape) noexcept : configuration_shape{std::move(shape)}, bounding_box{} {}
+        ConfigurationSpace(const CurvilinearPolygonSet2D& shape) noexcept : configuration_shape{shape}, bounding_box{} {}
 
-        static std::unique_ptr<ConfigurationSpace> create(const CurvilinearPolygon2D& shape) noexcept {
+        static std::unique_ptr<ConfigurationSpace> create(const CurvilinearPolygonSet2D& shape) noexcept {
             return std::unique_ptr<ConfigurationSpace>{new ConfigurationSpace{shape}};
         }
         
@@ -44,42 +43,32 @@ namespace BURST::geometry {
          * They're distinguished from the const reference public API functions by taking a dummy std::monostate argument
          * This is only used for preventing overload conflicts and has no semantic meaning
          */
+        // TODO: Maybe manually compute this
         BoundingBox2D& bbox(const std::monostate& flag) const noexcept {
             if (!this->bounding_box.has_value()) {
-                this->bounding_box = this->configuration_shape.bbox();
+                // Create small vector with buffer of 1, since we expect most configuration spaces to be a single holed polygon
+                boost::container::small_vector<CurvilinearPolygon2D, 1> polygons;
+                this->configuration_shape.polygons_with_holes(std::back_inserter(polygons));
+                this->bounding_box = BoundingBox2D{};
+                for (const CurvilinearPolygon2D& polygon : polygons) *this->bounding_box += polygon.bbox();
             }
             return this->bounding_box.value();
         }
-        CurvilinearPolygonSet2D& set(const std::monostate& flag) const noexcept {
-            if (!this->polygon_set.has_value()) {
-                this->polygon_set = CurvilinearPolygonSet2D{};
-                this->polygon_set->insert(this->configuration_shape);
-            }
-            return this->polygon_set.value();
-        }
-
 
     public:
         const BoundingBox2D& bbox() const noexcept {
             return this->bbox(std::monostate{});
         }
-        const CurvilinearPolygonSet2D& set() const noexcept {
-            return this->set(std::monostate{});
-        }
 
-        WindingOrder orientation() const noexcept {
-            return this->configuration_shape.orientation();
-        }
-        
         // TODO: Make this return the edge the point intersects with instead of just the point itself
         std::optional<Point2D> intersection(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
-            if (this->set().oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY) return std::optional<Point2D>{point};
+            if (this->configuration_shape.oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY) return std::optional<Point2D>{point};
             return std::nullopt;
         }
         
-        template <valid_trajectory_type Trajectory, valid_path_type Path, typename OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
+        template <valid_trajectory_type Trajectory, valid_path_type Path, std::output_iterator<Point2D> OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
         size_t intersection(
                 const Trajectory& trajectory,
                 std::back_insert_iterator<OutputIteratorCollection> intersection_points,
@@ -102,7 +91,7 @@ namespace BURST::geometry {
             Path long_path{ray_source, ray_source + ray_vector * (margin + displacement)};
 
             // Get the arrangement of the ConfigurationSpace to insert the segment into for intersection checking
-            auto arrangement = this->set().arrangement();
+            auto arrangement = this->configuration_shape.arrangement();
             // Insert the long segment into the arrangement
             CGAL::insert(arrangement, long_path);
             // Convert the ray source to the traits required for the source containment check
