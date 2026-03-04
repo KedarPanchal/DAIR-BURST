@@ -17,19 +17,38 @@ class TestWallSpace : public BURST::geometry::WallSpace {
 private:
     using WallSpace::WallSpace; // Inherit constructors
 public:
-    static std::optional<TestWallSpace> create(std::initializer_list<BURST::geometry::Point2D> points) noexcept {
-        // Copy over logic from WallSpace::create to construct a TestWallSpace instead
-        // Can't make a polygon with 2 or fewer points
-        if (std::distance(points.begin(), points.end()) <= 2) return std::nullopt;
+    // NOTE: These are copy-pasted from WallSpace, so update them if the implementation in WallSpace changes.
+    template <BURST::geometry::detail::valid_wall_space_input_collection<BURST::geometry::Point2D> C>
+    static std::optional<TestWallSpace> create(C points) {
+        auto wall_polygon_opt = WallSpace::createPolygon(points);  
+        // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
+        return wall_polygon_opt.has_value() ? std::optional<TestWallSpace>{TestWallSpace{wall_polygon_opt.value()}} : std::nullopt;
+    }
+    template <BURST::geometry::detail::valid_wall_space_input_collection<BURST::geometry::Point2D> C1, BURST::geometry::detail::valid_wall_space_input_collection<BURST::geometry::Polygon2D> C2>
+    static std::optional<TestWallSpace> create(C1 points, C2 holes) {
+        auto wall_polygon_opt = WallSpace::createPolygon(points);
+        // Degenerate wall polygon, can't create a wall geometry
+        if (!wall_polygon_opt) return std::nullopt; 
 
-        // Check for self-intersection and overall simplicity of the polygon
-        if (!CGAL::is_simple_2(points.begin(), points.end())) return std::nullopt;
+        // Create a holed polygon to hold the holes and outer boundary
+        BURST::geometry::HoledPolygon2D wall_shape{wall_polygon_opt.value()};
+        
+        // Check that each hole is clockwise-oriented
+        for (const BURST::geometry::Polygon2D& hole : holes) {
+            // Holes must be oriented clcokwise, so reverse the orientation if not
+            BURST::geometry::Polygon2D oriented_hole = hole;
+            if (hole.orientation() != CGAL::CLOCKWISE) oriented_hole.reverse_orientation();
+            // Add the hole
+            wall_shape.add_hole(oriented_hole);
+        }
 
-        // If there's collinear points, the polygon is degenerate, so we can't create a wall space
-        if (CGAL::orientation_2(points.begin(), points.end()) == CGAL::COLLINEAR) return std::nullopt;
+        // Check if the resulting holed polygon is valid, which means:
+        // The outer boundary is a simple polygon and counterclockwise-oriented
+        // Each hole is a simple polygon and clockwise-oriented
+        // Holes are inside the outer boundary and do not intersect with each other
+        // Return nullopt if any of these conditions are violated
+        return CGAL::is_valid_polygon_with_holes(wall_shape, BURST::LinearTraits{}) ? std::optional<TestWallSpace>{TestWallSpace{wall_shape}} : std::nullopt;
 
-        BURST::geometry::Polygon2D wall_polygon{points.begin(), points.end()};
-        return std::optional<TestWallSpace>{TestWallSpace{std::move(wall_polygon)}};
     }
     std::unique_ptr<BURST::geometry::ConfigurationSpace> testConstructConfigurationSpace(BURST::numeric::fscalar robot_radius) const {
         return this->constructConfigurationSpace(robot_radius);
