@@ -8,6 +8,9 @@
 #include <BURST/geometric_types.hpp>
 #include <BURST/kernel_types.hpp>
 
+#include <initializer_list>
+#include <span>
+
 #include <CGAL/Arr_walk_along_line_point_location.h>
 
 // -- HELPER CLASSES -----------------------------------------------------------
@@ -18,15 +21,13 @@ private:
     using WallSpace::WallSpace; // Inherit constructors
 public:
     // NOTE: These are copy-pasted from WallSpace, so update them if the implementation in WallSpace changes.
-    template <BURST::geometry::detail::valid_wall_space_input_collection<BURST::geometry::Point2D> C>
-    static std::optional<TestWallSpace> create(C points) {
-        auto wall_polygon_opt = WallSpace::createPolygon(points);  
+    static std::optional<TestWallSpace> create(std::initializer_list<BURST::geometry::Point2D> points) {
+        auto wall_polygon_opt = WallSpace::createPolygon(std::span(points));  
         // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
         return wall_polygon_opt.has_value() ? std::optional<TestWallSpace>{TestWallSpace{wall_polygon_opt.value()}} : std::nullopt;
     }
-    template <BURST::geometry::detail::valid_wall_space_input_collection<BURST::geometry::Point2D> C1, BURST::geometry::detail::valid_wall_space_input_collection<BURST::geometry::Polygon2D> C2>
-    static std::optional<TestWallSpace> create(C1 points, C2 holes) {
-        auto wall_polygon_opt = WallSpace::createPolygon(points);
+    static std::optional<TestWallSpace> create(std::initializer_list<BURST::geometry::Point2D> points, std::initializer_list<BURST::geometry::Polygon2D> holes) {
+        auto wall_polygon_opt = WallSpace::createPolygon(std::span(points));
         // Degenerate wall polygon, can't create a wall geometry
         if (!wall_polygon_opt) return std::nullopt; 
 

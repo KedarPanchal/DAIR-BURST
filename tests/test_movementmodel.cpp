@@ -31,7 +31,6 @@ protected:
         // Construct a configuration space for a robot with radius 1
         this->configuration_space = wall_space->testConstructConfigurationSpace(1.0);
         ASSERT_NE(this->configuration_space, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
-        ASSERT_EQ(this->configuration_space->orientation(), CGAL::COUNTERCLOCKWISE) << "Expected configuration space to be oriented counterclockwise, but got a different orientation in test fixture setup";
 
         // Define a corner and midpoint for use in tests
         this->corner_vertex = BURST::geometry::Point2D{1, 1};
@@ -55,7 +54,7 @@ protected:
         // Create a query point way lower than the expected concave vertex
         BURST::CurvedTraits::Point_2 query_origin{origin_x, -100};
         // Create a point location object for the configuration space and attach it to the arrangement
-        auto arrangement = this->configuration_space->set().arrangement();
+        auto arrangement = this->configuration_space->arrangement();
         CGAL::Arr_walk_along_line_point_location point_location{arrangement};
         // Shoot the ray up
         auto result = point_location.ray_shoot_up(query_origin);

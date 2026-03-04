@@ -4,6 +4,8 @@
 #include <optional>
 #include <ranges>
 #include <memory>
+#include <initializer_list>
+#include <span>
 #include <iterator>
 #include <variant>
 
@@ -129,6 +131,24 @@ namespace BURST::geometry {
             // Return nullopt if any of these conditions are violated
             return CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{}) ? std::optional<WallSpace>{WallSpace{wall_shape}} : std::nullopt;
         }
+
+// Overloads for initializer lists since they don't satisfy the ranges concepts until C++23
+#if __cpp_lib_ranges < 202302L
+        static std::optional<WallSpace> create(std::initializer_list<Point2D> points) {
+            return WallSpace::create(std::span(points));
+        }
+        static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes) {
+            return create(std::span(points), std::span(holes));
+        }
+        template <detail::valid_wall_space_input_collection<Point2D> C>
+        static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes) {
+            return create(std::span(points), holes);
+        }
+        template <detail::valid_wall_space_input_collection<Polygon2D> C>
+        static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes) {
+            return create(points, std::span(holes));
+        }
+#endif
 
         // Template is not needed for any implementation, but is needed for Robot
         // Thus this can be ommitted when called and the template parameters can be inferred

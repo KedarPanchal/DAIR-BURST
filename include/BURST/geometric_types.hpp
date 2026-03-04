@@ -23,6 +23,7 @@ namespace BURST::geometry {
     using Polygon2D = CGAL::Polygon_2<Kernel>;
     using HoledPolygon2D = CGAL::Polygon_with_holes_2<Kernel>;
     using CurvilinearPolygon2D = CurvedTraits::General_polygon_2;
+    using HoledCurvilinearPolygon2D = CGAL::General_polygon_with_holes_2<CurvilinearPolygon2D>;
     using Vector2D = CGAL::Vector_2<Kernel>;
     
     // Composite/complex types

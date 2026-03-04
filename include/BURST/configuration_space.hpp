@@ -4,6 +4,7 @@
 #include <optional>
 #include <variant>
 #include <memory>
+#include <ranges>
 #include <iterator>
 #include <functional>
 #include <algorithm>
@@ -43,14 +44,13 @@ namespace BURST::geometry {
          * They're distinguished from the const reference public API functions by taking a dummy std::monostate argument
          * This is only used for preventing overload conflicts and has no semantic meaning
          */
-        // TODO: Maybe manually compute this
         BoundingBox2D& bbox(const std::monostate& flag) const noexcept {
             if (!this->bounding_box.has_value()) {
                 // Create small vector with buffer of 1, since we expect most configuration spaces to be a single holed polygon
-                boost::container::small_vector<CurvilinearPolygon2D, 1> polygons;
+                boost::container::small_vector<HoledCurvilinearPolygon2D, 1> polygons;
                 this->configuration_shape.polygons_with_holes(std::back_inserter(polygons));
                 this->bounding_box = BoundingBox2D{};
-                for (const CurvilinearPolygon2D& polygon : polygons) *this->bounding_box += polygon.bbox();
+                for (const HoledCurvilinearPolygon2D& polygon : polygons) *this->bounding_box += polygon.outer_boundary().bbox();
             }
             return this->bounding_box.value();
         }
@@ -58,6 +58,9 @@ namespace BURST::geometry {
     public:
         const BoundingBox2D& bbox() const noexcept {
             return this->bbox(std::monostate{});
+        }
+        auto& arrangement() const noexcept {
+            return this->configuration_shape.arrangement();
         }
 
         // TODO: Make this return the edge the point intersects with instead of just the point itself
@@ -68,7 +71,7 @@ namespace BURST::geometry {
             return std::nullopt;
         }
         
-        template <valid_trajectory_type Trajectory, valid_path_type Path, std::output_iterator<Point2D> OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
+        template <valid_trajectory_type Trajectory, valid_path_type Path, std::ranges::output_range<Point2D> OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
         size_t intersection(
                 const Trajectory& trajectory,
                 std::back_insert_iterator<OutputIteratorCollection> intersection_points,
