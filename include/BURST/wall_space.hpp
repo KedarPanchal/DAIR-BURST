@@ -4,13 +4,14 @@
 #include <optional>
 #include <ranges>
 #include <memory>
-#include <vector>
 #include <iterator>
 #include <variant>
 
 #include <CGAL/approximated_offset_2.h>
 #include <CGAL/General_polygon_set_2.h>
 #include <CGAL/Boolean_set_operations_2.h>
+
+#include <boost/container/small_vector.hpp>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -48,17 +49,14 @@ namespace BURST::geometry {
         static std::optional<Polygon2D> createPolygon(C points) {
             // Can't make a polygon with 2 or fewer points
             if (points.size() <= 2) return std::nullopt;
-            // Check for self-intersection and overall simplicity of the polygon
-            if (!CGAL::is_simple_2(points.begin(), points.end())) return std::nullopt;
-            // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
-            if (CGAL::orientation_2(points.begin(), points.end()) == CGAL::COLLINEAR) return std::nullopt;
 
             // Create the wall polygon from the input points
             Polygon2D polygon{points.begin(), points.end()};
             // If the polygon is not oriented counterclockwise, reverse the orientation to ensure it's a valid polygon for CGAL
             if (polygon.orientation() != CGAL::COUNTERCLOCKWISE) polygon.reverse_orientation();
 
-            return std::optional<Polygon2D>{polygon};
+            // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
+            return CGAL::is_valid_polygon(polygon, LinearTraits{}) ? std::optional<Polygon2D>{polygon} : std::nullopt;
         }
 
         // Constructs a configuration space given a robot radius
@@ -67,11 +65,12 @@ namespace BURST::geometry {
             const double EPSILON = 0.000001;
 
             // Compute the inset of the outer boundary of the wall polygon
-            std::vector<CurvilinearPolygon2D> outer_inset_results;
+            boost::container::small_vector<CurvilinearPolygon2D, 1> outer_inset_results;
             CGAL::approximated_inset_2(this->wall_shape.outer_boundary(), robot_radius, EPSILON, std::back_inserter(outer_inset_results));
 
             // If there are no polygons, then the wall is too small for the robot and no configuration space could be made
             // If there are multiple polygons, then there were regions too tight for the robot to fit in, and no configuration space could be made
+            // TODO: For the above case, check with Dr. Shell if that's something worth allowing in the final sim
             // In both cases, return nullptr
             if (outer_inset_results.size() != 1) return nullptr;
             // Reverse the resulting polygon's rotation if it's not counterclockwise
@@ -119,7 +118,7 @@ namespace BURST::geometry {
                 // Holes must be oriented clcokwise, so reverse the orientation if not
                 Polygon2D oriented_hole = hole;
                 if (hole.orientation() != CGAL::CLOCKWISE) oriented_hole.reverse_orientation();
-                // Append to the vector of oriented holes for use in creating the holed Polygon
+                // Add the hole
                 wall_shape.add_hole(oriented_hole);
             }
 
@@ -127,10 +126,8 @@ namespace BURST::geometry {
             // The outer boundary is a simple polygon and counterclockwise-oriented
             // Each hole is a simple polygon and clockwise-oriented
             // Holes are inside the outer boundary and do not intersect with each other
-            if (!CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{})) return std::nullopt;
-
-            // If the resulting holed polygon is valid, construct the WallSpace
-            return WallSpace{wall_shape};
+            // Return nullopt if any of these conditions are violated
+            return CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{}) ? std::optional<WallSpace>{WallSpace{wall_shape}} : std::nullopt;
         }
 
         // Template is not needed for any implementation, but is needed for Robot
