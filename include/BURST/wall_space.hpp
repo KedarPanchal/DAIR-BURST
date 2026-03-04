@@ -104,48 +104,39 @@ namespace BURST::geometry {
         static std::optional<WallSpace> create(C1 points, C2 holes) noexcept {
             // Can't make a polygon with 2 or fewer points
             if (points.size() <= 2) return std::nullopt;
-            // Check for self intersection and overall simplicity of the polygon
-            if (!CGAL::is_simple_2(points.begin(), points.end())) return std::nullopt;
-            // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
-            if (CGAL::orientation_2(points.begin(), points.end()) == CGAL::COLLINEAR) return std::nullopt;
-
             // Create the wall polygon from the input points now for use in the hole validation checks
             Polygon2D wall_polygon{points.begin(), points.end()};
             // If the polygon is not oriented counterclockwise, reverse the orientation to ensure it's a valid polygon for CGAL
             if (wall_polygon.orientation() != CGAL::COUNTERCLOCKWISE) wall_polygon.reverse_orientation();
             
-            // Validation checks for holes
-            // Collection to store all polygons for the containment check
-            std::vector<Polygon2D> all_polygons{wall_polygon};
-            // Check if the holes overlap
-            if (CGAL::do_intersect(holes.begin(), holes.end())) return std::nullopt;
+            // Check that each hole is clockwise-oriented and that no vertices lie on the boundary of the wall polygon
+            // Store oriented holes in a vector
+            std::vector<Polygon2D> oriented_holes;
             for (const Polygon2D& hole : holes) {
-                // Check for self intersection and overall simplicity of the hole polygon
-                if (!CGAL::is_simple_2(hole.vertices_begin(), hole.vertices_end())) return std::nullopt;
-                // If there's collinear points, the hole polygon is degenerate, so we can't create a wall geometry
-                if (hole.orientation() == CGAL::COLLINEAR) return std::nullopt;
-
-                // Holes need to be oriented counterclockwise for the union operation, so reverse the orientation if it's not
-                if (hole.orientation() != CGAL::COUNTERCLOCKWISE) {
-                    Polygon2D oriented_hole = hole;
-                    oriented_hole.reverse_orientation();
-                    all_polygons.push_back(oriented_hole);
-                } else {
-                    all_polygons.push_back(hole);
+                // Holes must be oriented clcokwise, so reverse the orientation if not
+                Polygon2D oriented_hole = hole;
+                if (hole.orientation() != CGAL::CLOCKWISE) oriented_hole.reverse_orientation();
+                // Check that no vertices of the hole lie on the boundary of the wall polygon
+                for (const Point2D& vertex : oriented_hole.vertices()) {
+                    if (wall_polygon.has_on_boundary(vertex)) return std::nullopt;
                 }
-            }
-            /* 
-             * Check if the holes are contained within the wall polygon by performing a union of all the polygons and checking if the result is just the wall polygon
-             * If the result of the union is not a single polygon,
-             * or if the resulting polygon is not the same as the wall polygon,
-             * or if the resulting polygon has holes,
-             * then the holes are not contained within the wall polygon
-             */
-            // Collection to store results for containment check
-            std::vector<HoledPolygon2D> join_result;
-            if (join_result.size() != 1 || join_result.front().outer_boundary() != wall_polygon || join_result.front().has_holes()) return std::nullopt;
 
-            return WallSpace{wall_polygon, holes};
+                // Append to the vector of oriented holes for use in creating the holed Polygon
+                oriented_holes.push_back(oriented_hole);
+            }
+
+            // Construct a holed polygon from the wall polygon and the holes
+            HoledPolygon2D wall_shape{wall_polygon, oriented_holes.begin(), oriented_holes.end()};
+            /*
+             * Check if the resulting holed polygon is valid, which means:
+             * The outer boundary is a simple polygon and counterclockwise-oriented
+             * Each hole is a simple polygon and clockwise-oriented
+             * Holes are inside the outer boundary and do not intersect with each other
+             */
+            if (!CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{})) return std::nullopt;
+
+            // If the resulting holed polygon is valid, construct the WallSpace
+            return WallSpace{wall_polygon, oriented_holes};
         }
 
         // Template is not needed for any implementation, but is needed for Robot
