@@ -8,7 +8,7 @@
 // Test for intended non-degeneracy with a regular polygon
 TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygon) {
     // Construct a WallSpace for a square
-    auto wall_space = BURST::geometry::WallSpace::create({
+    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{0, 0},
         BURST::geometry::Point2D{10, 0},
         BURST::geometry::Point2D{10, 10},
@@ -24,7 +24,7 @@ TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygon) {
 TEST(WallSpaceConstructionTest, NonDegenerateSimplePolygon) {
     // Construct a WallSpace for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
-    auto wall_space = BURST::geometry::WallSpace::create({
+    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{0, 20},
         BURST::geometry::Point2D{-20, -20},
         BURST::geometry::Point2D{0, 0},
@@ -36,11 +36,33 @@ TEST(WallSpaceConstructionTest, NonDegenerateSimplePolygon) {
     EXPECT_TRUE(wall_space.has_value()) << "Expected non-degenerate WallSpace for a simple polygon, but got nullopt.";
 }
 
+// Test for intended non-degeneracy with a regular polygon with a single regular polygonal hole in the middle
+TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygonWithHole) {
+    // Construct a square hole for the WallSpace
+    BURST::geometry::Polygon2D hole{
+        BURST::geometry::Point2D{3, 3},
+        BURST::geometry::Point2D{7, 3},
+        BURST::geometry::Point2D{7, 7},
+        BURST::geometry::Point2D{3, 7}
+    };
+    // Construct a WallSpace with an outer square and an inner square hole
+    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create(
+        {
+            BURST::geometry::Point2D{0, 0},
+            BURST::geometry::Point2D{10, 0},
+            BURST::geometry::Point2D{10, 10},
+            BURST::geometry::Point2D{0, 10}
+        },
+        {
+        }
+    );
+}
+
 // Test for intended degeneracy with a straight line
 TEST(WallSpaceConstructionTest, DegenerateStraightLine) {
     // Construct a WallSpace for a straight line
     // This is a degenerate polygon
-    auto wall_space = BURST::geometry::WallSpace::create({
+    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{0, 0},
         BURST::geometry::Point2D{10, 0},
         BURST::geometry::Point2D{20, 0}
@@ -55,7 +77,7 @@ TEST(WallSpaceConstructionTest, DegenerateStraightLine) {
 TEST(WallSpaceConstructionTest, DegenerateSinglePoint) {
     // Construct a WallSpace for a single point
     // This is a degenerate polygon
-    auto wall_space = BURST::geometry::WallSpace::create({
+    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{0, 0}
     });
 
@@ -68,7 +90,7 @@ TEST(WallSpaceConstructionTest, DegenerateSinglePoint) {
 TEST(WallSpaceConstructionTest, DegenerateRepeatedPoint) {
     // Construct a WallSpace for a repeated point
     // This is a degenerate polygon
-    auto wall_space = BURST::geometry::WallSpace::create({
+    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{0, 0},
         BURST::geometry::Point2D{10, 0},
         BURST::geometry::Point2D{10, 0},
@@ -86,7 +108,7 @@ TEST(WallSpaceConstructionTest, DegenerateSelfIntersectingPolygon) {
     // Construct a WallSpace for a self-intersecting polygon
     // This polygon looks like an hourglass and intersects itself at the center
     // This is a degenerate polygon for our purposes
-    auto wall_space = BURST::geometry::WallSpace::create({
+    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{-20, 20},
         BURST::geometry::Point2D{20, 20},
         BURST::geometry::Point2D{-20, -20},
@@ -103,7 +125,7 @@ TEST(WallSpaceConstructionTest, DegenerateOutOfOrderPoints) {
     // Construct a WallSpace for a normally valid polygon with out-of-order points
     // This polygon is a square but the points are given in an order that creates a bowtie shape
     // This is a degenerate polygon for our purposes
-    auto wall_space = BURST::geometry::WallSpace::create({
+    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{0, 0},
         BURST::geometry::Point2D{10, 10},
         BURST::geometry::Point2D{10, 0},
