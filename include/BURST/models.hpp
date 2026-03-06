@@ -22,7 +22,7 @@ namespace BURST::models {
     /*
      * RotationModel defines how the robot's rotation is affected by noise.
      */
-    template <typename PRNG = std::mt19937, numeric::valid_distribution<PRNG> Dist = std::uniform_real_distribution<double>>
+    template <numeric::valid_rng PRNG = std::mt19937, numeric::valid_distribution<PRNG> Dist = std::uniform_real_distribution<double>>
     class RotationModel {
     private:
         numeric::fscalar max_rotation_error;
