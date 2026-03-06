@@ -52,6 +52,32 @@ namespace BURST::geometry {
         T{origin, direction};
     };
 
+    // Checks is a collection is a valid input collection for constructing a polygon
+    template <typename C, typename V>
+    concept valid_geometric_collection = std::ranges::sized_range<C> && std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, V>;
+
+    // -- HELPER FUNCTIONS -----------------------------------------------------
+
+    // Utility function to construct a polygon off of any collection of points
+    template <valid_geometric_collection<Point2D> C>
+    std::optional<Polygon2D> construct_polygon(C points) {
+        // Can't make a polygon with 2 or fewer points
+        if (points.size() <= 2) return std::nullopt; 
+
+        // Create the polygon from the input points and return it
+        Polygon2D polygon{points.begin(), points.end()};
+        // If the polygon is not oriented counterclockwise, reverse the orientation to ensure it's a valid polygon for CGAL
+        if (polygon.orientation() != CGAL::COUNTERCLOCKWISE) polygon.reverse_orientation();
+
+        // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
+        return CGAL::is_valid_polygon(polygon, LinearTraits{}) ? std::optional<Polygon2D>{polygon} : std::nullopt;
+    }
+#if __cpp_lib_ranges < 202302L
+    std::optional<Polygon2D> construct_polygon(std::initializer_list<Point2D> points) {
+        return construct_polygon(std::span(points));
+    }
+#endif
+
 }
 
 #endif

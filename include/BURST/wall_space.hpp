@@ -2,7 +2,6 @@
 #define BURST_WALL_SPACE_HPP
 
 #include <optional>
-#include <ranges>
 #include <memory>
 #include <initializer_list>
 #include <span>
@@ -24,12 +23,6 @@
 
 namespace BURST::geometry {
     
-    // Internal namespace for implementation details of WallSpace, not intended for public API
-    namespace detail {
-        template <typename C, typename V>
-        concept valid_wall_space_input_collection = std::ranges::sized_range<C> && std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, V>;
-    }
-
     // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
     class WallSpace : public Renderable {
     private:
@@ -45,21 +38,6 @@ namespace BURST::geometry {
 
         // Protected methods since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
-
-        // Creates a polygon from a collection of points, ensuring the polygon is oriented counterclockwise and simple
-        template <detail::valid_wall_space_input_collection<Point2D> C>
-        static std::optional<Polygon2D> createPolygon(C points) {
-            // Can't make a polygon with 2 or fewer points
-            if (points.size() <= 2) return std::nullopt;
-
-            // Create the wall polygon from the input points
-            Polygon2D polygon{points.begin(), points.end()};
-            // If the polygon is not oriented counterclockwise, reverse the orientation to ensure it's a valid polygon for CGAL
-            if (polygon.orientation() != CGAL::COUNTERCLOCKWISE) polygon.reverse_orientation();
-
-            // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
-            return CGAL::is_valid_polygon(polygon, LinearTraits{}) ? std::optional<Polygon2D>{polygon} : std::nullopt;
-        }
 
         // Constructs a configuration space given a robot radius
         std::unique_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
@@ -100,15 +78,15 @@ namespace BURST::geometry {
         }
 
     public:
-        template <detail::valid_wall_space_input_collection<Point2D> C>
+        template <valid_geometric_collection<Point2D> C>
         static std::optional<WallSpace> create(C points) {
-            auto wall_polygon_opt = WallSpace::createPolygon(points);  
+            auto wall_polygon_opt = construct_polygon(points);  
             // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
             return wall_polygon_opt.has_value() ? std::optional<WallSpace>{WallSpace{wall_polygon_opt.value()}} : std::nullopt;
         }
-        template <detail::valid_wall_space_input_collection<Point2D> C1, detail::valid_wall_space_input_collection<Polygon2D> C2>
+        template <valid_geometric_collection<Point2D> C1, valid_geometric_collection<Polygon2D> C2>
         static std::optional<WallSpace> create(C1 points, C2 holes) {
-            auto wall_polygon_opt = WallSpace::createPolygon(points);
+            auto wall_polygon_opt = construct_polygon(points);
             // Degenerate wall polygon, can't create a wall geometry
             if (!wall_polygon_opt) return std::nullopt; 
 
@@ -140,11 +118,11 @@ namespace BURST::geometry {
         static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes) {
             return create(std::span(points), std::span(holes));
         }
-        template <detail::valid_wall_space_input_collection<Point2D> C>
+        template <valid_geometric_collection<Point2D> C>
         static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes) {
             return create(std::span(points), holes);
         }
-        template <detail::valid_wall_space_input_collection<Polygon2D> C>
+        template <valid_geometric_collection<Polygon2D> C>
         static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes) {
             return create(points, std::span(holes));
         }
