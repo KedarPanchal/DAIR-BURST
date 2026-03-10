@@ -8,6 +8,7 @@
 #include <CGAL/General_polygon_set_2.h>
 #include <CGAL/enum.h>
 #include <CGAL/Aff_transformation_2.h>
+#include <initializer_list>
 
 #include "kernel_types.hpp"
 
@@ -38,6 +39,7 @@ namespace BURST::geometry {
     // Transformation types
     using Transformation = CGAL::Aff_transformation_2<Kernel>;
 
+
     // -- GEOMETRIC CONCEPTS ---------------------------------------------------
 
     // Checks if a type is a valid path type, which can be constructed from a start and end point
@@ -53,8 +55,12 @@ namespace BURST::geometry {
     };
 
     // Checks is a collection is a valid input collection for constructing a polygon
+    // Prior to C++23, std::initializer_list doesn't satisfy the condition for sized_range, so an explicit check is included here
     template <typename C, typename V>
-    concept valid_geometric_collection = std::ranges::sized_range<C> && std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, V>;
+    concept valid_geometric_collection = 
+        std::ranges::sized_range<C> && std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, V> ||
+        std::same_as<C, std::initializer_list<V>>;
+
 
     // -- HELPER FUNCTIONS -----------------------------------------------------
 
@@ -72,11 +78,6 @@ namespace BURST::geometry {
         // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
         return CGAL::is_valid_polygon(polygon, LinearTraits{}) ? std::optional<Polygon2D>{polygon} : std::nullopt;
     }
-#if __cpp_lib_ranges < 202302L
-    std::optional<Polygon2D> construct_polygon(std::initializer_list<Point2D> points) {
-        return construct_polygon(std::span(points));
-    }
-#endif
 
 }
 
