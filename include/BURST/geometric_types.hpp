@@ -8,6 +8,7 @@
 #include <CGAL/General_polygon_set_2.h>
 #include <CGAL/enum.h>
 #include <CGAL/Aff_transformation_2.h>
+#include <concepts>
 #include <initializer_list>
 
 #include "kernel_types.hpp"
@@ -77,6 +78,10 @@ namespace BURST::geometry {
 
         // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
         return CGAL::is_valid_polygon(polygon, LinearTraits{}) ? std::optional<Polygon2D>{polygon} : std::nullopt;
+    }
+    
+    inline std::optional<Polygon2D> construct_polygon(std::initializer_list<Point2D> points) {
+        return construct_polygon<std::initializer_list<Point2D>>(points);
     }
 
 }

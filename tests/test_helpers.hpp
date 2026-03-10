@@ -22,12 +22,12 @@ private:
 public:
     // NOTE: These are copy-pasted from WallSpace, so update them if the implementation in WallSpace changes.
     static std::optional<TestWallSpace> create(std::initializer_list<BURST::geometry::Point2D> points) {
-        auto wall_polygon_opt = WallSpace::createPolygon(std::span(points));  
+        auto wall_polygon_opt = BURST::geometry::construct_polygon(points);
         // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
         return wall_polygon_opt.has_value() ? std::optional<TestWallSpace>{TestWallSpace{wall_polygon_opt.value()}} : std::nullopt;
     }
     static std::optional<TestWallSpace> create(std::initializer_list<BURST::geometry::Point2D> points, std::initializer_list<BURST::geometry::Polygon2D> holes) {
-        auto wall_polygon_opt = WallSpace::createPolygon(std::span(points));
+        auto wall_polygon_opt = BURST::geometry::construct_polygon(points);
         // Degenerate wall polygon, can't create a wall geometry
         if (!wall_polygon_opt) return std::nullopt; 
 

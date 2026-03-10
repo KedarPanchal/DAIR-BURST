@@ -3,8 +3,6 @@
 
 #include <optional>
 #include <memory>
-#include <initializer_list>
-#include <span>
 #include <iterator>
 #include <variant>
 
@@ -108,6 +106,21 @@ namespace BURST::geometry {
             // Holes are inside the outer boundary and do not intersect with each other
             // Return nullopt if any of these conditions are violated
             return CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{}) ? std::optional<WallSpace>{WallSpace{wall_shape}} : std::nullopt;
+        }
+        // Inlined overloads for std::initializer_list since it doesn't satisfy the sized_range condition below C++23
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points) {
+            return create<std::initializer_list<Point2D>>(points);
+        }
+        template <valid_geometric_collection<Point2D> C>
+        inline static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes) {
+            return create<C, std::initializer_list<Polygon2D>>(points, holes);
+        }
+        template <valid_geometric_collection<Polygon2D> C>
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes) {
+            return create<std::initializer_list<Point2D>, C>(points, holes);
+        }
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes) {
+            return create<std::initializer_list<Point2D>>(points, std::initializer_list<Polygon2D>(holes));
         }
 
         // Template is not needed for any implementation, but is needed for Robot

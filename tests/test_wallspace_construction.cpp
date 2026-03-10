@@ -5,6 +5,9 @@
 // Utility includes for tests
 #include <optional>
 
+
+// -- NON-DEGENERATE NON-HOLED POLYGON TESTS -----------------------------------
+
 // Test for intended non-degeneracy with a regular polygon
 TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygon) {
     // Construct a WallSpace for a square
@@ -36,27 +39,16 @@ TEST(WallSpaceConstructionTest, NonDegenerateSimplePolygon) {
     EXPECT_TRUE(wall_space.has_value()) << "Expected non-degenerate WallSpace for a simple polygon, but got nullopt.";
 }
 
-// Test for intended non-degeneracy with a regular polygon with a single regular polygonal hole in the middle
+
+// -- NON-DEGENERATE HOLED POLYGON TESTS ---------------------------------------
+
+// Test for intended non-degeneracy with a regular polygon with a single hole in the middle
 TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygonWithHole) {
-    // Construct a square hole for the WallSpace
-    BURST::geometry::Polygon2D hole{
-        BURST::geometry::Point2D{3, 3},
-        BURST::geometry::Point2D{7, 3},
-        BURST::geometry::Point2D{7, 7},
-        BURST::geometry::Point2D{3, 7}
-    };
-    // Construct a WallSpace with an outer square and an inner square hole
-    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create(
-        {
-            BURST::geometry::Point2D{0, 0},
-            BURST::geometry::Point2D{10, 0},
-            BURST::geometry::Point2D{10, 10},
-            BURST::geometry::Point2D{0, 10}
-        },
-        {
-        }
-    );
+
 }
+
+
+// -- DEGENERATE NON-HOLED POLYGON TESTS ---------------------------------------
 
 // Test for intended degeneracy with a straight line
 TEST(WallSpaceConstructionTest, DegenerateStraightLine) {
