@@ -9,7 +9,6 @@
 #include <BURST/kernel_types.hpp>
 
 #include <initializer_list>
-#include <span>
 
 #include <CGAL/Arr_walk_along_line_point_location.h>
 
