@@ -88,7 +88,7 @@ TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygonWithHoles) {
     std::optional<BURST::geometry::Polygon2D> hole2 = BURST::geometry::construct_polygon({
         BURST::geometry::Point2D{6, 1},
         BURST::geometry::Point2D{6, 2},
-        BURST::geometry::Point2D{4, 3},
+        BURST::geometry::Point2D{4, 2},
         BURST::geometry::Point2D{4, 1}
     });
     // Expect the second hole polygon to be non-degenerate
