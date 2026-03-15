@@ -2,6 +2,7 @@
 #include <BURST/models.hpp>
 
 // Utility includes for tests
+#include "BURST/geometric_types.hpp"
 #include "test_helpers.hpp"
 #include <optional>
 #include <memory>
@@ -39,7 +40,7 @@ protected:
 };
 
 /*
- * Define test fixture containing a valid ConfigurationSpace for testing the MovementModel
+ * Define a test fixture containing a valid ConfigurationSpace for testing the MovementModel
  * This should be reused across multiple tests for the MovementModel to keep the geometry consistent
  * This test fixture uses a concave configuration space
  * In this case, an arrowhead shape
@@ -124,8 +125,79 @@ protected:
     }
 };
 
+// Define a test fixture containing a valid ConfigurationSpace with multiple holes for testing the MovementModel
+class MovementModelWithHolesTest : public ::testing::Test {
+protected:
+    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
+    BURST::geometry::Point2D edge_midpoint;
+    BURST::geometry::Point2D edge_midpoint_to_hole_corner;
+    BURST::geometry::Point2D hole1_midpoint;
+    BURST::geometry::Point2D hole2_midpoint;
 
-// -- MOVEMENTMODEL FUNCTOR TESTS ----------------------------------------------
+    void SetUp() override {
+        // Construct a TestWallSpace for a concave polygon with two square holes
+        // Construct the first 2x1 hole
+        std::optional<BURST::geometry::Polygon2D> hole1 = BURST::geometry::construct_polygon({
+            BURST::geometry::Point2D{7, 3},
+            BURST::geometry::Point2D{7, 4},
+            BURST::geometry::Point2D{5, 4},
+            BURST::geometry::Point2D{5, 3}
+        });
+        // Expect the first hole polygon to be non-degenerate
+        // i.e., it is not nullopt
+        ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate first hole in test fixture setup";
+
+        // Construct the second 2x1 hole
+        std::optional<BURST::geometry::Polygon2D> hole2 = BURST::geometry::construct_polygon({
+            BURST::geometry::Point2D{7, 7},
+            BURST::geometry::Point2D{7, 8},
+            BURST::geometry::Point2D{5, 8},
+            BURST::geometry::Point2D{5, 7}
+        });
+        // Expect the second hole polygon to be non-degenerate
+        // i.e., it is not nullopt
+        ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate second hole in test fixture setup";
+
+        // Construct the third 1x2 hole
+        std::optional<BURST::geometry::Polygon2D> hole3 = BURST::geometry::construct_polygon({
+            BURST::geometry::Point2D{3, 4},
+            BURST::geometry::Point2D{3, 6},
+            BURST::geometry::Point2D{2, 6},
+            BURST::geometry::Point2D{2, 4}
+        });
+        // Expect the third hole polygon to be non-degenerate
+        // i.e., it is not nullopt
+        ASSERT_TRUE(hole3.has_value()) << "Failed to construct non-degenerate third hole in test fixture setup";
+
+        auto wall_space = TestWallSpace::create({
+            BURST::geometry::Point2D{0, 0},
+            BURST::geometry::Point2D{11, 0},
+            BURST::geometry::Point2D{11, 11},
+            BURST::geometry::Point2D{0, 11}
+        },
+        {
+            *hole1,
+            *hole2,
+            *hole3
+        });
+        // Expect the WallSpace to be non-degenerate
+        // i.e. it is not nullopt
+        ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon with holes in test fixture setup";
+
+        // Construct a configuration space for a robot with radius 1
+        this->configuration_space = wall_space->testConstructConfigurationSpace(1.0);
+        ASSERT_NE(this->configuration_space, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
+
+        // Create corner, edge, and hole midpoints for use in tests
+        this->edge_midpoint = BURST::geometry::Point2D{6, 1};
+        this->edge_midpoint_to_hole_corner = BURST::geometry::Point2D{3, 1};
+        this->hole1_midpoint = BURST::geometry::Point2D{6, 5};
+        this->hole2_midpoint = BURST::geometry::Point2D{6, 9};
+    }
+};
+
+
+// -- MOVEMENTMODEL NON-HOLED FUNCTOR TESTS ------------------------------------
 
 // Test generating a valid movement with a linear movement model in a square
 // This means that the movement should be in a straight line towards the interior of the configuration space
@@ -325,7 +397,10 @@ TEST_F(MovementModelInConcaveTest, InvalidLinearMovementPointingOutwardAtConcave
 }
 
 
-// -- MOVEMENTMODEL TRAJECTORY TESTS -------------------------------------------
+// -- MOVEMENTMODEL HOLED FUNCTOR TESTS ----------------------------------------
+
+
+// -- MOVEMENTMODEL NON-HOLED TRAJECTORY TESTS ---------------------------------
 
 // Test generating a valid trajectory with a linear movement model in a square
 TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryInSquare) {
@@ -452,3 +527,6 @@ TEST_F(MovementModelInConcaveTest, InvalidLinearTrajectoryPointingOutwardInConca
     // i.e., it is nullopt
     EXPECT_FALSE(maybe_path.has_value()) << "Expected invalid path to not have a trajectory, but got a valid trajectory";
 }
+
+
+// -- MOVEMENTMODEL HOLED TRAJECTORY TESTS -------------------------------------
