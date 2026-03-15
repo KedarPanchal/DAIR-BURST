@@ -82,7 +82,7 @@ TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygonWithHoles) {
     });
     // Expect the first hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate first hole.";
 
     // Construct the second 1x2 hole
     std::optional<BURST::geometry::Polygon2D> hole2 = BURST::geometry::construct_polygon({
@@ -93,7 +93,7 @@ TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygonWithHoles) {
     });
     // Expect the second hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate second hole.";
 
     // Construct a WallSpace for a square with the middle holes inside
     std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
@@ -455,7 +455,7 @@ TEST(WallSpaceConstructionTest, DegenerateRegularPolygonWithIntersectingHoles) {
     });
     // Expect the first hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate first hole.";
 
     // Construct the second square 2x2 hole that intersects with the first hole
     std::optional<BURST::geometry::Polygon2D> hole2 = BURST::geometry::construct_polygon({
@@ -466,7 +466,7 @@ TEST(WallSpaceConstructionTest, DegenerateRegularPolygonWithIntersectingHoles) {
     });
     // Expect the second hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate second hole.";
 
     // Construct a WallSpace for a square with the intersecting holes inside
     std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({

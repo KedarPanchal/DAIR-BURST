@@ -95,7 +95,7 @@ TEST(ConfigurationSpaceConstructionTest, NonDegenerateRegularPolygonWithHoles) {
     });
     // Expect the first hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate first hole.";
 
     // Construct the second 2x1 hole
     std::optional<BURST::geometry::Polygon2D> hole2 = BURST::geometry::construct_polygon({
@@ -106,7 +106,7 @@ TEST(ConfigurationSpaceConstructionTest, NonDegenerateRegularPolygonWithHoles) {
     });
     // Expect the second hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate second hole.";
 
     // Construct a WallSpace for a square with the middle holes inside
     auto wall_space = TestWallSpace::create({
@@ -175,7 +175,7 @@ TEST(ConfigurationSpaceConstructionTest, NonDegenerateRegularPolygonWithOverlapp
     });
     // Expect the first hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate first hole.";
 
     // Construct the second 2x1 hole that overlaps with the first hole's configuration space
     std::optional<BURST::geometry::Polygon2D> hole2 = BURST::geometry::construct_polygon({
@@ -186,7 +186,7 @@ TEST(ConfigurationSpaceConstructionTest, NonDegenerateRegularPolygonWithOverlapp
     });
     // Expect the second hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate second hole.";
 
     // Construct a WallSpace for a square with the middle holes inside
     auto wall_space = TestWallSpace::create({
@@ -289,7 +289,7 @@ TEST(ConfigurationSpaceConstructionTest, NonDegenerateRegularPolygonWithOverlapp
     });
     // Expect the first hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate first hole.";
 
     // Construct the second simple polygon hole with an arrowhead shape that overlaps with the first hole's configuration space
     std::optional<BURST::geometry::Polygon2D> hole2 = BURST::geometry::construct_polygon({
@@ -300,7 +300,7 @@ TEST(ConfigurationSpaceConstructionTest, NonDegenerateRegularPolygonWithOverlapp
     });
     // Expect the second hole polygon to be non-degenerate
     // i.e., it is not nullopt
-    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate hole.";
+    ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate second hole.";
 
     // Construct a WallSpace for a square with the middle hole inside
     auto wall_space = TestWallSpace::create({
