@@ -357,7 +357,7 @@ TEST_F(MovementModelInConcaveTest, InvalidLinearMovementPointingOutwardAtConcave
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
 }
 
 
@@ -374,7 +374,7 @@ TEST_F(MovementModelInSquareTest, InvalidInteriorLinearMovementInSquare) {
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
 }
 
 // Test generating an invalid movement with a linear movement model with a point outside the configuration space in a square
@@ -388,7 +388,7 @@ TEST_F(MovementModelInSquareTest, InvalidExteriorLinearMovementInSquare) {
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
 }
 
 // Test generating an invalid movement with a linear movement model with a point on the edge but a direction pointing outside the configuration space in a square
@@ -402,7 +402,7 @@ TEST_F(MovementModelInSquareTest, InvalidLinearMovementPointingOutwardInSquare) 
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
 }
 
 
@@ -540,7 +540,7 @@ TEST_F(MovementModelWithHolesTest, InvalidLinearMovementFromHoleToInterior) {
     
     // Expect the movement to be invalid
     // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")"; 
 }
 
 
