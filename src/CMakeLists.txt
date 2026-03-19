@@ -19,3 +19,4 @@ target_link_libraries(BURST INTERFACE
     ${MPFR_LIBRARIES}
 )
 target_compile_definitions(BURST INTERFACE CGAL_USE_BASIC_VIEWER ${MPFR_INCLUDE_DIRS})
+target_compile_definitions(BURST INTERFACE CGAL_NO_PRECONDITIONS)

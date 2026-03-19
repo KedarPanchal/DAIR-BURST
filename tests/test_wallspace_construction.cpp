@@ -310,7 +310,7 @@ TEST(WallSpaceConstructionTest, DegenerateRegularPolygonWithPointHole) {
 }
 
 // Test for intended degeneracy with a regular polygon with a linear hole in the middle
-TEST(WallSpaceConstructionTste, DegenerateRegularPolygonWithLinearHole) {
+TEST(WallSpaceConstructionTest, DegenerateRegularPolygonWithLinearHole) {
     // Construct a linear hole in the middle
     // This is a degenerate hole
     BURST::geometry::Polygon2D hole = BURST::geometry::Polygon2D{};
