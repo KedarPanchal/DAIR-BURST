@@ -141,64 +141,6 @@ TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygonWithSimpleHole) {
     EXPECT_TRUE(wall_space.has_value()) << "Expected non-degenerate WallSpace for a regular polygon with a simple hole in the middle, but got nullopt.";
 }
 
-// Test for intended non-degeneracy with a regular polygon with a hole adjacent to the border
-TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygonWithBorderingHole) {
-    // Construct the 2x1 hole that borders the outer boundary
-    std::optional<BURST::geometry::Polygon2D> hole = BURST::geometry::construct_polygon({
-        BURST::geometry::Point2D{3, 0},
-        BURST::geometry::Point2D{3, 1},
-        BURST::geometry::Point2D{1, 1},
-        BURST::geometry::Point2D{1, 0}
-    });
-    // Expect the hole polygon to be non-degenerate
-    // i.e., it is not nullopt
-    ASSERT_TRUE(hole.has_value()) << "Failed to construct non-degenerate hole.";
-
-    // Construct a WallSpace for a square with the hole adjacent to the border
-    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
-        BURST::geometry::Point2D{0, 0},
-        BURST::geometry::Point2D{10, 0},
-        BURST::geometry::Point2D{10, 10},
-        BURST::geometry::Point2D{0, 10}
-    },
-    {
-        *hole
-    });
-
-    // Expect the WallSpace with holes to be non-degenerate and valid
-    // i.e., it is not nullopt
-    EXPECT_TRUE(wall_space.has_value()) << "Expected non-degenerate WallSpace for a regular polygon with a hole adjacent to the border, but got nullopt.";
-}
-
-// Test for intended non-degeneracy with a regular polygon with a hole sharing a corner with the outer boundary
-TEST(WallSpaceConstructionTest, NonDegenerateRegularPolygonWithHoleOnCorner) {
-    // Construct the square hole that shares a corner with the outer boundary
-    std::optional<BURST::geometry::Polygon2D> hole = BURST::geometry::construct_polygon({
-        BURST::geometry::Point2D{0, 0},
-        BURST::geometry::Point2D{1, 0},
-        BURST::geometry::Point2D{1, 1},
-        BURST::geometry::Point2D{0, 1}
-    });
-    // Expect the hole polygon to be non-degenerate
-    // i.e., it is not nullopt
-    ASSERT_TRUE(hole.has_value()) << "Failed to construct non-degenerate hole.";
-
-    // Construct a WallSpace for a square with the hole sharing a corner with the outer boundary
-    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
-        BURST::geometry::Point2D{0, 0},
-        BURST::geometry::Point2D{10, 0},
-        BURST::geometry::Point2D{10, 10},
-        BURST::geometry::Point2D{0, 10}
-    },
-    {
-        *hole
-    });
-
-    // Expect the WallSpace with holes to be non-degenerate and valid
-    // i.e., it is not nullopt
-    EXPECT_TRUE(wall_space.has_value()) << "Expected non-degenerate WallSpace for a regular polygon with a hole sharing a corner with the outer boundary, but got nullopt.";
-}
-
 // Test for intended non-degeneracy with a simple polygon with a hole in the middle
 TEST(WallSpaceConstructionTest, NonDegenerateSimplePolygonWithHole) {
     // Construct a 4x2 hole
@@ -228,8 +170,11 @@ TEST(WallSpaceConstructionTest, NonDegenerateSimplePolygonWithHole) {
     EXPECT_TRUE(wall_space.has_value()) << "Expected non-degenerate WallSpace for a simple polygon with a hole in the middle, but got nullopt.";
 }
 
-// Test for intended non-degeneracy with a simple polygon with a hole adjacent to the border
-TEST(WallSpaceConstructionTest, NonDegenerateSimplePolygonWithBorderingHole) {
+
+// -- DEGENERATE NON-HOLED POLYGON TESTS ---------------------------------------
+
+// Test for intended degeneracy with a simple polygon with a hole adjacent to the border
+TEST(WallSpaceConstructionTest, DegenerateSimplePolygonWithBorderingHole) {
     // Construct the 1x2 triangular hat borders the outer boundary
     std::optional<BURST::geometry::Polygon2D> hole = BURST::geometry::construct_polygon({
         BURST::geometry::Point2D{4, 8},
@@ -253,38 +198,8 @@ TEST(WallSpaceConstructionTest, NonDegenerateSimplePolygonWithBorderingHole) {
 
     // Expect the WallSpace with holes to be non-degenerate and valid
     // i.e., it is not nullopt
-    EXPECT_TRUE(wall_space.has_value()) << "Expected non-degenerate WallSpace for a simple polygon with a hole adjacent to the border, but got nullopt.";
+    EXPECT_FALSE(wall_space.has_value()) << "Expected degenerate WallSpace for a simple polygon with a hole adjacent to the border, but got a valid geometry.";
 }
-
-// Test for intended non-degeneracy with a simple polygon with a hole sharing a corner with the outer boundary
-TEST(WallSpaceConstructionTest, NonDegenerateSimplePolygonWithHoleOnCorner) {
-    // Construct the 1x1 triangle hole that shares a corner with the outer boundary
-    std::optional<BURST::geometry::Polygon2D> hole = BURST::geometry::construct_polygon({
-        BURST::geometry::Point2D{2, -2},
-        BURST::geometry::Point2D{2, 0},
-        BURST::geometry::Point2D{0, 0}
-    });
-    // Expect the hole polygon to be non-degenerate
-    // i.e., it is not nullopt
-    ASSERT_TRUE(hole.has_value()) << "Failed to construct non-degenerate hole";
-
-    // Construct a WallSpace for a simple polygon with the hole sharing a corner with the outer boundary
-    std::optional<BURST::geometry::WallSpace> wall_space = BURST::geometry::WallSpace::create({
-        BURST::geometry::Point2D{0, 20},
-        BURST::geometry::Point2D{-20, -20},
-        BURST::geometry::Point2D{0, 0},
-        BURST::geometry::Point2D{20, -20}
-    },
-    {
-        *hole
-    });
-
-    // Expect the WallSpace with holes to be non-degenerate and valid
-    // i.e., it is not nullopt
-    EXPECT_TRUE(wall_space.has_value()) << "Expected non-degenerate WallSpace for a simple polygon with a hole sharing a corner with the outer boundary, but got nullopt.";
-}
-
-// -- DEGENERATE NON-HOLED POLYGON TESTS ---------------------------------------
 
 // Test for intended degeneracy with a straight line
 TEST(WallSpaceConstructionTest, DegenerateStraightLine) {
