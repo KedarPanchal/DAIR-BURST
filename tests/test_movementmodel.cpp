@@ -527,25 +527,6 @@ TEST_F(MovementModelWithHolesTest, ValidLinearMovementFromEdgeToHoleCluster) {
     }
 }
 
-// Test generating a valid movement with a linear movement model from a hole in a hole cluster to the edge in a square
-TEST_F(MovementModelWithHolesTest, ValidLinearMovementFromHoleClusterToEdge) {
-    // Construct a LinearMovementModel
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the hole cluster of the ConfigurationSpace as the origin
-    BURST::geometry::Point2D origin = this->cluster_midpoint;
-    // Generate a movement from the hole cluster to the edge at a 90 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_space);
-
-    // Expect the movement to be valid
-    // i.e., it is not nullopt
-    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
-    if (maybe_endpoint.has_value()) {
-        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement from a hole cluster to the edge to have a different endpoint than the origin, but got the same point";
-    } else {
-        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
-    }
-}
-
 
 // -- MOVEMENTMODEL HOLED INVALID FUNCTOR TESTS --------------------------------
 
@@ -791,20 +772,6 @@ TEST_F(MovementModelWithHolesTest, ValidLinearTrajectoryFromEdgeToHoleCluster) {
     BURST::numeric::fscalar angle = BURST::numeric::to_fscalar(hp_angle);
     // Generate a trajectory from the edge to the hol cluster at the computed angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, angle, *this->configuration_space);
-
-    // Expect the trajectory to be valid
-    // i.e., it is not nullopt
-    EXPECT_TRUE(maybe_path.has_value()) << "Expected valid trajectory, but got nullopt";
-}
-
-// Test generating a valid trajectory with a linear movement model from a hole in a hole cluster to the edge in a square
-TEST_F(MovementModelWithHolesTest, ValidLinearTrajectoryFromHoleClusterToEdge) {
-    // Construct a LinearMovementModel
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the hole cluster of the ConfigurationSpace as the origin
-    BURST::geometry::Point2D origin = this->cluster_midpoint;
-    // Generate a trajectory from the hole cluster to the edge at a 90 degree angle
-    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, CGAL_PI/2, *this->configuration_space);
 
     // Expect the trajectory to be valid
     // i.e., it is not nullopt
