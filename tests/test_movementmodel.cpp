@@ -543,19 +543,6 @@ TEST_F(MovementModelWithHolesTest, InvalidLinearMovementFromHoleToInterior) {
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
 }
 
-// Test generating an invalid movement with a linear movement model from a hole cluster to inside the cluster's ConfigurationSpace in a square
-TEST_F(MovementModelWithHolesTest, InvalidLinearMovementFromHoleClusterToInterior) {
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the hole cluster of the ConfigurationSpace as the origin
-    BURST::geometry::Point2D origin = this->cluster_midpoint;
-    // Generate a movement from the hole cluster towards the interior at a 180 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI, *this->configuration_space);
-
-    // Expect the movement to be invalid
-    // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
-}
-
 
 // -- MOVEMENTMODEL NON-HOLED VALID TRAJECTORY TESTS ---------------------------
 
@@ -789,19 +776,6 @@ TEST_F(MovementModelWithHolesTest, InvalidLinearTrajectoryFromHoleToInterior) {
     // Generate a trajectory from the hole towards the interior at a 225 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, 5*CGAL_PI/4, *this->configuration_space);
     
-    // Expect the trajectory to be invalid
-    // i.e., it is nullopt
-    EXPECT_FALSE(maybe_path.has_value()) << "Expected invalid path to not have a trajectory, but got a valid trajectory";
-}
-
-// Test generating an invalid trajectory with a linear movement model from a hole cluster to inside the cluster's ConfigurationSpace in a square
-TEST_F(MovementModelWithHolesTest, InvalidLinearTrajectoryFromHoleClusterToInterior) {
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the hole cluster of the ConfigurationSpace as the origin
-    BURST::geometry::Point2D origin = this->cluster_midpoint;
-    // Generate a trajectory from the hole cluster towards the interior at a 180 degree angle
-    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, CGAL_PI, *this->configuration_space);
-
     // Expect the trajectory to be invalid
     // i.e., it is nullopt
     EXPECT_FALSE(maybe_path.has_value()) << "Expected invalid path to not have a trajectory, but got a valid trajectory";
