@@ -560,11 +560,6 @@ TEST_F(MovementModelWithHolesTest, InvalidLinearMovementFromHoleToInterior) {
     // Expect the movement to be invalid
     // i.e., it is nullopt
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
-    if (maybe_endpoint.has_value()) {
-        EXPECT_EQ(*maybe_endpoint, origin) << "Expected invalid movement from a hole to the interior to have the same endpoint as the origin, but got a different point";
-    } else {
-        FAIL() << "Expected invalid movement to have an endpoint, but got nullopt";
-    }
 }
 
 // Test generating an invalid movement with a linear movement model from a hole cluster to inside the cluster's ConfigurationSpace in a square
@@ -578,11 +573,6 @@ TEST_F(MovementModelWithHolesTest, InvalidLinearMovementFromHoleClusterToInterio
     // Expect the movement to be invalid
     // i.e., it is nullopt
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
-    if (maybe_endpoint.has_value()) {
-        EXPECT_EQ(*maybe_endpoint, origin) << "Expected invalid movement from a hole cluster to the interior to have the same endpoint as the origin, but got a different point";
-    } else {
-        FAIL() << "Expected invalid movement to have an endpoint, but got nullopt";
-    }
 }
 
 
