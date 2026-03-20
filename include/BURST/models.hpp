@@ -11,6 +11,7 @@
 #include <iterator>
 #include <vector>
 
+#include "BURST/geometric_types.hpp"
 #include "numeric_types.hpp"
 #include "configuration_space.hpp"
 
@@ -114,6 +115,22 @@ namespace BURST::models {
     };
 
     using LinearMovementModel = MovementModel<geometry::Ray2D, geometry::Segment2D>;
+    
+    // Internal implementations not intended for public use
+    namespace detail {
+        /*
+         * Declare type traits to check if a type is a valid movement model
+         * This means it must be an instantiation of the MovementModel template
+         * Since the library is targeting C++20, this SFINAE needs to be used in tandem with concepts, since is_specialization_of is a C++23 feature
+         */
+        template <typename T>
+        struct is_valid_movement_model : std::false_type {};
+        template <typename Trajectory, typename Path>
+        struct is_valid_movement_model<BURST::models::MovementModel<Trajectory, Path>> : std::true_type {}; 
+    }
+    
+    template <geometry::valid_trajectory_type T, geometry::valid_path_type P>
+    using valid_movement_model = detail::is_valid_movement_model<MovementModel<T, P>>;
     
 }
 #endif
