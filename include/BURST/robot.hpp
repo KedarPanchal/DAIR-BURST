@@ -22,8 +22,8 @@ namespace BURST {
         geometry::Point2D position;
         std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_environment;
 
-        std::unique_ptr<R> rotation_model;
-        std::unique_ptr<M> movement_model;
+        R rotation_model;
+        M movement_model;
 
     public:
         Robot(numeric::fscalar robot_radius, numeric::fscalar max_rotation_error);
