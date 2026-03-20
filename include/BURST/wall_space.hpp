@@ -93,6 +93,8 @@ namespace BURST::geometry {
             
             // Check that each hole is clockwise-oriented
             for (const Polygon2D& hole : holes) {
+                // Degenerate hole polygon, can't create a wall geometry
+                if (!hole.is_simple()) return std::nullopt; 
                 // Holes must be oriented clockwise, so reverse the orientation if not
                 Polygon2D oriented_hole = hole;
                 if (hole.orientation() != CGAL::CLOCKWISE) oriented_hole.reverse_orientation();

@@ -67,22 +67,24 @@ namespace BURST::geometry {
 
     // Utility function to construct a polygon off of any collection of points
     template <valid_geometric_collection<Point2D> C>
-    std::optional<Polygon2D> construct_polygon(C points) {
+    std::optional<Polygon2D> construct_polygon(C points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         // Can't make a polygon with 2 or fewer points
         if (points.size() <= 2) return std::nullopt; 
 
+        // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
+        if (!CGAL::is_simple_2(points.begin(), points.end(), LinearTraits{})) return std::nullopt; 
+
         // Create the polygon from the input points and return it
         Polygon2D polygon{points.begin(), points.end()};
-        // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
-        if (!polygon.is_simple()) return std::nullopt;
-        // If the polygon is not oriented counterclockwise, reverse the orientation to ensure it's a valid polygon for CGAL
-        if (polygon.orientation() != CGAL::COUNTERCLOCKWISE) polygon.reverse_orientation();
+
+        // If the polygon is not oriented as expected, reverse the orientation to ensure it's a valid polygon for CGAL
+        if (polygon.orientation() != expected_orientation) polygon.reverse_orientation();
 
         return std::optional<Polygon2D>{polygon};
     }
     
-    inline std::optional<Polygon2D> construct_polygon(std::initializer_list<Point2D> points) {
-        return construct_polygon<std::initializer_list<Point2D>>(points);
+    inline std::optional<Polygon2D> construct_polygon(std::initializer_list<Point2D> points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
+        return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation);
     }
 
     inline Point2D midpoint(const Point2D& a, const Point2D& b) {
