@@ -71,6 +71,7 @@ namespace BURST::geometry {
                 config_polygon_set.difference(CGAL::approximated_offset_2(oriented_hole, robot_radius, EPSILON));
             }
             
+            // Create the configuration space from the resulting polygon set
             return ConfigurationSpace::create(config_polygon_set);
         }
 
