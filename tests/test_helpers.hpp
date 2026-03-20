@@ -35,7 +35,7 @@ public:
         
         // Check that each hole is clockwise-oriented
         for (const BURST::geometry::Polygon2D& hole : holes) {
-            // Holes must be oriented clcokwise, so reverse the orientation if not
+            // Holes must be oriented clockwise, so reverse the orientation if not
             BURST::geometry::Polygon2D oriented_hole = hole;
             if (hole.orientation() != CGAL::CLOCKWISE) oriented_hole.reverse_orientation();
             // Add the hole
