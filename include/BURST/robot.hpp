@@ -19,8 +19,7 @@ namespace BURST {
     class Robot : public Renderable {
     private:
         numeric::fscalar radius;
-        numeric::fscalar x_position;
-        numeric::fscalar y_position;
+        geometry::Point2D position;
         std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_environment;
 
         std::unique_ptr<R> rotation_model;
