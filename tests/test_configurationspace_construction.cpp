@@ -277,7 +277,7 @@ TEST(ConfigurationSpaceConstructionTest, NonDegenerateRegularPolygonWithSimpleHo
     EXPECT_NE(configuration_space, nullptr) << "Expected non-degenerate ConfigurationSpace for a regular polygon with a simple hole in the middle, but got nullptr.";
 }
 
-// Test for intended non-degeneracy of the ConfigurationSpace with a regular polywgon with multiple simple polygon holes in the middle that result in an overlapping configuration space
+// Test for intended non-degeneracy of the ConfigurationSpace with a regular polygon with multiple simple polygon holes in the middle that result in an overlapping configuration space
 TEST(ConfigurationSpaceConstructionTest, NonDegenerateRegularPolygonWithOverlappingSimpleHoles) {
     // Construct an already known non-degenerate WallSpace for a square with a simple polygon hole in the middle
     // Construct the first simple polygon hole with an arrowhead shape
