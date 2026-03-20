@@ -514,7 +514,7 @@ TEST_F(MovementModelWithHolesTest, ValidLinearMovementFromEdgeToHoleCluster) {
     // Compute the angle for the movement
     BURST::numeric::hpscalar hp_angle = boost::multiprecision::acos(BURST::numeric::hpscalar{3}/BURST::numeric::hpscalar{7});
     BURST::numeric::fscalar angle = BURST::numeric::to_fscalar(hp_angle);
-    // Generate a movement from the edge to the hol cluster at the computed angle
+    // Generate a movement from the edge to the hole cluster at the computed angle
     std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, angle, *this->configuration_space);
 
     // Expect the movement to be valid
