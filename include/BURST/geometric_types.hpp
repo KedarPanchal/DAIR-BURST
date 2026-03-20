@@ -84,6 +84,10 @@ namespace BURST::geometry {
         return construct_polygon<std::initializer_list<Point2D>>(points);
     }
 
+    inline Point2D midpoint(const Point2D& a, const Point2D& b) {
+        return Point2D{(a.x() + b.x())/2, (a.y() + b.y())/2};
+    }
+
 }
 
 #endif
