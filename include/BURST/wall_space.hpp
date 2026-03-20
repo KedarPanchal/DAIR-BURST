@@ -2,14 +2,15 @@
 #define BURST_WALL_SPACE_HPP
 
 #include <optional>
-#include <initializer_list>
 #include <memory>
-#include <vector>
 #include <iterator>
 #include <variant>
 
 #include <CGAL/approximated_offset_2.h>
 #include <CGAL/General_polygon_set_2.h>
+#include <CGAL/Boolean_set_operations_2.h>
+
+#include <boost/container/small_vector.hpp>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -20,69 +21,114 @@
 
 namespace BURST::geometry {
     
-    /*
-     * WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
-     */
+    // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
     class WallSpace : public Renderable {
     private:
         
-        Polygon2D wall_shape;
+        HoledPolygon2D wall_shape;
         graphics::PolygonOptions wall_render_options;
 
     protected: 
         // Protected constructors since the public API is through the static create method
         // Abstracting this away to protected constructors allows subclassing WallSpace in a test environment without depending on the static create method and its constraints
         WallSpace(const Polygon2D& shape) noexcept : wall_shape{shape} {}
-        WallSpace(Polygon2D&& shape) noexcept : wall_shape{std::move(shape)} {}
+        WallSpace(const HoledPolygon2D& shape) noexcept : wall_shape{shape} {}
 
-        // Protected method since the public API depends on the robot
+        // Protected methods since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
-        std::unique_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const noexcept {
-            // TODO: Use an approximated_inset_2 algorithm to construct the Minkowski difference of the wall polygon and a disk of radius robot_radius
-            // Do NOT under ANY CIRCUMSTANCE use the inset_2 algorithm, since this gives an exact result at the cost of going to a massive war against the type system
-            // As tempting as it is, just find a nice epsilon and call it a day instead of going through template hell
-            
-            // Create a vector to store the outputted inset Minkowski difference polygons
-            std::vector<CurvilinearPolygon2D> inset_results;
-            // Compute the Minkowski difference
-            // TODO: Find an actually good epsilon instead of this approximation
-            CGAL::approximated_inset_2(this->wall_shape, robot_radius, 0.000001, std::back_inserter(inset_results));
-            /*
-             * If there are no polygons, then the wall is too small for the robot and no configuration space could be made
-             * If there are multiple polygons, then there were regions too tight for the robot to fit in, and no configuration space could be made
-             * In both cases, return nullptr
-             */
-            if (inset_results.size() != 1) return nullptr;
 
+        // Constructs a configuration space given a robot radius
+        std::unique_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
+            // TODO: Find an actually good epsilon instead of this approximation
+            const double EPSILON = 0.000001;
+
+            // Compute the inset of the outer boundary of the wall polygon
+            boost::container::small_vector<CurvilinearPolygon2D, 1> outer_inset_results;
+            CGAL::approximated_inset_2(this->wall_shape.outer_boundary(), robot_radius, EPSILON, std::back_inserter(outer_inset_results));
+
+            // If there are no polygons, then the wall is too small for the robot and no configuration space could be made
+            // If there are multiple polygons, then there were regions too tight for the robot to fit in, and no configuration space could be made
+            // TODO: For the above case, check with Dr. Shell if that's something worth allowing in the final sim
+            // In both cases, return nullptr
+            if (outer_inset_results.size() != 1) return nullptr;
             // Reverse the resulting polygon's rotation if it's not counterclockwise
-            if (inset_results.front().orientation() != CGAL::COUNTERCLOCKWISE) {
-                inset_results.front().reverse_orientation();
+            if (outer_inset_results.front().orientation() != CGAL::COUNTERCLOCKWISE) outer_inset_results.front().reverse_orientation();
+
+            // Create a polygon set to store all Minkowski sum/difference results to create the configuration space
+            CurvilinearPolygonSet2D config_polygon_set;
+            config_polygon_set.insert(outer_inset_results.front());
+
+            // Compute the outset of all of the holes within the wall polygon, since the holes need to be expanded by the robot radius as well
+            // No checks needed for the holes touching the wall since that's a realistic case for when an object is close to a wall
+            for (const auto& hole : this->wall_shape.holes()) {
+                // Holes are CW, so reverse the orientation to ensure it's a valid polygon for CGAL
+                Polygon2D oriented_hole = hole;
+                if (oriented_hole.orientation() != CGAL::COUNTERCLOCKWISE) oriented_hole.reverse_orientation();
+ 
+                // Compute the difference between the resultant polygon set and outset hole
+                // This is insulated against overlapping holes and border touching
+                // This is possible if two holes or a hole and the wall are close enough that the space between is too small for the robot
+                config_polygon_set.difference(CGAL::approximated_offset_2(oriented_hole, robot_radius, EPSILON));
             }
-            return ConfigurationSpace::create(inset_results.front());
+            
+            // Create the configuration space from the resulting polygon set
+            return ConfigurationSpace::create(config_polygon_set);
         }
 
     public:
-        template <typename Iter>
-        static std::optional<WallSpace> create(Iter begin, Iter end) noexcept {
-            // Can't make a polygon with 2 or fewer points
-            if (std::distance(begin, end) <= 2) return std::nullopt;
-
-            // Check for self-intersection and overall simplicity of the polygon
-            if (!CGAL::is_simple_2(begin, end)) return std::nullopt;
-
-            // If there's collinear points, the polygon is degenerate, so we can't create a wall geometry
-            if (CGAL::orientation_2(begin, end) == CGAL::COLLINEAR) return std::nullopt;
-
-            Polygon2D wall_polygon{begin, end};
-            return std::optional<WallSpace>{WallSpace{std::move(wall_polygon)}};
+        template <valid_geometric_collection<Point2D> C>
+        static std::optional<WallSpace> create(C points) {
+            auto wall_polygon_opt = construct_polygon(points);  
+            // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
+            return wall_polygon_opt.has_value() ? std::optional<WallSpace>{WallSpace{wall_polygon_opt.value()}} : std::nullopt;
         }
-        static std::optional<WallSpace> create(std::initializer_list<Point2D> points) noexcept {
-            return WallSpace::create(points.begin(), points.end());
+        template <valid_geometric_collection<Point2D> C1, valid_geometric_collection<Polygon2D> C2>
+        static std::optional<WallSpace> create(C1 points, C2 holes) {
+            auto wall_polygon_opt = construct_polygon(points);
+            // Degenerate wall polygon, can't create a wall geometry
+            if (!wall_polygon_opt) return std::nullopt; 
+
+            // Create a holed polygon to hold the holes and outer boundary
+            HoledPolygon2D wall_shape{wall_polygon_opt.value()};
+            
+            // Check that each hole is clockwise-oriented
+            for (const Polygon2D& hole : holes) {
+                // Degenerate hole polygon, can't create a wall geometry
+                if (!hole.is_simple()) return std::nullopt; 
+                // Holes must be oriented clockwise, so reverse the orientation if not
+                Polygon2D oriented_hole = hole;
+                if (hole.orientation() != CGAL::CLOCKWISE) oriented_hole.reverse_orientation();
+                // Add the hole
+                wall_shape.add_hole(oriented_hole);
+            }
+
+            // Check if the resulting holed polygon is valid, which means:
+            // The outer boundary is a simple polygon and counterclockwise-oriented
+            // Each hole is a simple polygon and clockwise-oriented
+            // Holes are inside the outer boundary and do not intersect with each other
+            // Return nullopt if any of these conditions are violated
+            return CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{}) ? std::optional<WallSpace>{WallSpace{wall_shape}} : std::nullopt;
         }
+        // Inlined overloads for std::initializer_list since it doesn't satisfy the sized_range condition below C++23
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points) {
+            return create<std::initializer_list<Point2D>>(points);
+        }
+        template <valid_geometric_collection<Point2D> C>
+        inline static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes) {
+            return create<C, std::initializer_list<Polygon2D>>(points, holes);
+        }
+        template <valid_geometric_collection<Polygon2D> C>
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes) {
+            return create<std::initializer_list<Point2D>, C>(points, holes);
+        }
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes) {
+            return create<std::initializer_list<Point2D>>(points, std::initializer_list<Polygon2D>(holes));
+        }
+
         // Template is not needed for any implementation, but is needed for Robot
         // Thus this can be ommitted when called and the template parameters can be inferred
         template <typename R, typename M>
-        std::optional<std::monostate> generateConfigurationSpace(Robot<R, M>& robot) const noexcept {
+        std::optional<std::monostate> generateConfigurationSpace(Robot<R, M>& robot) const {
             auto config_geometry = this->constructConfigurationSpace(robot.getRadius());
             if (!config_geometry) return std::nullopt; // Degenerate configuration geometry, can't set it for the robot
             robot.setConfigurationEnvironment(std::move(config_geometry));

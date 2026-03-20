@@ -88,10 +88,17 @@ namespace BURST::models {
             // Get the intersection of the trajectory with the configuration space boundary
             size_t intersection_count = configuration_space.intersection<Trajectory, Path>(trajectory, std::back_inserter(intersection_points));
             if (intersection_count == 0) return std::nullopt; // If there are no intersections, then the path is invalid, so return nullopt
-             // Return the closest intersection point to the origin as the endpoint of the path
-            return std::optional<geometry::Point2D>{*std::min_element(intersection_points.begin(), intersection_points.end(), [&origin](const geometry::Point2D& a, const geometry::Point2D& b) {
+            // The closest intersection to the point of origin is the endpoint
+            // This should never throw since there's already a check for no intersections
+            geometry::Point2D endpoint = *std::min_element(intersection_points.begin(), intersection_points.end(), [&origin](const geometry::Point2D& a, const geometry::Point2D& b) {
                 return CGAL::squared_distance(a, origin) < CGAL::squared_distance(b, origin);
-            })};
+            });
+
+            // Check if the trajectory points inward or outward from the configuration space
+            // This can be done by computing the midpoint of the trajectory from the origin to the endpoint and checking if it lies inside the configuration space
+            // If it does, then the trajectory points inward, and the path is valid, so return the endpoint, otherwise return nullopt
+            geometry::Point2D midpoint = geometry::midpoint(origin, endpoint);
+            return configuration_space.contains(midpoint) ? std::optional<geometry::Point2D>{endpoint} : std::nullopt;
         }
         std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function

@@ -1,8 +1,13 @@
 #include <gtest/gtest.h>
-#include <BURST/models.hpp>
 
-// Utility includes for tests
+#include <boost/math/special_functions.hpp>
+
+#include <BURST/models.hpp>
+#include <BURST/geometric_types.hpp>
+#include <BURST/numeric_types.hpp>
+
 #include "test_helpers.hpp"
+
 #include <optional>
 #include <memory>
 #include <variant>
@@ -31,7 +36,6 @@ protected:
         // Construct a configuration space for a robot with radius 1
         this->configuration_space = wall_space->testConstructConfigurationSpace(1.0);
         ASSERT_NE(this->configuration_space, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
-        ASSERT_EQ(this->configuration_space->orientation(), CGAL::COUNTERCLOCKWISE) << "Expected configuration space to be oriented counterclockwise, but got a different orientation in test fixture setup";
 
         // Define a corner and midpoint for use in tests
         this->corner_vertex = BURST::geometry::Point2D{1, 1};
@@ -40,7 +44,7 @@ protected:
 };
 
 /*
- * Define test fixture containing a valid ConfigurationSpace for testing the MovementModel
+ * Define a test fixture containing a valid ConfigurationSpace for testing the MovementModel
  * This should be reused across multiple tests for the MovementModel to keep the geometry consistent
  * This test fixture uses a concave configuration space
  * In this case, an arrowhead shape
@@ -55,7 +59,7 @@ protected:
         // Create a query point way lower than the expected concave vertex
         BURST::CurvedTraits::Point_2 query_origin{origin_x, -100};
         // Create a point location object for the configuration space and attach it to the arrangement
-        auto arrangement = this->configuration_space->set().arrangement();
+        auto arrangement = this->configuration_space->arrangement();
         CGAL::Arr_walk_along_line_point_location point_location{arrangement};
         // Shoot the ray up
         auto result = point_location.ray_shoot_up(query_origin);
@@ -125,8 +129,81 @@ protected:
     }
 };
 
+// Define a test fixture containing a valid ConfigurationSpace with multiple holes for testing the MovementModel
+class MovementModelWithHolesTest : public ::testing::Test {
+protected:
+    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
+    BURST::geometry::Point2D edge_midpoint;
+    BURST::geometry::Point2D edge_midpoint_to_hole_corner;
+    BURST::geometry::Point2D hole1_midpoint;
+    BURST::geometry::Point2D hole2_midpoint;
+    BURST::geometry::Point2D cluster_midpoint;
 
-// -- MOVEMENTMODEL FUNCTOR TESTS ----------------------------------------------
+    void SetUp() override {
+        // Construct a TestWallSpace for a concave polygon with two square holes
+        // Construct the first 2x1 hole
+        std::optional<BURST::geometry::Polygon2D> hole1 = BURST::geometry::construct_polygon({
+            BURST::geometry::Point2D{7, 3},
+            BURST::geometry::Point2D{7, 4},
+            BURST::geometry::Point2D{5, 4},
+            BURST::geometry::Point2D{5, 3}
+        });
+        // Expect the first hole polygon to be non-degenerate
+        // i.e., it is not nullopt
+        ASSERT_TRUE(hole1.has_value()) << "Failed to construct non-degenerate first hole in test fixture setup";
+
+        // Construct the second 2x1 hole
+        std::optional<BURST::geometry::Polygon2D> hole2 = BURST::geometry::construct_polygon({
+            BURST::geometry::Point2D{7, 7},
+            BURST::geometry::Point2D{7, 8},
+            BURST::geometry::Point2D{5, 8},
+            BURST::geometry::Point2D{5, 7}
+        });
+        // Expect the second hole polygon to be non-degenerate
+        // i.e., it is not nullopt
+        ASSERT_TRUE(hole2.has_value()) << "Failed to construct non-degenerate second hole in test fixture setup";
+
+        // Construct the third 1x2 hole
+        std::optional<BURST::geometry::Polygon2D> hole3 = BURST::geometry::construct_polygon({
+            BURST::geometry::Point2D{3, 4},
+            BURST::geometry::Point2D{3, 6},
+            BURST::geometry::Point2D{2, 6},
+            BURST::geometry::Point2D{2, 4}
+        });
+        // Expect the third hole polygon to be non-degenerate
+        // i.e., it is not nullopt
+        ASSERT_TRUE(hole3.has_value()) << "Failed to construct non-degenerate third hole in test fixture setup";
+
+        auto wall_space = TestWallSpace::create({
+            BURST::geometry::Point2D{0, 0},
+            BURST::geometry::Point2D{11, 0},
+            BURST::geometry::Point2D{11, 11},
+            BURST::geometry::Point2D{0, 11}
+        },
+        {
+            *hole1,
+            *hole2,
+            *hole3
+        });
+        // Expect the WallSpace to be non-degenerate
+        // i.e. it is not nullopt
+        ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon with holes in test fixture setup";
+
+        // Construct a configuration space for a robot with radius 1
+        this->configuration_space = wall_space->testConstructConfigurationSpace(1.0);
+        ASSERT_NE(this->configuration_space, nullptr) << "Failed to construct ConfigurationSpace from WallSpace in test fixture setup";
+
+        // Create corner, edge, and hole midpoints for use in tests
+        this->edge_midpoint = BURST::geometry::Point2D{6, 1};
+        this->edge_midpoint_to_hole_corner = BURST::geometry::Point2D{3, 1};
+        this->hole1_midpoint = BURST::geometry::Point2D{6, 5};
+        this->hole2_midpoint = BURST::geometry::Point2D{6, 9};
+        this->cluster_midpoint = BURST::geometry::Point2D{3, 5};
+    }
+};
+
+
+// -- MOVEMENTMODEL NON-HOLED VALID FUNCTOR TESTS ------------------------------
 
 // Test generating a valid movement with a linear movement model in a square
 // This means that the movement should be in a straight line towards the interior of the configuration space
@@ -209,48 +286,6 @@ TEST_F(MovementModelInSquareTest, ValidLinearMovementAtCornerAlongEdgeInSquare) 
     }
 }
 
-// Test generating an invalid movement with a linear movement model with a point inside but not on the configuration space edge in a square
-TEST_F(MovementModelInSquareTest, InvalidInteriorLinearMovementInSquare) {
-    // Construct a LinearMovementModel
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin at the center of the configuration space
-    BURST::geometry::Point2D origin{5, 5};
-    // Generate a movement from the interior towards the interior at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
-
-    // Expect the movement to be invalid
-    // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
-}
-
-// Test generating an invalid movement with a linear movement model with a point outside the configuration space in a square
-TEST_F(MovementModelInSquareTest, InvalidExteriorLinearMovementInSquare) {
-    // Construct a LinearMovementModel
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Specify an origin outside the configuration space
-    BURST::geometry::Point2D origin{67, 67};
-    // Generate a movement from the exterior towards the interior at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
-
-    // Expect the movement to be invalid
-    // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
-}
-
-// Test generating an invalid movement with a linear movement model with a point on the edge but a direction pointing outside the configuration space in a square
-TEST_F(MovementModelInSquareTest, InvalidLinearMovementPointingOutwardInSquare) {
-    // Construct a LinearMovementModel
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the bottom edge of the configuration space as the origin
-    BURST::geometry::Point2D origin = this->edge_midpoint;
-    // Generate a movement from the edge towards the exterior at a 45 degree angle
-    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, -CGAL_PI/4, *this->configuration_space);
-
-    // Expect the movement to be invalid
-    // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
-}
-
 // Test generating a valid movement with a linear movement model in a concave configuration space
 TEST_F(MovementModelInConcaveTest, ValidLinearMovementInConcave) {
     // Construct a LinearMovementModel
@@ -322,11 +357,194 @@ TEST_F(MovementModelInConcaveTest, InvalidLinearMovementPointingOutwardAtConcave
 
     // Expect the movement to be invalid
     // i.e., it is nullopt
-    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint";
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
 }
 
 
-// -- MOVEMENTMODEL TRAJECTORY TESTS -------------------------------------------
+// -- MOVEMENTMODEL NON-HOLED INVALID FUNCTOR TESTS ----------------------------
+
+// Test generating an invalid movement with a linear movement model with a point inside but not on the configuration space edge in a square
+TEST_F(MovementModelInSquareTest, InvalidInteriorLinearMovementInSquare) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Specify an origin at the center of the configuration space
+    BURST::geometry::Point2D origin{5, 5};
+    // Generate a movement from the interior towards the interior at a 45 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
+
+    // Expect the movement to be invalid
+    // i.e., it is nullopt
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
+}
+
+// Test generating an invalid movement with a linear movement model with a point outside the configuration space in a square
+TEST_F(MovementModelInSquareTest, InvalidExteriorLinearMovementInSquare) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Specify an origin outside the configuration space
+    BURST::geometry::Point2D origin{67, 67};
+    // Generate a movement from the exterior towards the interior at a 45 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
+
+    // Expect the movement to be invalid
+    // i.e., it is nullopt
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
+}
+
+// Test generating an invalid movement with a linear movement model with a point on the edge but a direction pointing outside the configuration space in a square
+TEST_F(MovementModelInSquareTest, InvalidLinearMovementPointingOutwardInSquare) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the bottom edge of the configuration space as the origin
+    BURST::geometry::Point2D origin = this->edge_midpoint;
+    // Generate a movement from the edge towards the exterior at a 45 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, -CGAL_PI/4, *this->configuration_space);
+
+    // Expect the movement to be invalid
+    // i.e., it is nullopt
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
+}
+
+
+// -- MOVEMENTMODEL HOLED VALID FUNCTOR TESTS ----------------------------------
+
+// Test generating a valid movement with a linear movement model from the edge to a hole in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearMovementFromEdgeToHole) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->edge_midpoint;
+    // Generate a movement from the bottom edge towards an interior hole at a 90 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_space);
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    // Expect the endpoint to not be the same as the origin, fail otherwise
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement from an edge to a hole to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
+    }
+}
+
+// Test generating a valid movement with a linear movement model from the edge to the corner of a hole in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearMovementFromEdgeToHoleCorner) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->edge_midpoint_to_hole_corner;
+    // Generate a movement from the bottom edge towards an interior hole at a 45 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/4, *this->configuration_space);
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    // Expect the endpoint to not be the same as the origin, fail otherwise
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement from an edge to a hole corner to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
+    }
+}
+
+// Test generating a valid movement with a linear movement model from one hole to another in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearMovementFromHoleToHole) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the first hole of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->hole1_midpoint;
+    // Generate a movement from the first hole midpoint to the second hole at a 90 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_space); 
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement from one hole to another to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
+    }
+}
+
+// Test generating a valid movement with a linear movement model from a hole to an edge in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearMovementFromHoleToEdge) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the second hole of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->hole2_midpoint;
+    // Generate a movement from the second hole midpoint to the edge at a 90 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, CGAL_PI/2, *this->configuration_space);
+    
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement from a hole to the edge to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
+    }
+}
+
+// Test generating a valid movement with a linear movement model along the edge of a hole to the edge in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearMovementAlongHole) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the first hole of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->hole1_midpoint;
+    // Generate a movement from the second hole midpoint to the edge at a 0 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, 0, *this->configuration_space);
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement along the edge of a hole to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
+    }
+}
+
+// Test generating a valid movement with a linear movement model from the edge to two holes with an overlapping ConfigurationSpace in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearMovementFromEdgeToHoleCluster) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the top edge of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->edge_midpoint_to_hole_corner;
+    // Compute the angle for the movement
+    BURST::numeric::hpscalar hp_angle = boost::multiprecision::acos(BURST::numeric::hpscalar{3}/BURST::numeric::hpscalar{7});
+    BURST::numeric::fscalar angle = BURST::numeric::to_fscalar(hp_angle);
+    // Generate a movement from the edge to the hole cluster at the computed angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, angle, *this->configuration_space);
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid movement to have an endpoint, but got nullopt";
+    if (maybe_endpoint.has_value()) {
+        EXPECT_NE(*maybe_endpoint, origin) << "Expected valid movement from an edge midpoint to two holes with an overlapping ConfigurationSpace to have a different endpoint than the origin, but got the same point";
+    } else {
+        FAIL() << "Expected valid movement to have an endpoint, but got nullopt";
+    }
+}
+
+
+// -- MOVEMENTMODEL HOLED INVALID FUNCTOR TESTS --------------------------------
+
+// Test generating an invalid movement with a linear movement model from a hole to inside it's ConfigurationSpace in a square
+TEST_F(MovementModelWithHolesTest, InvalidLinearMovementFromHoleToInterior) {
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the first hole of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->hole1_midpoint;
+    // Generate a movement from the hole towards the interior at a 225 degree angle
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = movement_model(origin, 5*CGAL_PI/4, *this->configuration_space);
+    
+    // Expect the movement to be invalid
+    // i.e., it is nullopt
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid movement to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")"; 
+}
+
+
+// -- MOVEMENTMODEL NON-HOLED VALID TRAJECTORY TESTS ---------------------------
 
 // Test generating a valid trajectory with a linear movement model in a square
 TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryInSquare) {
@@ -384,20 +602,6 @@ TEST_F(MovementModelInSquareTest, ValidLinearTrajectoryAtCornerAlongEdgeInSquare
     EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
 }
 
-// Test generating an invalid trajectory pointing outside the ConfigurationSpace in a square
-TEST_F(MovementModelInSquareTest, InvalidLinearTrajectoryPointingOutwardInSquare) {
-    // Construct a LinearMovementModel
-    auto movement_model = BURST::models::LinearMovementModel{};
-    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
-    BURST::geometry::Point2D origin = this->edge_midpoint;
-    // Generate a trajectory from the edge towards the exterior at a 45 degree angle
-    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, -CGAL_PI/4, *this->configuration_space);
-
-    // Expect the trajectory to be invalid
-    // i.e., it is nullopt
-    EXPECT_FALSE(maybe_path.has_value()) << "Expected invalid path to not have a trajectory, but got a valid trajectory";
-}
-
 // Test generating a valid trajectory with a linear movement model in a concave ConfigurationSpace
 TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryInConcave) {
     // Construct a LinearMovementModel
@@ -440,6 +644,9 @@ TEST_F(MovementModelInConcaveTest, ValidLinearTrajectoryAlongEdgeInConcave) {
     EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
 }
 
+
+// -- MOVEMENTMODEL NON-HOLED INVALID TRAJECTORY TESTS -------------------------
+
 // Test generating an invalid trajectory pointing outside the ConfigurationSpace in a concave ConfigurationSpace
 TEST_F(MovementModelInConcaveTest, InvalidLinearTrajectoryPointingOutwardInConcave) {
     // Construct a LinearMovementModel
@@ -449,6 +656,126 @@ TEST_F(MovementModelInConcaveTest, InvalidLinearTrajectoryPointingOutwardInConca
     // Generate a trajectory from the edge towards the exterior at a 45 degree angle
     std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, -CGAL_PI/4, *this->configuration_space);
 
+    // Expect the trajectory to be invalid
+    // i.e., it is nullopt
+    EXPECT_FALSE(maybe_path.has_value()) << "Expected invalid path to not have a trajectory, but got a valid trajectory";
+}
+
+// Test generating an invalid trajectory pointing outside the ConfigurationSpace in a square
+TEST_F(MovementModelInSquareTest, InvalidLinearTrajectoryPointingOutwardInSquare) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->edge_midpoint;
+    // Generate a trajectory from the edge towards the exterior at a 45 degree angle
+    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, -CGAL_PI/4, *this->configuration_space);
+
+    // Expect the trajectory to be invalid
+    // i.e., it is nullopt
+    EXPECT_FALSE(maybe_path.has_value()) << "Expected invalid path to not have a trajectory, but got a valid trajectory";
+}
+
+
+// -- MOVEMENTMODEL HOLED TRAJECTORY TESTS -------------------------------------
+
+// Test generating a valid trajectory with a linear movement model pointing from the edge to a hole in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearTrajectoryFromEdgeToHole) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->edge_midpoint;
+    // Generate a trajectory from the bottom edge towards an interior hole at a 90 degree angle
+    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, CGAL_PI/2, *this->configuration_space);
+
+    // Expect the trajectory to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
+}
+
+// Test generating a valid trajectory with a linear movement model from the edge to the corner of a hole in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearTrajectoryFromEdgeToHoleCorner) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the bottom edge of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->edge_midpoint_to_hole_corner;
+    // Generate a trajectory from the bottom edge towards an interior hole at a 45 degree angle
+    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, CGAL_PI/4, *this->configuration_space);
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
+}
+
+// Test generating a valid trajectory with a linear movement model from one hole to another in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearTrajectoryFromHoleToHole) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the first hole of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->hole1_midpoint;
+    // Generate a trajectory from the first hole midpoint to the second hole at a 90 degree angle
+    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, CGAL_PI/2, *this->configuration_space); 
+
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
+}
+
+// Test generating a valid trajectory with a linear movement model from a hole to an edge in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearTrajectoryFromHoleToEdge) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the second hole of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->hole2_midpoint;
+    // Generate a trajectory from the second hole midpoint to the edge at a 90 degree angle
+    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, CGAL_PI/2, *this->configuration_space);
+    
+    // Expect the movement to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_path.has_value()) << "Expected valid path, but got nullopt";
+}
+
+// Test generating a valid trajectory with a linear movement model along the edge of a hole to the edge in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearTrajectoryAlongHole) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the first hole of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->hole1_midpoint;
+    // Generate a trajectory from the second hole midpoint to the edge at a 0 degree angle
+    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, 0, *this->configuration_space);
+
+    // Expect the trajectory to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_path.has_value()) << "Expected valid trajectory, but got nullopt";
+}
+
+// Test generating a valid trajectory with a linear movement model from the edge to two holes with an overlapping ConfigurationSpace in a square
+TEST_F(MovementModelWithHolesTest, ValidLinearTrajectoryFromEdgeToHoleCluster) {
+    // Construct a LinearMovementModel
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the top edge of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->edge_midpoint_to_hole_corner;
+    // Compute the angle for the movement
+    BURST::numeric::hpscalar hp_angle = boost::multiprecision::acos(BURST::numeric::hpscalar{3}/BURST::numeric::hpscalar{7});
+    BURST::numeric::fscalar angle = BURST::numeric::to_fscalar(hp_angle);
+    // Generate a trajectory from the edge to the hol cluster at the computed angle
+    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, angle, *this->configuration_space);
+
+    // Expect the trajectory to be valid
+    // i.e., it is not nullopt
+    EXPECT_TRUE(maybe_path.has_value()) << "Expected valid trajectory, but got nullopt";
+}
+
+
+// -- MOVEMENTMODEL HOLED INVALID FUNCTOR TESTS --------------------------------
+
+// Test generating an invalid trajectory with a linear movement model from a hole to inside it's ConfigurationSpace in a square
+TEST_F(MovementModelWithHolesTest, InvalidLinearTrajectoryFromHoleToInterior) {
+    auto movement_model = BURST::models::LinearMovementModel{};
+    // Use the midpoint of the first hole of the ConfigurationSpace as the origin
+    BURST::geometry::Point2D origin = this->hole1_midpoint;
+    // Generate a trajectory from the hole towards the interior at a 225 degree angle
+    std::optional<BURST::geometry::Segment2D> maybe_path = movement_model.path(origin, 5*CGAL_PI/4, *this->configuration_space);
+    
     // Expect the trajectory to be invalid
     // i.e., it is nullopt
     EXPECT_FALSE(maybe_path.has_value()) << "Expected invalid path to not have a trajectory, but got a valid trajectory";

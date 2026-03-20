@@ -5,7 +5,6 @@
 #include <boost/multiprecision/mpfr.hpp>
 
 #include <concepts>
-#include <random>
 #include <sstream>
 #include <iomanip>
 
@@ -71,6 +70,14 @@ namespace BURST::numeric {
         std::ostringstream str_representation;
         str_representation << std::setprecision(100) << value; // 100-decimal precision string
         return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
+    }
+
+    // Converts a number to an fscalar
+    template <typename N>
+    fscalar to_fscalar(const N& value) {
+        std::ostringstream str_representation;
+        str_representation << std::setprecision(100) << value;
+        return fscalar{str_representation.str()};
     }
     
     // Converts a number of the form a0 + a1 * sqrt(root) to an fscalar

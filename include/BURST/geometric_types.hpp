@@ -2,11 +2,14 @@
 #define BURST_GEOMETRIC_TYPES_HPP
 
 #include <CGAL/Polygon_2.h>
+#include <CGAL/Polygon_with_holes_2.h>
 #include <CGAL/Vector_2.h>
 #include <CGAL/Bbox_2.h>
 #include <CGAL/General_polygon_set_2.h>
 #include <CGAL/enum.h>
 #include <CGAL/Aff_transformation_2.h>
+#include <concepts>
+#include <initializer_list>
 
 #include "kernel_types.hpp"
 
@@ -20,7 +23,9 @@ namespace BURST::geometry {
     using Line2D = Kernel::Line_2;
     using Ray2D = Kernel::Ray_2;
     using Polygon2D = CGAL::Polygon_2<Kernel>;
+    using HoledPolygon2D = CGAL::Polygon_with_holes_2<Kernel>;
     using CurvilinearPolygon2D = CurvedTraits::General_polygon_2;
+    using HoledCurvilinearPolygon2D = CGAL::General_polygon_with_holes_2<CurvilinearPolygon2D>;
     using Vector2D = CGAL::Vector_2<Kernel>;
     
     // Composite/complex types
@@ -35,6 +40,7 @@ namespace BURST::geometry {
     // Transformation types
     using Transformation = CGAL::Aff_transformation_2<Kernel>;
 
+
     // -- GEOMETRIC CONCEPTS ---------------------------------------------------
 
     // Checks if a type is a valid path type, which can be constructed from a start and end point
@@ -48,6 +54,41 @@ namespace BURST::geometry {
     concept valid_trajectory_type = requires (geometry::Point2D origin, geometry::Vector2D direction) {
         T{origin, direction};
     };
+
+    // Checks is a collection is a valid input collection for constructing a polygon
+    // Prior to C++23, std::initializer_list doesn't satisfy the condition for sized_range, so an explicit check is included here
+    template <typename C, typename V>
+    concept valid_geometric_collection = 
+        std::ranges::sized_range<C> && std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, V> ||
+        std::same_as<C, std::initializer_list<V>>;
+
+
+    // -- HELPER FUNCTIONS -----------------------------------------------------
+
+    // Utility function to construct a polygon off of any collection of points
+    template <valid_geometric_collection<Point2D> C>
+    std::optional<Polygon2D> construct_polygon(C points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
+        // Can't make a polygon with 2 or fewer points
+        if (std::ranges::size(points) <= 2) return std::nullopt; 
+
+        // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
+        if (!CGAL::is_simple_2(std::ranges::begin(points), std::ranges::end(points), LinearTraits{})) return std::nullopt; 
+
+        // Create the polygon from the input points and return it
+        Polygon2D polygon{std::ranges::begin(points), std::ranges::end(points)};
+        // If the polygon is not oriented as expected, reverse the orientation to ensure it's a valid polygon for CGAL
+        if (polygon.orientation() != expected_orientation) polygon.reverse_orientation();
+
+        return std::optional<Polygon2D>{polygon};
+    }
+    
+    inline std::optional<Polygon2D> construct_polygon(std::initializer_list<Point2D> points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
+        return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation);
+    }
+
+    inline Point2D midpoint(const Point2D& a, const Point2D& b) {
+        return Point2D{(a.x() + b.x())/2, (a.y() + b.y())/2};
+    }
 
 }
 
