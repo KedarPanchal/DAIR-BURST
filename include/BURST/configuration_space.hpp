@@ -74,8 +74,8 @@ namespace BURST::geometry {
         bool contains(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the containment check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
-            HoledCurvilinearPolygon2D containing_polygon;
-            return this->configuration_shape.locate(converted_point, containing_polygon);
+            auto orientation = this->configuration_shape.oriented_side(converted_point);
+            return orientation == CGAL::ON_ORIENTED_BOUNDARY || orientation == CGAL::ON_POSITIVE_SIDE;
         }
         
         template <valid_trajectory_type Trajectory, valid_path_type Path, std::ranges::output_range<Point2D> OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
