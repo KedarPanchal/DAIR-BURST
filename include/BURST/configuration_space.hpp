@@ -121,9 +121,9 @@ namespace BURST::geometry {
 
                 // Convert the vertex point back to a Point2D and return it as the intersection point
                 auto intersection_point = vertex_it->point();
-                // Add the point to the output collection using the provided output iterator, given it is not the source of the ray
+                // Add the point to the output collection using the provided output iterator, given it is not the source of the ray and it lies on the ray path
                 Point2D to_add = Point2D{numeric::sqrt_to_fscalar(intersection_point.x()), numeric::sqrt_to_fscalar(intersection_point.y())};
-                if (to_add != ray_source) {
+                if (to_add != ray_source && long_path.has_on(to_add)) {
                     intersection_points = to_add;
                     intersection_count++;
                 }
