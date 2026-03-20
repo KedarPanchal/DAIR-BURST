@@ -69,14 +69,13 @@ namespace BURST::geometry {
     template <valid_geometric_collection<Point2D> C>
     std::optional<Polygon2D> construct_polygon(C points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         // Can't make a polygon with 2 or fewer points
-        if (points.size() <= 2) return std::nullopt; 
+        if (std::ranges::size(points) <= 2) return std::nullopt; 
 
         // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
-        if (!CGAL::is_simple_2(points.begin(), points.end(), LinearTraits{})) return std::nullopt; 
+        if (!CGAL::is_simple_2(std::ranges::begin(points), std::ranges::end(points), LinearTraits{})) return std::nullopt; 
 
         // Create the polygon from the input points and return it
-        Polygon2D polygon{points.begin(), points.end()};
-
+        Polygon2D polygon{std::ranges::begin(points), std::ranges::end(points)};
         // If the polygon is not oriented as expected, reverse the orientation to ensure it's a valid polygon for CGAL
         if (polygon.orientation() != expected_orientation) polygon.reverse_orientation();
 
