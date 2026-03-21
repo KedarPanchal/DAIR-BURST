@@ -52,10 +52,14 @@ namespace BURST {
         // Precondition: The robot is on the border of the configuration space
         void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
             this->configuration_environment = std::move(config_environment);
-
-            // TODO: Add warning code if the robot's current position is not on the border of the configuration space, since that means the robot is in an invalid state
             if (!this->configuration_environment->intersection(this->position).has_value()) {
                 BURST_WARNING("Robot's current position (" + this->position.x() + ", " + this->position.y() + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.");
+            }
+        }
+        void setPosition(const geometry::Point2D& new_position) {
+            this->position = new_position;
+            if (!this->configuration_environment->intersection(this->position).has_value()) {
+                BURST_WARNING("Robot's new position (" + this->position.x() + ", " + this->position.y() + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.");
             }
         }
         const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const {
@@ -65,7 +69,10 @@ namespace BURST {
             return this->radius;
         }
 
-        geometry::Point2D shootRay(numeric::fscalar angle) const;
+        std::optional<geometry::Point2D> shootRay(numeric::fscalar angle) const {
+            auto trajectory = this->movement_model.path(this->position, angle, *this->configuration_environment);
+            return trajectory.has_value() ? std::optional<geometry::Point2D>{trajectory->endpoint()} : std::nullopt;
+        }
         geometry::Polygon2D generateStadium(numeric::fscalar angle) const;
         geometry::Polygon2D generateCCR(numeric::fscalar angle) const;
         void move(numeric::fscalar angle);
