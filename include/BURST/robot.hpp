@@ -9,6 +9,7 @@
 #include "renderable.hpp"
 #include "configuration_space.hpp"
 #include "models.hpp"
+#include "logging.hpp"
 
 namespace BURST {
 
@@ -54,7 +55,7 @@ namespace BURST {
 
             // TODO: Add warning code if the robot's current position is not on the border of the configuration space, since that means the robot is in an invalid state
             if (!this->configuration_environment->intersection(this->position).has_value()) {
-
+                BURST_WARNING("Robot's current position (" + this->position.x() + ", " + this->position.y() + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.");
             }
         }
         const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const {
@@ -73,4 +74,5 @@ namespace BURST {
     };
 
 }
+
 #endif
