@@ -11,7 +11,7 @@
 #include <iterator>
 #include <vector>
 
-#include "BURST/geometric_types.hpp"
+#include "geometric_types.hpp"
 #include "numeric_types.hpp"
 #include "configuration_space.hpp"
 

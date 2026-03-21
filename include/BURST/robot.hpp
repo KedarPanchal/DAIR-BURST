@@ -33,21 +33,34 @@ namespace BURST {
         models::MovementModel<Trajectory, Path> movement_model;
 
     public:
+        // Precondition: The robot's radius is positive
         Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error) : 
             radius{robot_radius}, 
             position{starting_point}, 
             rotation_model{max_rotation_error}, 
-            movement_model{} {}
+            movement_model{} {
+            if (this->radius <= 0) {
+                BURST_WARNING("Non-positive robot radius (" + std::to_string(this->radius) + ") may lead to unexpected movement behavior.");
+            }
+        }
         Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) : 
             radius{robot_radius}, 
             position{starting_point}, 
             rotation_model{max_rotation_error, rotation_seed}, 
-            movement_model{} {}
+            movement_model{} {
+            if (this->radius <= 0) {
+                BURST_WARNING("Non-positive robot radius (" + std::to_string(this->radius) + ") may lead to unexpected movement behavior.");
+            }
+        }
         Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<PRNG, Dist> rotation_model, models::MovementModel<Trajectory, Path> movement_model) : 
             radius{robot_radius}, 
             position{starting_point}, 
             rotation_model{rotation_model}, 
-            movement_model{movement_model} {}
+            movement_model{movement_model} {
+            if (this->radius <= 0) {
+                BURST_WARNING("Non-positive robot radius (" + std::to_string(this->radius) + ") may lead to unexpected movement behavior.");
+            }
+        }
         
         // Precondition: The robot is on the border of the configuration space
         void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
@@ -73,7 +86,27 @@ namespace BURST {
             auto trajectory = this->movement_model.path(this->position, angle, *this->configuration_environment);
             return trajectory.has_value() ? std::optional<geometry::Point2D>{trajectory->endpoint()} : std::nullopt;
         }
-        geometry::Polygon2D generateStadium(numeric::fscalar angle) const;
+        std::optional<geometry::CurvilinearPolygonSet2D> generateStadium(numeric::fscalar angle) const {
+            // Generate a trajectory for the for the robot's movement model at the given angle
+            auto trajectory = this->movement_model.path(this->position, angle, *this->configuration_environment);
+            // If the trajectory is nullopt, we can't generate a stadium, so return nullopt
+            if (!trajectory.has_value()) return std::nullopt;
+
+            // Add the robot's start and end circles to the stadium polygon set
+            geometry::CurvilinearPolygonSet2D stadium;
+            // Circle for the robot's starting position
+            auto start_circle = geometry::construct_circle(this->radius, this->position);
+            // This should never happen, but check just in case
+            if (!start_circle.has_value()) return std::nullopt; 
+            stadium.insert(start_circle.value());
+            // Circle for the robot's ending position
+            auto end_circle = geometry::construct_circle(this->radius, trajectory->endpoint());
+            // This should never happen, but check just in case
+            if (!end_circle.has_value()) return std::nullopt;
+            stadium.insert(end_circle.value());
+
+            return stadium;
+        }
         geometry::Polygon2D generateCCR(numeric::fscalar angle) const;
         void move(numeric::fscalar angle);
 

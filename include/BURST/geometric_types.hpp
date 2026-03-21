@@ -1,6 +1,9 @@
 #ifndef BURST_GEOMETRIC_TYPES_HPP
 #define BURST_GEOMETRIC_TYPES_HPP
 
+#include <concepts>
+#include <initializer_list>
+
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polygon_with_holes_2.h>
 #include <CGAL/Vector_2.h>
@@ -8,10 +11,11 @@
 #include <CGAL/General_polygon_set_2.h>
 #include <CGAL/enum.h>
 #include <CGAL/Aff_transformation_2.h>
-#include <concepts>
-#include <initializer_list>
+
+#include <boost/container/small_vector.hpp>
 
 #include "kernel_types.hpp"
+#include "numeric_types.hpp"
 
 namespace BURST::geometry {
 
@@ -84,6 +88,19 @@ namespace BURST::geometry {
     
     inline std::optional<Polygon2D> construct_polygon(std::initializer_list<Point2D> points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation);
+    }
+    
+    inline std::optional<CurvilinearPolygon2D> construct_circle(const numeric::fscalar& radius, const Point2D& center) {
+        // Only construct circles with positive radius
+        if (radius <= 0) return std::nullopt;
+        CGAL::Circle_2<Kernel> circle = CGAL::Circle_2<Kernel>{center, radius * radius};
+
+        boost::container::small_vector<CurvedTraits::X_monotone_curve_2, 2> semicircles{
+            CurvedTraits::X_monotone_curve_2{circle, CurvedTraits::Point_2{center.x() - radius, center.y()}, CurvedTraits::Point_2{center.x() + radius, center.y()}, CGAL::COUNTERCLOCKWISE},
+            CurvedTraits::X_monotone_curve_2{circle, CurvedTraits::Point_2{center.x() + radius, center.y()}, CurvedTraits::Point_2{center.x() - radius, center.y()}, CGAL::COUNTERCLOCKWISE}
+        };
+        
+        return std::optional<CurvilinearPolygon2D>{CurvilinearPolygon2D{semicircles.begin(), semicircles.end()}};
     }
 
     inline Point2D midpoint(const Point2D& a, const Point2D& b) {
