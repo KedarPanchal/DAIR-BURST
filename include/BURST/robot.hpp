@@ -149,15 +149,13 @@ namespace BURST {
 
             // Using the sorted rectangle vertices, construct them pairwise into diameter segments and paths in CCW order
             boost::container::small_vector<CurvedTraits::X_monotone_curve_2, 4> rectangle_edges;
-            for (size_t i = 0; i < rectangle_vertices.size() - 1; ++i) {
+            for (size_t i = 0; i < rectangle_vertices.size(); ++i) {
+                size_t next = (i + 1) % rectangle_vertices.size();
                 // Check if both points are on a diameter (i.e., their midpoint is the start or end point of the robot's trajectory)
                 // If so, construct a diameter segment, otherwise construct a Path
-                geometry::Point2D midpoint = geometry::midpoint(rectangle_vertices[i], rectangle_vertices[i + 1]);
-                if (midpoint == this->position || midpoint == *endpoint) {
-                    rectangle_edges.emplace_back(geometry::construct_curve(geometry::Segment2D{rectangle_vertices[i], rectangle_vertices[i + 1]}));
-                } else {
-                    rectangle_edges.emplace_back(geometry::construct_curve(Path{rectangle_vertices[i], rectangle_vertices[i + 1]}));
-                }
+                geometry::Point2D midpoint = geometry::midpoint(rectangle_vertices[i], rectangle_vertices[next]);
+                if (midpoint == this->position || midpoint == *endpoint) rectangle_edges.emplace_back(geometry::construct_curve(geometry::Segment2D{rectangle_vertices[i], rectangle_vertices[next]}));
+                else rectangle_edges.emplace_back(geometry::construct_curve(Path{rectangle_vertices[i], rectangle_vertices[next]}));
             }
             // Form a polygon from the rectangle edges and insert it into the stadium
             stadium.insert(geometry::CurvilinearPolygon2D{rectangle_edges.begin(), rectangle_edges.end()});
