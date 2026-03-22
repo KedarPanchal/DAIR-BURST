@@ -32,36 +32,31 @@ namespace BURST {
         models::RotationModel<PRNG, Dist> rotation_model;
         models::MovementModel<Trajectory, Path> movement_model;
 
-    public:
-        // Precondition: The robot's radius is positive
-        Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error) : 
-            radius{robot_radius}, 
-            position{starting_point}, 
-            rotation_model{max_rotation_error}, 
-            movement_model{} {
-            if (this->radius <= 0) {
-                BURST_WARNING("Non-positive robot radius (" + std::to_string(this->radius) + ") may lead to unexpected movement behavior.");
-            }
-        }
-        Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) : 
-            radius{robot_radius}, 
-            position{starting_point}, 
-            rotation_model{max_rotation_error, rotation_seed}, 
-            movement_model{} {
-            if (this->radius <= 0) {
-                BURST_WARNING("Non-positive robot radius (" + std::to_string(this->radius) + ") may lead to unexpected movement behavior.");
-            }
-        }
+    protected:
+        // Protected constructor since preconditions are validated by public static create functions
         Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<PRNG, Dist> rotation_model, models::MovementModel<Trajectory, Path> movement_model) : 
             radius{robot_radius}, 
             position{starting_point}, 
             rotation_model{rotation_model}, 
-            movement_model{movement_model} {
-            if (this->radius <= 0) {
-                BURST_WARNING("Non-positive robot radius (" + std::to_string(this->radius) + ") may lead to unexpected movement behavior.");
-            }
+            movement_model{movement_model} {}
+       
+    public:
+        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error) {
+            // Cannot construct a robot with a non-positive radius
+            if (robot_radius <= 0) return std::nullopt;
+            else return std::optional<Robot>{Robot{robot_radius, starting_point, models::MaximumRotationModel{max_rotation_error}, models::MovementModel<Trajectory, Path>{}}};
         }
-        
+        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) {
+            // Cannot construct a robot with a non-positive radius
+            if (robot_radius <= 0) return std::nullopt;
+            else return std::optional<Robot>{Robot{robot_radius, starting_point, models::MaximumRotationModel{max_rotation_error, rotation_seed}, models::MovementModel<Trajectory, Path>{}}};
+        }
+        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<PRNG, Dist> rotation_model, models::MovementModel<Trajectory, Path> movement_model) {
+            // Cannot construct a robot with a non-positive radius
+            if (robot_radius <= 0) return std::nullopt;
+            else return std::optional<Robot>{Robot{robot_radius, starting_point, rotation_model, movement_model}};
+        }
+
         // Precondition: The robot is on the border of the configuration space
         void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
             this->configuration_environment = std::move(config_environment);
@@ -87,22 +82,20 @@ namespace BURST {
             return trajectory.has_value() ? std::optional<geometry::Point2D>{trajectory->endpoint()} : std::nullopt;
         }
         std::optional<geometry::CurvilinearPolygonSet2D> generateStadium(numeric::fscalar angle) const {
-            // Generate a trajectory for the for the robot's movement model at the given angle
-            auto trajectory = this->movement_model.path(this->position, angle, *this->configuration_environment);
+            // Generate an endpoint for the robot's movement trajectory
+            std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, angle, *this->configuration_environment);
             // If the trajectory is nullopt, we can't generate a stadium, so return nullopt
-            if (!trajectory.has_value()) return std::nullopt;
+            if (!endpoint.has_value()) return std::nullopt;
 
             // Add the robot's start and end circles to the stadium polygon set
             geometry::CurvilinearPolygonSet2D stadium;
             // Circle for the robot's starting position
             auto start_circle = geometry::construct_circle(this->radius, this->position);
-            // This should never happen, but check just in case
-            if (!start_circle.has_value()) return std::nullopt; 
+            // The robot's radius is always positive, so construct_circle should never return nullopt
             stadium.insert(start_circle.value());
             // Circle for the robot's ending position
-            auto end_circle = geometry::construct_circle(this->radius, trajectory->endpoint());
-            // This should never happen, but check just in case
-            if (!end_circle.has_value()) return std::nullopt;
+            auto end_circle = geometry::construct_circle(this->radius, *endpoint);
+            // The robot's radius is always positive, so construct_circle should never return nullopt
             stadium.insert(end_circle.value());
 
             return stadium;
