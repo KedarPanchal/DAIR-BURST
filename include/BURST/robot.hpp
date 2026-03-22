@@ -81,7 +81,7 @@ namespace BURST {
             auto trajectory = this->movement_model.path(this->position, angle, *this->configuration_environment);
             return trajectory.has_value() ? std::optional<geometry::Point2D>{trajectory->endpoint()} : std::nullopt;
         }
-        std::optional<geometry::CurvilinearPolygonSet2D> generateStadium(numeric::fscalar angle) const {
+        std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(numeric::fscalar angle) const {
             // Generate an endpoint for the robot's movement trajectory
             std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, angle, *this->configuration_environment);
             // If the trajectory is nullopt, we can't generate a stadium, so return nullopt
@@ -90,17 +90,17 @@ namespace BURST {
             // Add the robot's start and end circles to the stadium polygon set
             geometry::CurvilinearPolygonSet2D stadium;
             // Circle for the robot's starting position
-            auto start_circle = geometry::construct_circle(this->radius, this->position);
+            std::optional<geometry::CurvilinearPolygon2D> start_circle = geometry::construct_circle(this->radius, this->position);
             // The robot's radius is always positive, so construct_circle should never return nullopt
-            stadium.insert(start_circle.value());
+            stadium.insert(*start_circle);
             // Circle for the robot's ending position
-            auto end_circle = geometry::construct_circle(this->radius, *endpoint);
+            std::optional<geometry::CurvilinearPolygon2D> end_circle = geometry::construct_circle(this->radius, *endpoint);
             // The robot's radius is always positive, so construct_circle should never return nullopt
-            stadium.insert(end_circle.value());
+            stadium.insert(*end_circle);
 
             return stadium;
         }
-        geometry::Polygon2D generateCCR(numeric::fscalar angle) const;
+        geometry::Polygon2D certainlyCoveredArea(numeric::fscalar angle) const;
         void move(numeric::fscalar angle);
 
         void render(graphics::Scene& scene) const override;
