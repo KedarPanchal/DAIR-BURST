@@ -95,15 +95,15 @@ namespace BURST {
             return this->radius;
         }
 
-        numeric::fscalar perturb(numeric::fscalar angle) const {
+        numeric::fscalar perturb(const numeric::fscalar& angle) const {
             return this->rotation_model(angle);
         }
 
-        std::optional<geometry::Point2D> shootRay(numeric::fscalar angle, bool perturbed = false) const {
+        std::optional<geometry::Point2D> shootRay(const numeric::fscalar& angle, bool perturbed = false) const {
             auto trajectory = this->movement_model.path(this->position, perturbed ? this->rotation_model(angle) : angle, *this->configuration_environment);
             return trajectory.has_value() ? std::optional<geometry::Point2D>{trajectory->endpoint()} : std::nullopt;
         }
-        std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(numeric::fscalar angle, bool perturbed = false) const {
+        std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(const numeric::fscalar& angle, bool perturbed = false) const {
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
             std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment);
@@ -162,8 +162,9 @@ namespace BURST {
             stadium.insert(geometry::CurvilinearPolygon2D{rectangle_edges.begin(), rectangle_edges.end()});
             return std::optional<geometry::CurvilinearPolygonSet2D>{stadium};
         }
-        geometry::Polygon2D certainlyCoveredArea(numeric::fscalar angle) const;
-        void move(numeric::fscalar angle, bool perturbed = false) {
+        geometry::Polygon2D certainlyCoveredArea(const numeric::fscalar& angle) const;
+
+        void move(const numeric::fscalar& angle, bool perturbed = false) {
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
             std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment);
