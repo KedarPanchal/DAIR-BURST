@@ -10,6 +10,7 @@
 
 #include <boost/multiprecision/mpfr.hpp>
 
+#include "geometric_types.hpp"
 #include "numeric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"
@@ -162,7 +163,17 @@ namespace BURST {
             stadium.insert(geometry::CurvilinearPolygon2D{rectangle_edges.begin(), rectangle_edges.end()});
             return std::optional<geometry::CurvilinearPolygonSet2D>{stadium};
         }
-        geometry::Polygon2D certainlyCoveredArea(const numeric::fscalar& angle) const;
+        std::optional<geometry::CurvilinearPolygonSet2D> certainlyCoveredArea(const numeric::fscalar& angle) const {
+            // Generate the stadium for the robot moving with the max and min rotation error added to the angle
+            std::optional<geometry::CurvilinearPolygonSet2D> max_stadium = this->coveredArea(this->rotation_model.max(angle), false);
+            if (!max_stadium.has_value()) return std::nullopt; // If the max stadium is nullopt, then the certainly covered area is also nullopt
+            std::optional<geometry::CurvilinearPolygonSet2D> min_stadium = this->coveredArea(this->rotation_model.min(angle), false);
+            if (!min_stadium.has_value()) return std::nullopt; // If the min stadium is nullopt, then the certainly covered area is also nullopt
+
+            // Return the intersection of the two stadiums, which represents the area that is covered regardless of the perturbed rotation angle
+            max_stadium->intersection(*min_stadium);
+            return max_stadium;
+        }
 
         void move(const numeric::fscalar& angle, bool perturbed = false) {
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
@@ -173,8 +184,10 @@ namespace BURST {
             // Otherwise, move the robot to the endpoint
             this->position = *endpoint;
         }
-
-        void render(graphics::Scene& scene) const override;
+        
+        // TODO: Implement render function once the graphics library bugs are squashed
+        void render(graphics::Scene& scene) const override {
+        }
     };
 
 }
