@@ -67,9 +67,16 @@ namespace BURST::numeric {
     // Converts a number to a high-precision scalar
     template <typename FT>
     hpscalar to_high_precision(const FT& value) {
-        std::ostringstream str_representation;
-        str_representation << std::setprecision(100) << value; // 100-decimal precision string
-        return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
+        if constexpr (std::same_as<FT, hpscalar>) {
+            return value; // No conversion needed
+        } else if constexpr (std::same_as<FT, fscalar>) {
+            // Convert fscalar to high-precision scalar using numerator and denominator for exact conversion
+            return hpscalar{value.numerator()} / hpscalar{value.denominator()};
+        } else {
+            std::ostringstream str_representation;
+            str_representation << std::setprecision(100) << value; // 100-decimal precision string
+            return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
+        }
     }
 
     // Converts a number to an fscalar

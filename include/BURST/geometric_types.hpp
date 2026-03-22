@@ -48,10 +48,11 @@ namespace BURST::geometry {
     // -- GEOMETRIC CONCEPTS ---------------------------------------------------
 
     // Checks if a type is a valid path type, which can be constructed from a start and end point
+    // It can either be a Segment2D or a curve type that's convertible to an X_monotone_curve_2
     template <typename T>
     concept valid_path_type = requires (geometry::Point2D start, geometry::Point2D end) {
         T{start, end};
-    };
+    } && (std::same_as<Segment2D, T> || std::convertible_to<T, CurvedTraits::X_monotone_curve_2>);
     
     // Checks if a type is a valid trajectory type, which can be constructed from an origin point and a direction vector
     template <typename T>
@@ -71,7 +72,7 @@ namespace BURST::geometry {
 
     // Utility function to construct a polygon off of any collection of points
     template <valid_geometric_collection<Point2D> C>
-    std::optional<Polygon2D> construct_polygon(C points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
+    std::optional<Polygon2D> construct_polygon(const C& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         // Can't make a polygon with 2 or fewer points
         if (std::ranges::size(points) <= 2) return std::nullopt; 
 
@@ -85,11 +86,35 @@ namespace BURST::geometry {
 
         return std::optional<Polygon2D>{polygon};
     }
-    
-    inline std::optional<Polygon2D> construct_polygon(std::initializer_list<Point2D> points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
+
+    inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation);
     }
-    
+
+    template <valid_geometric_collection<Point2D> C>
+    std::optional<Point2D> average(const C& points) {
+        // Can't compute the average of an empty collection
+        if (std::ranges::size(points) == 0) return std::nullopt;
+
+        Point2D sum = std::accumulate(points.begin(), points.end(), Point2D{0, 0}, [](const Point2D& acc, const Point2D& point) {
+            return Point2D{acc.x() + point.x(), acc.y() + point.y()};
+        });
+        return std::optional<Point2D>{Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)}};
+    }
+
+    inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
+        return average<std::initializer_list<Point2D>>(points);
+    }
+ 
+    template <valid_path_type P>
+    CurvedTraits::X_monotone_curve_2 construct_curve(const P& path) {
+        if constexpr (std::same_as<P, Segment2D>) {
+            return CurvedTraits::X_monotone_curve_2{path.source(), path.target()};
+        } else {
+            return static_cast<CurvedTraits::X_monotone_curve_2>(path); 
+        }
+    }
+       
     inline std::optional<CurvilinearPolygon2D> construct_circle(const numeric::fscalar& radius, const Point2D& center) {
         // Only construct circles with positive radius
         if (radius <= 0) return std::nullopt;
