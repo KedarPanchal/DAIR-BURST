@@ -18,6 +18,7 @@ if (TEST_SCOPE STREQUAL "all")
         test_configurationspace_intersections.cpp
         test_rotationmodel.cpp
         test_movementmodel.cpp
+        test_robot.cpp
     )
     target_link_libraries(test_all
         PRIVATE BURST
@@ -59,6 +60,16 @@ elseif(TEST_SCOPE STREQUAL "categorized")
         GTest::gtest_main
     )
     target_compile_options(test_models PRIVATE -g)
+
+    # Build only robot-related tests
+    add_executable(test_robot
+        test_robot.cpp
+    )
+    target_link_libraries(test_robot
+        PRIVATE BURST
+        GTest::gtest_main
+    )
+    target_compile_options(test_robot PRIVATE -g)
 else()
     # Build individual test executables for each test file
 
@@ -131,4 +142,14 @@ else()
         GTest::gtest_main
     )
     target_compile_options(test_movementmodel PRIVATE -g)
+
+    # Robot tests
+    add_executable(test_robot
+        test_robot.cpp
+    )
+    target_link_libraries(test_robot
+        PRIVATE BURST
+        GTest::gtest_main
+    )
+    target_compile_options(test_robot PRIVATE -g)
 endif()
