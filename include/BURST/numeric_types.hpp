@@ -65,13 +65,11 @@ namespace BURST::numeric {
     }
 
     // Converts a number to a high-precision scalar
+    // TODO: Make this more efficient as the string conversion has a lot of overhead
     template <typename FT>
     hpscalar to_high_precision(const FT& value) {
         if constexpr (std::same_as<FT, hpscalar>) {
             return value; // No conversion needed
-        } else if constexpr (std::same_as<FT, fscalar>) {
-            // Convert fscalar to high-precision scalar using numerator and denominator for exact conversion
-            return hpscalar{value.numerator()} / hpscalar{value.denominator()};
         } else {
             std::ostringstream str_representation;
             str_representation << std::setprecision(100) << value; // 100-decimal precision string
