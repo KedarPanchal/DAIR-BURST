@@ -4,7 +4,6 @@
 #include <memory>
 #include <random>
 #include <array>
-#include <numeric>
 #include <unordered_map>
 #include <algorithm>
 
@@ -25,8 +24,8 @@ namespace BURST {
      * Its rotational and translational movements are affected by noise and uses models to determine the impact of this noise.
      */
     template <
-        geometry::valid_trajectory_type Trajectory, 
-        geometry::valid_path_type Path,
+        geometry::valid_trajectory_type Trajectory = geometry::Ray2D, 
+        geometry::valid_path_type Path = geometry::Segment2D,
         numeric::valid_rng PRNG = std::mt19937, 
         numeric::valid_distribution<PRNG> Dist = std::uniform_real_distribution<double>
     >
