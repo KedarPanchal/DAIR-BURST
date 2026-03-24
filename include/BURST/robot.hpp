@@ -100,8 +100,8 @@ namespace BURST {
         }
 
         std::optional<geometry::Point2D> shootRay(const numeric::fscalar& angle, bool perturbed = false) const {
-            auto trajectory = this->movement_model.path(this->position, perturbed ? this->rotation_model(angle) : angle, *this->configuration_environment);
-            return trajectory.has_value() ? std::optional<geometry::Point2D>{trajectory->endpoint()} : std::nullopt;
+            auto endpoint = this->movement_model(this->position, perturbed ? this->rotation_model(angle) : angle, *this->configuration_environment);
+            return endpoint.has_value() ? std::optional<geometry::Point2D>{endpoint} : std::nullopt;
         }
         std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(const numeric::fscalar& angle, bool perturbed = false) const {
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
