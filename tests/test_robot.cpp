@@ -106,7 +106,7 @@ TEST_F(RobotTest, NoWarningOnConfigurationSpace) {
     testing::internal::CaptureStderr();
 
     // Construct the robot
-    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 2}, 1);
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
     std::optional<std::monostate> result = this->wall_space.generateConfigurationSpace(*robot);
@@ -123,7 +123,7 @@ TEST_F(RobotTest, NoWarningOnConfigurationSpaceHoleBoundary) {
     testing::internal::CaptureStderr();
 
     // Construct the robot
-    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{8, 6}, 1);
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{4, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
     std::optional<std::monostate> result = this->wall_space.generateConfigurationSpace(*robot);
@@ -149,4 +149,99 @@ TEST_F(RobotTest, WarningOnConfigurationSpace) {
     // Check that a warning was issued
     std::string warning = testing::internal::GetCapturedStderr();
     EXPECT_NE(warning, "") << "Expected warning when setting configuration space that the robot is not on the boundary of, but got none";
+}
+
+// Test that no warning is issued if the robot is given a new position that is on the boundary of the configuration space
+TEST_F(RobotTest, NoWarningOnPosition) {
+    // Capture stderr to check for warnings
+    testing::internal::CaptureStderr();
+
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 1}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space.generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    // Set a new position that is on the boundary of the configuration space
+    robot->setPosition(BURST::geometry::Point2D{4, 1});
+
+    // Check that no warning was issued
+    std::string warning = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(warning, "") << "Expected no warning when setting position that is on the boundary of the configuration space, but got: " << warning;
+}
+
+// Test that no warning is issued if the robot is given a new position that is on the boundary of the hole in the configuration space
+TEST_F(RobotTest, NoWarningOnPositionHoleBoundary) {
+    // Capture stderr to check for warnings
+    testing::internal::CaptureStderr();
+
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{4, 3}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of the hole
+    std::optional<std::monostate> result = this->wall_space.generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    // Set a new position that is on the boundary of the hole in the configuration space
+    robot->setPosition(BURST::geometry::Point2D{5, 3});
+
+    // Check that no warning was issued
+    std::string warning = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(warning, "") << "Expected no warning when setting position that is on the boundary of the hole in the configuration space, but got: " << warning;
+}
+
+// Test that no warning is issued if the robot starts on the configuration space boundary and is given a new position that is on the boundary of the hole in the configuration space
+TEST_F(RobotTest, NoWarningOnPositionFromBoundaryToHoleBoundary) {
+    // Capture stderr to check for warnings
+    testing::internal::CaptureStderr();
+
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 1}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space.generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    // Set a new position that is on the boundary of the hole in the configuration space
+    robot->setPosition(BURST::geometry::Point2D{5, 3});
+
+    // Check that no warning was issued
+    std::string warning = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(warning, "") << "Expected no warning when setting position from boundary of configuration space to boundary of hole in configuration space, but got: " << warning;
+}
+
+// Test that no warning is issued if the robot starts on the hole boundary and is given a new position that is on the boundary of the configuration space
+TEST_F(RobotTest, NoWarningOnPositionFromHoleBoundaryToBoundary) {
+    // Capture stderr to check for warnings
+    testing::internal::CaptureStderr();
+
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{4, 3}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of the hole
+    std::optional<std::monostate> result = this->wall_space.generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    // Set a new position that is on the boundary of the configuration space
+    robot->setPosition(BURST::geometry::Point2D{4, 1});
+
+    // Check that no warning was issued
+    std::string warning = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(warning, "") << "Expected no warning when setting position from boundary of hole in configuration space to boundary of configuration space, but got: " << warning;
+}
+
+// Test that a warning is issued if the robot is given a new position that is not on the boundary of the configuration space or hole boundary
+TEST_F(RobotTest, WarningOnPosition) {
+    // Capture stderr to check for warnings
+    testing::internal::CaptureStderr();
+
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 1}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space.generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    // Set a new position that is not on the boundary of the configuration space or hole boundary
+    robot->setPosition(BURST::geometry::Point2D{5, 5});
+
+    // Check that a warning was issued
+    std::string warning = testing::internal::GetCapturedStderr();
+    EXPECT_NE(warning, "") << "Expected warning when setting position that is not on the boundary of the configuration space or hole boundary, but got none";
 }
