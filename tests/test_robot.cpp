@@ -245,3 +245,6 @@ TEST_F(RobotTest, WarningOnPosition) {
     std::string warning = testing::internal::GetCapturedStderr();
     EXPECT_NE(warning, "") << "Expected warning when setting position that is not on the boundary of the configuration space or hole boundary, but got none";
 }
+
+
+// -- ROBOT RAYCAST TESTS ------------------------------------------------------
