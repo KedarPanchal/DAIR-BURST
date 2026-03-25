@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include <boost/multiprecision/mpfr.hpp>
+#include <boost/functional/hash.hpp>
 
 #include "geometric_types.hpp"
 #include "numeric_types.hpp"
@@ -42,11 +43,10 @@ namespace BURST {
         // Quick and dirty so we don't need to be overly concerned with collisions
         struct PointHash {
             std::size_t operator() (const geometry::Point2D& point) const {
-                // Scale the x and y coordinates to integers
-                size_t hx = CGAL::to_double(point.x()) * 1e6;
-                size_t hy = CGAL::to_double(point.y()) * 1e6;
-                // Use Cantor pairing to combine two integers into a single hash value
-                return (hx + hy) * (hx + hy + 1) / 2;
+                size_t seed = 0; 
+                boost::hash_combine(seed, CGAL::to_double(point.x()));
+                boost::hash_combine(seed, CGAL::to_double(point.y()));
+                return seed;
             }
         };
 
