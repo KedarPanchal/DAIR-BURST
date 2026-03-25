@@ -158,7 +158,7 @@ namespace BURST {
             }
             // Sort the vertices based on their angle to the average point in counterclockwise order
             std::sort(rectangle_vertices.begin(), rectangle_vertices.end(), [&average, &angle_map](const geometry::Point2D& a, const geometry::Point2D& b) {
-                return angle_map[a] < angle_map[b];
+                return angle_map.at(a) < angle_map.at(b);
             });
 
             // Using the sorted rectangle vertices, construct them pairwise into diameter segments and paths in CCW order
