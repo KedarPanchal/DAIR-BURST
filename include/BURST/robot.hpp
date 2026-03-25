@@ -122,10 +122,10 @@ namespace BURST {
 
             // Add the robot's start and end circles to the stadium polygon set
             geometry::CurvilinearPolygonSet2D stadium;
-            // Insert the circle for the robot's starting position
-            stadium.insert(*geometry::construct_circle(this->radius, this->position));
-            // Insert the circle for the robot's ending position
-            stadium.insert(*geometry::construct_circle(this->radius, *endpoint));
+            // Add the circle for the robot's starting position
+            stadium.join(*geometry::construct_circle(this->radius, this->position));
+            // Add the circle for the robot's ending position
+            stadium.join(*geometry::construct_circle(this->radius, *endpoint));
 
             // Create the somewhat-rectangular portion of the stadium, with the edges defined by the robot's path type
             // The angle perpendicular to the movement direction is the angle between the movement vector of the robot and its diameter containing the rectangle vertices
@@ -166,8 +166,8 @@ namespace BURST {
                 if (midpoint == this->position || midpoint == *endpoint) rectangle_edges.emplace_back(geometry::construct_curve(geometry::Segment2D{rectangle_vertices[i], rectangle_vertices[next]}));
                 else rectangle_edges.emplace_back(geometry::construct_curve(P{rectangle_vertices[i], rectangle_vertices[next]}));
             }
-            // Form a polygon from the rectangle edges and insert it into the stadium
-            stadium.insert(geometry::CurvilinearPolygon2D{rectangle_edges.begin(), rectangle_edges.end()});
+            // Form a polygon from the rectangle edges and add it into the stadium
+            stadium.join(geometry::CurvilinearPolygon2D{rectangle_edges.begin(), rectangle_edges.end()});
             return std::optional<geometry::CurvilinearPolygonSet2D>{stadium};
         }
         std::optional<geometry::CurvilinearPolygonSet2D> certainlyCoveredArea(const numeric::fscalar& angle) const {
