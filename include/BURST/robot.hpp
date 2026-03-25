@@ -171,14 +171,15 @@ namespace BURST {
             return std::optional<geometry::CurvilinearPolygonSet2D>{stadium};
         }
 
-        void move(const numeric::fscalar& angle, bool perturbed = false) {
+        bool move(const numeric::fscalar& angle, bool perturbed = false) {
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
             std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment);
             // If the trajectory is nullopt, we can't move the robot, so return without changing the robot's position
-            if (!endpoint.has_value()) return;
+            if (!endpoint.has_value()) return false;
             // Otherwise, move the robot to the endpoint
             this->position = *endpoint;
+            return true;
         }
         
         // TODO: Implement render function once the graphics library bugs are squashed
