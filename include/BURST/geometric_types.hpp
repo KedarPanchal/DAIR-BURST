@@ -3,6 +3,7 @@
 
 #include <concepts>
 #include <initializer_list>
+#include <numeric>
 
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polygon_with_holes_2.h>
