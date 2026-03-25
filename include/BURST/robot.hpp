@@ -111,9 +111,14 @@ namespace BURST {
         }
 
         std::optional<geometry::Point2D> shootRay(const numeric::fscalar& angle, bool perturbed = false) const {
+            // Cannot shoot ray if configuration environment does not exist
+            if (!this->configuration_environment) return std::nullopt;
             return this->movement_model(this->position, perturbed ? this->rotation_model(angle) : angle, *this->configuration_environment);
         }
         std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(const numeric::fscalar& angle, bool perturbed = false) const {
+            // Cannot generate a stadium if configuration environment does not exist
+            if (!this->configuration_environment) return std::nullopt;
+
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
             std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment);
@@ -172,6 +177,9 @@ namespace BURST {
         }
 
         bool move(const numeric::fscalar& angle, bool perturbed = false) {
+            // Cannot move if configuration environment does not exist
+            if (!this->configuration_environment) return false;
+
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
             std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment);
