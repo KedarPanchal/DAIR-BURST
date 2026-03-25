@@ -452,3 +452,107 @@ TEST_F(RobotTest, StadiumFromHoleBoundaryToHoleInterior) {
     EXPECT_FALSE(maybe_stadium.has_value()) << "Expected invalid stadium from hole boundary to hole interior to be nullopt, but got a valid stadium";
 }
 
+
+// -- ROBOT MOTION TESTS -------------------------------------------------------
+
+// Test moving the robot from the boundary of the configuration space to another spot on the boundary of the configuration space
+TEST_F(RobotTest, MoveFromBoundaryToBoundary) {
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    
+    // Find the endpoint of the raycast from the robot's position to another spot on the boundary of the configuration space
+    // This is the robot's expected new position after the move
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(3 * CGAL_PI/4);
+    ASSERT_TRUE(maybe_endpoint.has_value()) << "Failed to find endpoint of robot's trajectory";
+
+    // Move the robot from its position to another spot on the boundary of the configuration space
+    bool move_result = robot->move(3 * CGAL_PI/4);
+    // Expect the move to be successful
+    EXPECT_TRUE(move_result) << "Expected successful move from boundary to boundary, but move failed";
+    // Expect the robot's new position to be the endpoint of the raycast
+    EXPECT_EQ(robot->getPosition(), *maybe_endpoint) << "Expected robot's new position to be (1, 3) after move from boundary to boundary, but got (" << robot->getPosition().x() << ", " << robot->getPosition().y() << ")";
+}
+
+// Test moving the robot from the boundary of the configuration space to a spot on the hole boundary of the configuration space
+TEST_F(RobotTest, MoveFromBoundaryToHoleBoundary) {
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Find the endpoint of the raycast from the robot's position to a spot on the hole boundary of the configuration space
+    // This is the robot's expected new position after the move
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(CGAL_PI/4);
+    ASSERT_TRUE(maybe_endpoint.has_value()) << "Failed to find endpoint of robot's trajectory";
+
+    // Move the robot from its position to a spot on the hole boundary of the configuration space
+    bool move_result = robot->move(CGAL_PI/4);
+    // Expect the move to be successful
+    EXPECT_TRUE(move_result) << "Expected successful move from boundary to hole boundary, but move failed";
+    // Expect the robot's new position to be the endpoint of the raycast
+    EXPECT_EQ(robot->getPosition(), *maybe_endpoint) << "Expected robot's new position to be (5, 3) after move from boundary to hole boundary, but got (" << robot->getPosition().x() << ", " << robot->getPosition().y() << ")";
+}
+
+// Test moving the robot from the hole boundary of the configuration space to a spot on the boundary of the configuration space
+TEST_F(RobotTest, MoveFromHoleBoundaryToBoundary) {
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 3}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of the hole
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Find the endpoint of the raycast from the robot's position to a spot on the boundary of the configuration space
+    // This is the robot's expected new position after the move
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(5 * CGAL_PI/4);
+    ASSERT_TRUE(maybe_endpoint.has_value()) << "Failed to find endpoint of robot's trajectory";
+
+    // Move the robot from its position to a spot on the boundary of the configuration space
+    bool move_result = robot->move(5 * CGAL_PI/4);
+    // Expect the move to be successful
+    EXPECT_TRUE(move_result) << "Expected successful move from hole boundary to boundary, but move failed";
+    // Expect the robot's new position to be the endpoint of the raycast
+    EXPECT_EQ(robot->getPosition(), *maybe_endpoint) << "Expected robot's new position to be (3, 1) after move from hole boundary to boundary, but got (" << robot->getPosition().x() << ", " << robot->getPosition().y() << ")";
+}
+
+// Test moving the robot from the boundary of the configuration space to a spot outside the configuration space
+TEST_F(RobotTest, MoveFromBoundaryToExterior) {
+    // Construct the robot and store its initial position
+    BURST::geometry::Point2D initial_position{3, 1};
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, initial_position, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Move the robot from its position to a spot outside the configuration space
+    bool move_result = robot->move(-CGAL_PI/2);
+    // Expect the move to fail
+    EXPECT_FALSE(move_result) << "Expected failed move from boundary to exterior, but move succeeded";
+    // Expect the robot's position to remain unchanged
+    EXPECT_EQ(robot->getPosition(), initial_position) << "Expected robot's position to remain unchanged at (3, 1) after failed move from boundary to exterior, but got (" << robot->getPosition().x() << ", " << robot->getPosition().y() << ")";
+}  
+
+// Test moving the robot from the hole boundary of the configuration space to the interior of the hole
+TEST_F(RobotTest, MoveFromHoleBoundaryToHoleInterior) {
+    // Construct the robot and store its initial position
+    BURST::geometry::Point2D initial_position{5, 3};
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, initial_position, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of the hole
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Move the robot from its position to the interior of the hole
+    bool move_result = robot->move(CGAL_PI/2);
+    // Expect the move to fail
+    EXPECT_FALSE(move_result) << "Expected failed move from hole boundary to hole interior, but move succeeded";
+    // Expect the robot's position to remain unchanged at (5, 3)
+    EXPECT_EQ(robot->getPosition(), initial_position) << "Expected robot's position to remain unchanged at (5, 3) after failed move from hole boundary to hole interior, but got (" << robot->getPosition().x() << ", " << robot->getPosition().y() << ")";
+}
