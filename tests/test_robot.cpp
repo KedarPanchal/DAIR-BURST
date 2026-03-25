@@ -323,3 +323,101 @@ TEST_F(RobotTest, RaycastFromHoleBoundaryToHoleInterior) {
     // Expect the raycast to be invalid
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid raycast from hole boundary to hole interior to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
 }
+
+// -- ROBOT STADIUM GENERATION TESTS -------------------------------------------
+
+// Test generating a stadium for a motion from the boundary of the configuration space to another spot on the boundary of the configuration space
+TEST_F(RobotTest, StadiumFromBoundaryToBoundary) {
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Generate a stadium for a motion from the robot's position to another spot on the boundary of the configuration space
+    std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = robot->coveredArea(3 * CGAL_PI/4);
+    // Expect the stadium to be valid
+    EXPECT_TRUE(maybe_stadium.has_value()) << "Expected valid stadium from boundary to boundary, but got nullopt";
+    
+    if (maybe_stadium.has_value()) {
+        // Check that the stadium contains the start, end, and midpoint of the robot's trajectory 
+        std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(3 * CGAL_PI/4);
+        ASSERT_TRUE(maybe_endpoint.has_value()) << "Failed to find endpoint of robot's trajectory";
+        BURST::geometry::Point2D midpoint = BURST::geometry::midpoint(robot->getPosition(), *maybe_endpoint);
+
+        BURST::CurvedTraits::Point_2 converted_start = BURST::CurvedTraits::Point_2{robot->getPosition().x(), robot->getPosition().y()};
+        BURST::CurvedTraits::Point_2 converted_end = BURST::CurvedTraits::Point_2{maybe_endpoint->x(), maybe_endpoint->y()};
+        BURST::CurvedTraits::Point_2 converted_midpoint = BURST::CurvedTraits::Point_2{midpoint.x(), midpoint.y()};
+
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_start) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain robot's starting position, but it does not";
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_end) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain robot's ending position, but it does not";
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_midpoint) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain midpoint of robot's trajectory, but it does not";
+    } else {
+        FAIL() << "Expected valid stadium from boundary to boundary, but got nullopt";
+    }
+}
+
+// Test generating a stadium for a motion from the boundary of the configuration space to a spot on the hole boundary of the configuration space
+TEST_F(RobotTest, StadiumFromBoundaryToHoleBoundary) {
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Generate a stadium for a motion from the robot's position to a spot on the hole boundary of the configuration space
+    std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = robot->coveredArea(CGAL_PI/4);
+    // Expect the stadium to be valid
+    EXPECT_TRUE(maybe_stadium.has_value()) << "Expected valid stadium from boundary to hole boundary, but got nullopt";
+
+    if (maybe_stadium.has_value()) {
+        // Check that the stadium contains the start, end, and midpoint of the robot's trajectory 
+        std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(CGAL_PI/4);
+        ASSERT_TRUE(maybe_endpoint.has_value()) << "Failed to find endpoint of robot's trajectory";
+        BURST::geometry::Point2D midpoint = BURST::geometry::midpoint(robot->getPosition(), *maybe_endpoint);
+
+        BURST::CurvedTraits::Point_2 converted_start = BURST::CurvedTraits::Point_2{robot->getPosition().x(), robot->getPosition().y()};
+        BURST::CurvedTraits::Point_2 converted_end = BURST::CurvedTraits::Point_2{maybe_endpoint->x(), maybe_endpoint->y()};
+        BURST::CurvedTraits::Point_2 converted_midpoint = BURST::CurvedTraits::Point_2{midpoint.x(), midpoint.y()};
+
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_start) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain robot's starting position, but it does not";
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_end) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain robot's ending position, but it does not";
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_midpoint) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain midpoint of robot's trajectory, but it does not";
+    } else {
+        FAIL() << "Expected valid stadium from boundary to hole boundary, but got nullopt";
+    }
+}
+
+// Test generating a stadium for a motion from the hole boundary of the configuration space to a spot on the boundary of the configuration space
+TEST_F(RobotTest, StadiumFromHoleBoundaryToBoundary) {
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 3}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of the hole
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Generate a stadium for a motion from the robot's position to a spot on the boundary of the configuration space
+    std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = robot->coveredArea(5 * CGAL_PI/4);
+    // Expect the stadium to be valid
+    EXPECT_TRUE(maybe_stadium.has_value()) << "Expected valid stadium from hole boundary to boundary, but got nullopt";
+
+    if (maybe_stadium.has_value()) {
+        // Check that the stadium contains the start, end, and midpoint of the robot's trajectory 
+        std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(5 * CGAL_PI/4);
+        ASSERT_TRUE(maybe_endpoint.has_value()) << "Failed to find endpoint of robot's trajectory";
+        BURST::geometry::Point2D midpoint = BURST::geometry::midpoint(robot->getPosition(), *maybe_endpoint);
+
+        BURST::CurvedTraits::Point_2 converted_start = BURST::CurvedTraits::Point_2{robot->getPosition().x(), robot->getPosition().y()};
+        BURST::CurvedTraits::Point_2 converted_end = BURST::CurvedTraits::Point_2{maybe_endpoint->x(), maybe_endpoint->y()};
+        BURST::CurvedTraits::Point_2 converted_midpoint = BURST::CurvedTraits::Point_2{midpoint.x(), midpoint.y()};
+
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_start) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain robot's starting position, but it does not";
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_end) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain robot's ending position, but it does not";
+        EXPECT_TRUE(maybe_stadium->oriented_side(converted_midpoint) == CGAL::ON_POSITIVE_SIDE) << "Expected stadium to contain midpoint of robot's trajectory, but it does not";
+    } else {
+        FAIL() << "Expected valid stadium from hole boundary to boundary, but got nullopt";
+    }
+}
