@@ -24,7 +24,7 @@ protected:
             BURST::geometry::Point2D{4, 6}
         });
         ASSERT_TRUE(hole_polygon.has_value()) << "Failed to construct hole polygon";
-        // Construct the wall space with the hol
+        // Construct the wall space with the hole
         this->wall_space = BURST::geometry::WallSpace::create({
             BURST::geometry::Point2D{0, 0},
             BURST::geometry::Point2D{10, 0},
