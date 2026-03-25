@@ -10,6 +10,12 @@
 
 #define BURST_WARNING(msg) BURST_WARNING_TO(msg, stderr)
 
+#else
+
+// Define no-op macros if warnings are disabled to prevent compile errors
+#define BURST_WARNING_TO(msg, stream) do {} while(0)
+#define BURST_WARNING(msg) do {} while(0)
+
 #endif
 
 #endif
