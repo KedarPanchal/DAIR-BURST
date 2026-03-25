@@ -24,7 +24,7 @@ protected:
             BURST::geometry::Point2D{4, 6}
         });
         ASSERT_TRUE(hole_polygon.has_value()) << "Failed to construct hole polygon";
-        // Construct the wall space with the hole
+        // Construct the wall space with the hol
         this->wall_space = BURST::geometry::WallSpace::create({
             BURST::geometry::Point2D{0, 0},
             BURST::geometry::Point2D{10, 0},
@@ -41,13 +41,13 @@ protected:
 // -- ROBOT CONSTRUCTION TESTS -------------------------------------------------
 
 // Test that a robot can be constructed with valid parameters with no explicit models or rotation seed
-TEST(RobotTest, ValidConstruction) {
+TEST_F(RobotTest, ValidConstruction) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{1, 1}, 0.1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
 }
 
 // Test that a robot can be constructed with valid parameters and a seed but no explicit models
-TEST(RobotTest, ValidConstructionWithSeed) {
+TEST_F(RobotTest, ValidConstructionWithSeed) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(
         1.0, 
         BURST::geometry::Point2D{1, 1}, 
@@ -58,7 +58,7 @@ TEST(RobotTest, ValidConstructionWithSeed) {
 }
 
 // Test that a robot can be constructed with valid parameters and explicit models
-TEST(RobotTest, ValidConstructionWithModels) {
+TEST_F(RobotTest, ValidConstructionWithModels) {
     auto robot = BURST::Robot<BURST::geometry::Ray2D, BURST::geometry::Segment2D, std::mt19937, BURST::numeric::flat_distribution>::create(
         1.0, 
         BURST::geometry::Point2D{1, 1}, 
@@ -69,13 +69,13 @@ TEST(RobotTest, ValidConstructionWithModels) {
 }
 
 // Test that a robot cannot be constructed with invalid parameters with no explicit models or rotation seed
-TEST(RobotTest, InvalidConstruction) {
+TEST_F(RobotTest, InvalidConstruction) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(-1.0, BURST::geometry::Point2D{1, 1}, 0.1);
     ASSERT_FALSE(robot.has_value()) << "Successfully constructed robot with invalid parameters";
 }
 
 // Test that a robot cannot be constructed with invalid parameters and a seed but no explicit models
-TEST(RobotTest, InvalidConstructionWithSeed) {
+TEST_F(RobotTest, InvalidConstructionWithSeed) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(
         -1.0, 
         BURST::geometry::Point2D{1, 1}, 
@@ -86,7 +86,7 @@ TEST(RobotTest, InvalidConstructionWithSeed) {
 }
 
 // Test that a robot cannot be constructed with invalid parameters and explicit models
-TEST(RobotTest, InvalidConstructionWithModels) {
+TEST_F(RobotTest, InvalidConstructionWithModels) {
     auto robot = BURST::Robot<BURST::geometry::Ray2D, BURST::geometry::Segment2D, std::mt19937, BURST::numeric::flat_distribution>::create(
         -1.0, 
         BURST::geometry::Point2D{1, 1}, 
