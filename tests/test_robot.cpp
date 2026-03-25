@@ -1,4 +1,4 @@
-#include "BURST/numeric_types.hpp"
+#include <BURST/numeric_types.hpp>
 #include <gtest/gtest.h>
 
 #include <BURST/robot.hpp>
