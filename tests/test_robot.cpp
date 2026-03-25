@@ -293,3 +293,33 @@ TEST_F(RobotTest, RaycastFromHoleBoundaryToBoundary) {
     // Expect the raycast to be valid
     EXPECT_TRUE(maybe_endpoint.has_value()) << "Expected valid raycast from hole boundary to boundary, but got nullopt";
 }
+
+// Test that a raycast from a robot on the boundary of the configuration space to a spot outside the configuration space is invalid
+TEST_F(RobotTest, RaycastFromBoundaryToExterior) {
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Perform a raycast from the robot's position to a spot outside the configuration space
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(-CGAL_PI/2);
+    // Expect the raycast to be invalid
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid raycast from boundary to exterior to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
+}
+
+// Test that a raycast from a robot on the hole boundary of the configuration space to the interior of the hole is invalid
+TEST_F(RobotTest, RaycastFromHoleBoundaryToHoleInterior) {
+    // Construct the robot
+    std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 3}, 1);
+    ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
+    // Assign it a configuration space that it is already on the boundary of the hole
+    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+
+    // Perform a raycast from the robot's position to the interior of the hole
+    std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(CGAL_PI/2);
+    // Expect the raycast to be invalid
+    EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid raycast from hole boundary to hole interior to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
+}
