@@ -96,6 +96,14 @@ namespace BURST::numeric {
         return a0 + a1 * CGAL::sqrt(root);
     }
 
+    // Converts a number to a string
+    template <typename N>
+    std::string to_string(const N& value) {
+        std::ostringstream str_representation;
+        str_representation << std::setprecision(100) << value;
+        return str_representation.str();
+    }
+
     // -- UTILITY TYPES --------------------------------------------------------
     
     /*

@@ -24,10 +24,10 @@ namespace BURST {
      * Its rotational and translational movements are affected by noise and uses models to determine the impact of this noise.
      */
     template <
-        geometry::valid_trajectory_type Trajectory = geometry::Ray2D, 
-        geometry::valid_path_type Path = geometry::Segment2D,
-        numeric::valid_rng PRNG = std::mt19937, 
-        numeric::valid_distribution<PRNG> Dist = std::uniform_real_distribution<double>
+        geometry::valid_trajectory_type T = geometry::Ray2D, 
+        geometry::valid_path_type P = geometry::Segment2D,
+        numeric::valid_rng R = std::mt19937, 
+        numeric::valid_distribution<R> D = std::uniform_real_distribution<double>
     >
     class Robot : public Renderable {
     private:
@@ -35,8 +35,8 @@ namespace BURST {
         geometry::Point2D position;
         std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_environment;
 
-        models::RotationModel<PRNG, Dist> rotation_model;
-        models::MovementModel<Trajectory, Path> movement_model;
+        models::RotationModel<R, D> rotation_model;
+        models::MovementModel<T, P> movement_model;
 
         // Custom hash function for points used as a helper
         // Quick and dirty so we don't need to be overly concerned with collisions
@@ -52,24 +52,31 @@ namespace BURST {
 
     protected:
         // Protected constructor since preconditions are validated by public static create functions
-        Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<PRNG, Dist> rotation_model, models::MovementModel<Trajectory, Path> movement_model) : 
+        Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) : 
             radius{robot_radius}, 
             position{starting_point}, 
             rotation_model{rotation_model}, 
             movement_model{movement_model} {}
-       
+              
     public:
+        using Trajectory = T;
+        using Path = P;
+        using PRNG = R;
+        using Dist = D;
+        using RotationModelType = models::RotationModel<R, D>;
+        using MovementModelType = models::MovementModel<T, P>;
+
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) return std::nullopt;
-            else return std::optional<Robot>{Robot{robot_radius, starting_point, models::MaximumRotationModel{max_rotation_error}, models::MovementModel<Trajectory, Path>{}}};
+            else return std::optional<Robot>{Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error}, models::MovementModel<T, P>{}}};
         }
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) return std::nullopt;
-            else return std::optional<Robot>{Robot{robot_radius, starting_point, models::MaximumRotationModel{max_rotation_error, rotation_seed}, models::MovementModel<Trajectory, Path>{}}};
+            else return std::optional<Robot>{Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error, rotation_seed}, models::MovementModel<T, P>{}}};
         }
-        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<PRNG, Dist> rotation_model, models::MovementModel<Trajectory, Path> movement_model) {
+        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) return std::nullopt;
             else return std::optional<Robot>{Robot{robot_radius, starting_point, rotation_model, movement_model}};
@@ -79,13 +86,15 @@ namespace BURST {
         void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
             this->configuration_environment = std::move(config_environment);
             if (!this->configuration_environment->intersection(this->position).has_value()) {
-                BURST_WARNING("Robot's current position (" + this->position.x() + ", " + this->position.y() + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.");
+                std::string warning_string = "Robot's current position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
+                BURST_WARNING(warning_string.c_str());
             }
         }
         void setPosition(const geometry::Point2D& new_position) {
             this->position = new_position;
             if (!this->configuration_environment->intersection(this->position).has_value()) {
-                BURST_WARNING("Robot's new position (" + this->position.x() + ", " + this->position.y() + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.");
+                std::string warning_string = "Robot's new position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
+                BURST_WARNING(warning_string.c_str());
             }
         }
         const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const {
@@ -150,10 +159,10 @@ namespace BURST {
             for (size_t i = 0; i < rectangle_vertices.size(); ++i) {
                 size_t next = (i + 1) % rectangle_vertices.size();
                 // Check if both points are on a diameter (i.e., their midpoint is the start or end point of the robot's trajectory)
-                // If so, construct a diameter segment, otherwise construct a Path
+                // If so, construct a diameter segment, otherwise construct a P
                 geometry::Point2D midpoint = geometry::midpoint(rectangle_vertices[i], rectangle_vertices[next]);
                 if (midpoint == this->position || midpoint == *endpoint) rectangle_edges.emplace_back(geometry::construct_curve(geometry::Segment2D{rectangle_vertices[i], rectangle_vertices[next]}));
-                else rectangle_edges.emplace_back(geometry::construct_curve(Path{rectangle_vertices[i], rectangle_vertices[next]}));
+                else rectangle_edges.emplace_back(geometry::construct_curve(P{rectangle_vertices[i], rectangle_vertices[next]}));
             }
             // Form a polygon from the rectangle edges and insert it into the stadium
             stadium.insert(geometry::CurvilinearPolygon2D{rectangle_edges.begin(), rectangle_edges.end()});
