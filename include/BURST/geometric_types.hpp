@@ -105,6 +105,16 @@ namespace BURST::geometry {
     inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
         return average<std::initializer_list<Point2D>>(points);
     }
+
+    template <typename T, typename F>
+        requires requires(const F& from_point) {
+            F{from_point.x(), from_point.y()};
+        } && requires(const T& to_point) {
+            T{to_point.x(), to_point.y()};
+        }
+    T convert_point(const F& from_point) {
+        return T{from_point.x(), from_point.y()};
+    }
  
     template <valid_path_type P>
     CurvedTraits::X_monotone_curve_2 construct_curve(const P& path) {
