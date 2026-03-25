@@ -81,7 +81,15 @@ namespace BURST {
             if (robot_radius <= 0) return std::nullopt;
             else return std::optional<Robot>{Robot{robot_radius, starting_point, rotation_model, movement_model}};
         }
-
+        const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const {
+            return *this->configuration_environment;
+        }
+        numeric::fscalar getRadius() const {
+            return this->radius;
+        }
+        BURST::geometry::Point2D getPosition() const {
+            return this->position;
+        }
         // Precondition: The robot is on the border of the configuration space
         void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
             this->configuration_environment = std::move(config_environment);
@@ -96,12 +104,6 @@ namespace BURST {
                 std::string warning_string = "Robot's new position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
                 BURST_WARNING(warning_string.c_str());
             }
-        }
-        const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const {
-            return *this->configuration_environment;
-        }
-        numeric::fscalar getRadius() const {
-            return this->radius;
         }
 
         numeric::fscalar perturb(const numeric::fscalar& angle) const {
