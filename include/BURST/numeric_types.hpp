@@ -65,11 +65,16 @@ namespace BURST::numeric {
     }
 
     // Converts a number to a high-precision scalar
+    // TODO: Make this more efficient as the string conversion has a lot of overhead
     template <typename FT>
     hpscalar to_high_precision(const FT& value) {
-        std::ostringstream str_representation;
-        str_representation << std::setprecision(100) << value; // 100-decimal precision string
-        return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
+        if constexpr (std::same_as<FT, hpscalar>) {
+            return value; // No conversion needed
+        } else {
+            std::ostringstream str_representation;
+            str_representation << std::setprecision(100) << value; // 100-decimal precision string
+            return hpscalar{str_representation.str()}; // Construct high-precision scalar from string
+        }
     }
 
     // Converts a number to an fscalar
@@ -89,6 +94,14 @@ namespace BURST::numeric {
         fscalar root = value.root();
 
         return a0 + a1 * CGAL::sqrt(root);
+    }
+
+    // Converts a number to a string
+    template <typename N>
+    std::string to_string(const N& value) {
+        std::ostringstream str_representation;
+        str_representation << std::setprecision(100) << value;
+        return str_representation.str();
     }
 
     // -- UTILITY TYPES --------------------------------------------------------

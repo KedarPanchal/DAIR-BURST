@@ -11,6 +11,7 @@
 #include <iterator>
 #include <vector>
 
+#include "geometric_types.hpp"
 #include "numeric_types.hpp"
 #include "configuration_space.hpp"
 
@@ -30,7 +31,7 @@ namespace BURST::models {
         mutable Dist rand_dist; // Generate from -1 to 1 to scale max_rotation_error by
 
     public:
-        RotationModel(numeric::fscalar max_rotation_error, unsigned int seed = std::random_device{}()) : max_rotation_error{max_rotation_error}, prng{seed}, rand_dist{-1.0, 1.0} {}
+        RotationModel(numeric::fscalar max_rotation_error, unsigned int seed = std::random_device{}()) : max_rotation_error{CGAL::abs(max_rotation_error)}, prng{seed}, rand_dist{-1.0, 1.0} {}
 
         numeric::fscalar operator() (numeric::fscalar angle) const {
             // Generate a random rotation error scaled by max_rotation_error
@@ -114,6 +115,22 @@ namespace BURST::models {
     };
 
     using LinearMovementModel = MovementModel<geometry::Ray2D, geometry::Segment2D>;
+    
+    // Internal implementations not intended for public use
+    namespace detail {
+        /*
+         * Declare type traits to check if a type is a valid movement model
+         * This means it must be an instantiation of the MovementModel template
+         * Since the library is targeting C++20, this SFINAE needs to be used in tandem with concepts, since is_specialization_of is a C++23 feature
+         */
+        template <typename T>
+        struct is_valid_movement_model : std::false_type {};
+        template <typename Trajectory, typename Path>
+        struct is_valid_movement_model<BURST::models::MovementModel<Trajectory, Path>> : std::true_type {}; 
+    }
+    
+    template <typename M>
+    using valid_movement_model = detail::is_valid_movement_model<M>::value;
     
 }
 #endif
