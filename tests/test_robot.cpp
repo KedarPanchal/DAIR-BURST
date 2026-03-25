@@ -324,6 +324,7 @@ TEST_F(RobotTest, RaycastFromHoleBoundaryToHoleInterior) {
     EXPECT_FALSE(maybe_endpoint.has_value()) << "Expected invalid raycast from hole boundary to hole interior to not have an endpoint, but got a valid endpoint at (" << maybe_endpoint->x() << ", " << maybe_endpoint->y() << ")";
 }
 
+
 // -- ROBOT STADIUM GENERATION TESTS -------------------------------------------
 
 // Test generating a stadium for a motion from the boundary of the configuration space to another spot on the boundary of the configuration space
@@ -450,3 +451,4 @@ TEST_F(RobotTest, StadiumFromHoleBoundaryToHoleInterior) {
     // Expect the stadium to be invalid
     EXPECT_FALSE(maybe_stadium.has_value()) << "Expected invalid stadium from hole boundary to hole interior to be nullopt, but got a valid stadium";
 }
+
