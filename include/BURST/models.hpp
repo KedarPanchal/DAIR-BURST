@@ -129,8 +129,8 @@ namespace BURST::models {
         struct is_valid_movement_model<BURST::models::MovementModel<Trajectory, Path>> : std::true_type {}; 
     }
     
-    template <geometry::valid_trajectory_type T, geometry::valid_path_type P>
-    using valid_movement_model = detail::is_valid_movement_model<MovementModel<T, P>>;
+    template <typename M>
+    using valid_movement_model = detail::is_valid_movement_model<M>::value;
     
 }
 #endif
