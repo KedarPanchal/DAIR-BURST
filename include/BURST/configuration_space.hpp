@@ -19,6 +19,7 @@
 #include "geometric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"
+#include "logging.hpp"
 
 namespace BURST::geometry {
     
@@ -63,8 +64,8 @@ namespace BURST::geometry {
             return this->configuration_shape.arrangement();
         }
 
-        // TODO: Make a separate function return the edge the point intersects at
-        bool onBoundary(const Point2D& point) const noexcept {
+        // TODO: Make this function return the edge the point intersects at
+        bool intersection(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
             if (this->configuration_shape.oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY) return true;
