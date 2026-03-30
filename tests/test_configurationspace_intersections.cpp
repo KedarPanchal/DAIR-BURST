@@ -65,7 +65,7 @@ protected:
 };
 
 
-// -- REGULAR POLYGON POINT INTERSECTION TESTS ---------------------------------
+// -- REGULAR POLYGON POINT EDGE MEMBERSHIP TESTS ------------------------------
 
 // Test point intersection for a ConfigurationSpace with a regular polygon
 // TODO: Once the point intersection function is updated to return an edge, update this test case accordingly
@@ -74,7 +74,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, PointIntersectionRegula
     BURST::geometry::Point2D intersection_point{1, 5};
 
     // Expect the point to intersect with the ConfigurationSpace
-    EXPECT_TRUE(this->configuration_space->intersection(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    EXPECT_TRUE(this->configuration_space->onEdge(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
 }
 
 // Test point intersection at a corner for a ConfigurationSpace with a regular polygon
@@ -84,7 +84,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, PointIntersectionAtCorn
     BURST::geometry::Point2D intersection_point{1, 1};
 
     // Expect the point to intersect with the ConfigurationSpace
-    EXPECT_TRUE(this->configuration_space->intersection(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    EXPECT_TRUE(this->configuration_space->onEdge(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
 }
 
 // Test invalid point intersection on the interior of a ConfigurationSpace with a regular polygon
@@ -94,7 +94,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, InvalidPointIntersectio
     BURST::geometry::Point2D intersection_point{5, 5};
 
     // Expect the point to not intersect with the ConfigurationSpace
-    EXPECT_FALSE(this->configuration_space->intersection(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->onEdge(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 // Test invalid point intersection on the exterior of a ConfigurationSpace with a regular polygon
@@ -104,11 +104,11 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, InvalidPointIntersectio
     BURST::geometry::Point2D intersection_point{15, 5};
 
     // Expect the point to not intersect with the ConfigurationSpace
-    EXPECT_FALSE(this->configuration_space->intersection(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->onEdge(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 
-// -- CONCAVE POLYGON POINT INTERSECTION TESTS ---------------------------------
+// -- CONCAVE POLYGON POINT EDGE MEMBERSHIP TESTS ------------------------------
 
 // Test point intersection for a ConfigurationSpace with a concave polygon
 // TODO: Once the point intersection function is updated to return an edge, update this test case accordingly
@@ -117,7 +117,7 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, PointIntersectionConcav
     BURST::geometry::Point2D intersection_point{0, 1};
 
     // Expect the point to intersect with the ConfigurationSpace
-    EXPECT_TRUE(this->configuration_space->intersection(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    EXPECT_TRUE(this->configuration_space->onEdge(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
 }
 
 // Test invalid point intersection on the interior of a ConfigurationSpace with a concave polygon
@@ -127,7 +127,7 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, InvalidPointIntersectio
     BURST::geometry::Point2D intersection_point{0, 5};
 
     // Expect the point to not intersect with the ConfigurationSpace
-    EXPECT_FALSE(this->configuration_space->intersection(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->onEdge(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 // Test invalid point intersection on the exterior of a ConfigurationSpace with a concave polygon
@@ -137,7 +137,7 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, InvalidPointIntersectio
     BURST::geometry::Point2D intersection_point{0, 100};
 
     // Expect the point to not intersect with the ConfigurationSpace
-    EXPECT_FALSE(this->configuration_space->intersection(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->onEdge(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 

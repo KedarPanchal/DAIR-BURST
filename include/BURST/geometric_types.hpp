@@ -122,11 +122,11 @@ namespace BURST::geometry {
 
     template <typename T, typename F>
         requires requires(const F& from_point) {
-            F{from_point.x(), from_point.y()};
             T{from_point.x(), from_point.y()};
         } 
     T convert_point(const F& from_point) {
-        return T{from_point.x(), from_point.y()};
+        using TP = decltype(std::declval<T>().x());
+        return T{TP(from_point.x()), TP(from_point.y())};
     }
  
     template <valid_path_type P>

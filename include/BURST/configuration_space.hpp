@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <variant>
 
-#include <CGAL/Arr_landmarks_point_location.h>
+#include <CGAL/Arr_naive_point_location.h>
 #include <CGAL/Graphics_scene.h>
 
 #include <boost/container/small_vector.hpp>
@@ -80,10 +80,7 @@ namespace BURST::geometry {
         std::optional<std::variant<MonotoneCurve2D, Point2D>> intersection(const Point2D& point) const noexcept {
             // Attempt to find the point in the arrangement of the configuration space using a landmarks point location
             auto converted_point = convert_point<CurvilinearPolygonSet2D::Arrangement_2::Point_2>(point);
-            auto result = CGAL::Arr_landmarks_point_location<
-                CurvilinearPolygonSet2D::Arrangement_2, 
-                CGAL::Arr_landmarks_vertices_generator<CurvilinearPolygonSet2D::Arrangement_2>
-            >{this->arrangement()}.locate(converted_point);
+            auto result = CGAL::Arr_naive_point_location<CurvilinearPolygonSet2D::Arrangement_2>{this->arrangement()}.locate(converted_point);
 
             // Handle according to the type of the result
             // If the point is located on a face, then it's not an intersection since the point is not on the boundary of the configuration space
