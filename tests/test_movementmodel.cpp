@@ -91,7 +91,7 @@ protected:
                 auto y1 = cy + CGAL::sqrt(radius_2 - dx*dx);
                 auto y2 = cy - CGAL::sqrt(radius_2 - dx*dx);
                 // Choose the solution that lies on the configuration space
-                auto y = this->configuration_space->intersection(BURST::geometry::Point2D{origin_x, y1}).has_value() ? y1 : y2;
+                auto y = this->configuration_space->intersection(BURST::geometry::Point2D{origin_x, y1}) ? y1 : y2;
 
                 result_point = BURST::geometry::Point2D{origin_x, y};
             } else { // This should never happen since the configuration space should only have linear and circular edges, but handle it anyway

@@ -63,12 +63,11 @@ namespace BURST::geometry {
             return this->configuration_shape.arrangement();
         }
 
-        // TODO: Make this return the edge the point intersects with instead of just the point itself
-        std::optional<Point2D> intersection(const Point2D& point) const noexcept {
+        // TODO: Make this function return the edge the point intersects at
+        bool intersection(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
-            if (this->configuration_shape.oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY) return std::optional<Point2D>{point};
-            return std::nullopt;
+            return this->configuration_shape.oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY;
         }
 
         bool contains(const Point2D& point) const noexcept {

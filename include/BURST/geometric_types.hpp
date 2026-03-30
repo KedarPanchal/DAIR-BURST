@@ -19,6 +19,7 @@
 
 #include "kernel_types.hpp"
 #include "numeric_types.hpp"
+#include "logging.hpp"
 
 namespace BURST::geometry {
 
@@ -77,10 +78,16 @@ namespace BURST::geometry {
     template <valid_geometric_collection<Point2D> C>
     std::optional<Polygon2D> construct_polygon(const C& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         // Can't make a polygon with 2 or fewer points
-        if (std::ranges::size(points) <= 2) return std::nullopt; 
+        if (std::ranges::size(points) <= 2) {
+            BURST_ERROR("Cannot construct a polygon with 2 or fewer points, collection is degenerate");
+            return std::nullopt;
+        }
 
         // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
-        if (!CGAL::is_simple_2(std::ranges::begin(points), std::ranges::end(points), LinearTraits{})) return std::nullopt; 
+        if (!CGAL::is_simple_2(std::ranges::begin(points), std::ranges::end(points), LinearTraits{})) {
+            BURST_ERROR("Cannot construct a polygon from the given collection of points for one of the following reasons: the polygon is self-intersecting, not simple, or degenerate");
+            return std::nullopt;
+        }
 
         // Create the polygon from the input points and return it
         Polygon2D polygon{std::ranges::begin(points), std::ranges::end(points)};
@@ -97,7 +104,10 @@ namespace BURST::geometry {
     template <valid_geometric_collection<Point2D> C>
     std::optional<Point2D> average(const C& points) {
         // Can't compute the average of an empty collection
-        if (std::ranges::size(points) == 0) return std::nullopt;
+        if (std::ranges::size(points) == 0) {
+            BURST_ERROR("Cannot compute the average of an empty collection of points");
+            return std::nullopt;
+        }
 
         Point2D sum = std::accumulate(points.begin(), points.end(), Point2D{0, 0}, [](const Point2D& acc, const Point2D& point) {
             return Point2D{acc.x() + point.x(), acc.y() + point.y()};
@@ -129,7 +139,10 @@ namespace BURST::geometry {
        
     inline std::optional<CurvilinearPolygon2D> construct_circle(const numeric::fscalar& radius, const Point2D& center) {
         // Only construct circles with positive radius
-        if (radius <= 0) return std::nullopt;
+        if (radius <= 0) {
+            BURST_ERROR("Cannot construct a circle with non-positive radius");
+            return std::nullopt;
+        }
         CGAL::Circle_2<Kernel> circle = CGAL::Circle_2<Kernel>{center, radius * radius};
 
         boost::container::small_vector<CurvedTraits::X_monotone_curve_2, 2> semicircles{

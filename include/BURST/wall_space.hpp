@@ -4,7 +4,6 @@
 #include <optional>
 #include <memory>
 #include <iterator>
-#include <variant>
 
 #include <CGAL/approximated_offset_2.h>
 #include <CGAL/General_polygon_set_2.h>
@@ -18,6 +17,7 @@
 #include "renderable.hpp"
 #include "configuration_space.hpp"
 #include "robot.hpp"
+#include "logging.hpp"
 
 namespace BURST::geometry {
     
@@ -50,7 +50,10 @@ namespace BURST::geometry {
             // If there are multiple polygons, then there were regions too tight for the robot to fit in, and no configuration space could be made
             // TODO: For the above case, check with Dr. Shell if that's something worth allowing in the final sim
             // In both cases, return nullptr
-            if (outer_inset_results.size() != 1) return nullptr;
+            if (outer_inset_results.size() != 1) {
+                BURST_ERROR("Wall polygon is too small for the robot, no configuration space could be generated");
+                return nullptr;
+            }
             // Reverse the resulting polygon's rotation if it's not counterclockwise
             if (outer_inset_results.front().orientation() != CGAL::COUNTERCLOCKWISE) outer_inset_results.front().reverse_orientation();
 
@@ -94,7 +97,10 @@ namespace BURST::geometry {
             // Check that each hole is clockwise-oriented
             for (const Polygon2D& hole : holes) {
                 // Degenerate hole polygon, can't create a wall geometry
-                if (!hole.is_simple()) return std::nullopt; 
+                if (!hole.is_simple()) {
+                    BURST_ERROR("Hole polygon is degenerate, can't create a wall geometry");
+                    return std::nullopt;
+                }
                 // Holes must be oriented clockwise, so reverse the orientation if not
                 Polygon2D oriented_hole = hole;
                 if (hole.orientation() != CGAL::CLOCKWISE) oriented_hole.reverse_orientation();
@@ -107,7 +113,12 @@ namespace BURST::geometry {
             // Each hole is a simple polygon and clockwise-oriented
             // Holes are inside the outer boundary and do not intersect with each other
             // Return nullopt if any of these conditions are violated
-            return CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{}) ? std::optional<WallSpace>{WallSpace{wall_shape}} : std::nullopt;
+            if (CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{})) {
+                return std::optional<WallSpace>{WallSpace{wall_shape}};
+            } else {
+                BURST_ERROR("Resulting wall polygon with holes is invalid with one of: degenerate outer boundary, degenerate hole, hole not inside outer boundary, or holes intersecting each other. Can't create a wall geometry");
+                return std::nullopt;
+            }
         }
         // Inlined overloads for std::initializer_list since it doesn't satisfy the sized_range condition below C++23
         inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points) {
@@ -128,13 +139,12 @@ namespace BURST::geometry {
         // Template is not needed for any implementation, but is needed for Robot
         // Thus this can be ommitted when called and the template parameters can be inferred
         template <typename T, typename P, typename R, typename D>
-        std::optional<std::monostate> generateConfigurationSpace(Robot<T, P, R, D>& robot) const {
+        bool generateConfigurationSpace(Robot<T, P, R, D>& robot) const {
             auto config_geometry = this->constructConfigurationSpace(robot.getRadius());
-            if (!config_geometry) return std::nullopt; // Degenerate configuration geometry, can't set it for the robot
+            if (!config_geometry) return false; // Degenerate configuration geometry, can't set it for the robot
             robot.setConfigurationEnvironment(std::move(config_geometry));
 
-            // monostate is used as a replacement for void while still keeping the return type as an optional to indicate failure
-            return std::optional<std::monostate>{std::monostate{}}; 
+            return true;
         }
 
         void render(graphics::Scene& scene) const noexcept override {

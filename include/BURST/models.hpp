@@ -14,6 +14,7 @@
 #include "geometric_types.hpp"
 #include "numeric_types.hpp"
 #include "configuration_space.hpp"
+#include "logging.hpp"
 
 // Contains models for how the robot's rotation and movement are affected by noise
 namespace BURST::models {
@@ -76,7 +77,10 @@ namespace BURST::models {
     public:
         std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
-            if (!configuration_space.intersection(origin).has_value()) return std::nullopt;
+            if (!configuration_space.intersection(origin)) {
+                BURST_ERROR("Origin point does not lie on the configuration space boundary, path is invalid");
+                return std::nullopt;
+            }
 
             // Create a direction vector from the angle
             numeric::hpscalar hp_angle = numeric::to_high_precision(angle);
@@ -88,7 +92,11 @@ namespace BURST::models {
             std::vector<geometry::Point2D> intersection_points;
             // Get the intersection of the trajectory with the configuration space boundary
             size_t intersection_count = configuration_space.intersection<Trajectory, Path>(trajectory, std::back_inserter(intersection_points));
-            if (intersection_count == 0) return std::nullopt; // If there are no intersections, then the path is invalid, so return nullopt
+            // If there are no intersections, then the path is invalid, so return nullopt
+            if (intersection_count == 0) {
+                BURST_ERROR("Trajectory does not intersect with the configuration space boundary, path is invalid");
+                return std::nullopt;
+            }
             // The closest intersection to the point of origin is the endpoint
             // This should never throw since there's already a check for no intersections
             geometry::Point2D endpoint = *std::min_element(intersection_points.begin(), intersection_points.end(), [&origin](const geometry::Point2D& a, const geometry::Point2D& b) {
@@ -99,7 +107,12 @@ namespace BURST::models {
             // This can be done by computing the midpoint of the trajectory from the origin to the endpoint and checking if it lies inside the configuration space
             // If it does, then the trajectory points inward, and the path is valid, so return the endpoint, otherwise return nullopt
             geometry::Point2D midpoint = geometry::midpoint(origin, endpoint);
-            return configuration_space.contains(midpoint) ? std::optional<geometry::Point2D>{endpoint} : std::nullopt;
+            if (configuration_space.contains(midpoint)) {
+                return std::optional<geometry::Point2D>{endpoint};
+            } else {
+                BURST_ERROR("Trajectory points outward from the configuration space, path is invalid");
+                return std::nullopt;
+            }
         }
         std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function
@@ -108,7 +121,10 @@ namespace BURST::models {
             // If the endpoint doesn't exist, then the path is invalid, so return nullopt
             if (!maybe_endpoint.has_value()) return std::nullopt;
             // If the origin and endpoint are the same, then the path is invalid, so return nullopt
-            if (*maybe_endpoint == origin) return std::nullopt;
+            if (*maybe_endpoint == origin) {
+                BURST_ERROR("Origin and endpoint of the path are the same, path is invalid");
+                return std::nullopt;
+            }
             // Otherwise generate a path from the origin to the endpoint and return it
             return std::optional<Path>{Path{origin, *maybe_endpoint}};
         }

@@ -108,8 +108,8 @@ TEST_F(RobotTest, NoWarningOnConfigurationSpace) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Check that no warning was issued
     std::string warning = testing::internal::GetCapturedStderr();
@@ -125,8 +125,8 @@ TEST_F(RobotTest, NoWarningOnConfigurationSpaceHoleBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{4, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Check that no warning was issued
     std::string warning = testing::internal::GetCapturedStderr();
@@ -142,8 +142,8 @@ TEST_F(RobotTest, WarningOnConfigurationSpace) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 5}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is not on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Check that a warning was issued
     std::string warning = testing::internal::GetCapturedStderr();
@@ -159,8 +159,8 @@ TEST_F(RobotTest, NoWarningOnPosition) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
     // Set a new position that is on the boundary of the configuration space
     robot->setPosition(BURST::geometry::Point2D{4, 1});
 
@@ -178,8 +178,8 @@ TEST_F(RobotTest, NoWarningOnPositionHoleBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{4, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
     // Set a new position that is on the boundary of the hole in the configuration space
     robot->setPosition(BURST::geometry::Point2D{5, 3});
 
@@ -197,8 +197,8 @@ TEST_F(RobotTest, NoWarningOnPositionFromBoundaryToHoleBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
     // Set a new position that is on the boundary of the hole in the configuration space
     robot->setPosition(BURST::geometry::Point2D{5, 3});
 
@@ -216,8 +216,8 @@ TEST_F(RobotTest, NoWarningOnPositionFromHoleBoundaryToBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{4, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
     // Set a new position that is on the boundary of the configuration space
     robot->setPosition(BURST::geometry::Point2D{4, 1});
 
@@ -235,8 +235,8 @@ TEST_F(RobotTest, WarningOnPosition) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{6, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
     // Set a new position that is not on the boundary of the configuration space or hole boundary
     robot->setPosition(BURST::geometry::Point2D{5, 5});
 
@@ -254,8 +254,8 @@ TEST_F(RobotTest, RaycastFromBoundaryToBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Perform a raycast from the robot's position to another spot on the boundary of the configuration space
     std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(3 * CGAL_PI/4);
@@ -270,8 +270,8 @@ TEST_F(RobotTest, RaycastFromBoundaryToHoleBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Perform a raycast from the robot's position to a spot on the hole boundary of the configuration space
     std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(CGAL_PI/4);
@@ -285,8 +285,8 @@ TEST_F(RobotTest, RaycastFromHoleBoundaryToBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Perform a raycast from the robot's position to a spot on the boundary of the configuration space
     std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(5 * CGAL_PI/4);
@@ -300,8 +300,8 @@ TEST_F(RobotTest, RaycastFromBoundaryToExterior) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Perform a raycast from the robot's position to a spot outside the configuration space
     std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(-CGAL_PI/2);
@@ -315,8 +315,8 @@ TEST_F(RobotTest, RaycastFromHoleBoundaryToHoleInterior) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Perform a raycast from the robot's position to the interior of the hole
     std::optional<BURST::geometry::Point2D> maybe_endpoint = robot->shootRay(CGAL_PI/2);
@@ -333,8 +333,8 @@ TEST_F(RobotTest, StadiumFromBoundaryToBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Generate a stadium for a motion from the robot's position to another spot on the boundary of the configuration space
     std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = robot->coveredArea(3 * CGAL_PI/4);
@@ -365,8 +365,8 @@ TEST_F(RobotTest, StadiumFromBoundaryToHoleBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Generate a stadium for a motion from the robot's position to a spot on the hole boundary of the configuration space
     std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = robot->coveredArea(CGAL_PI/4);
@@ -397,8 +397,8 @@ TEST_F(RobotTest, StadiumFromHoleBoundaryToBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Generate a stadium for a motion from the robot's position to a spot on the boundary of the configuration space
     std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = robot->coveredArea(5 * CGAL_PI/4);
@@ -428,8 +428,8 @@ TEST_F(RobotTest, StadiumFromBoundaryToExterior) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Generate a stadium for a motion from the robot's position to a spot outside the configuration space
     std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = robot->coveredArea(-CGAL_PI/2);
@@ -443,8 +443,8 @@ TEST_F(RobotTest, StadiumFromHoleBoundaryToHoleInterior) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Generate a stadium for a motion from the robot's position to the interior of the hole
     std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = robot->coveredArea(CGAL_PI/2);
@@ -461,8 +461,8 @@ TEST_F(RobotTest, MoveFromBoundaryToBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
     
     // Find the endpoint of the raycast from the robot's position to another spot on the boundary of the configuration space
     // This is the robot's expected new position after the move
@@ -483,8 +483,8 @@ TEST_F(RobotTest, MoveFromBoundaryToHoleBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{3, 1}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Find the endpoint of the raycast from the robot's position to a spot on the hole boundary of the configuration space
     // This is the robot's expected new position after the move
@@ -505,8 +505,8 @@ TEST_F(RobotTest, MoveFromHoleBoundaryToBoundary) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, BURST::geometry::Point2D{5, 3}, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Find the endpoint of the raycast from the robot's position to a spot on the boundary of the configuration space
     // This is the robot's expected new position after the move
@@ -528,8 +528,8 @@ TEST_F(RobotTest, MoveFromBoundaryToExterior) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, initial_position, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Move the robot from its position to a spot outside the configuration space
     bool move_result = robot->move(-CGAL_PI/2);
@@ -546,8 +546,8 @@ TEST_F(RobotTest, MoveFromHoleBoundaryToHoleInterior) {
     std::optional<BURST::Robot<>> robot = BURST::Robot<>::create(1.0, initial_position, 1);
     ASSERT_TRUE(robot.has_value()) << "Failed to construct robot with valid parameters";
     // Assign it a configuration space that it is already on the boundary of the hole
-    std::optional<std::monostate> result = this->wall_space->generateConfigurationSpace(*robot);
-    ASSERT_TRUE(result.has_value()) << "Failed to generate configuration space for robot";
+    bool result = this->wall_space->generateConfigurationSpace(*robot);
+    ASSERT_TRUE(result) << "Failed to generate configuration space for robot";
 
     // Move the robot from its position to the interior of the hole
     bool move_result = robot->move(CGAL_PI/2);
