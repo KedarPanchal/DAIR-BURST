@@ -19,7 +19,6 @@
 #include "geometric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"
-#include "logging.hpp"
 
 namespace BURST::geometry {
     
