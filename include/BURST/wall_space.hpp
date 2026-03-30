@@ -114,7 +114,7 @@ namespace BURST::geometry {
             // Holes are inside the outer boundary and do not intersect with each other
             // Return nullopt if any of these conditions are violated
             if (CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{})) {
-                return std::optional<WallSpace>{WallSpace{wall_shape}};
+                return WallSpace{wall_shape};
             } else {
                 BURST_ERROR("Resulting wall polygon with holes is invalid with one of: degenerate outer boundary, degenerate hole, hole not inside outer boundary, or holes intersecting each other. Can't create a wall geometry");
                 return std::nullopt;

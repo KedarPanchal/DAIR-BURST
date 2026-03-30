@@ -95,7 +95,7 @@ namespace BURST::geometry {
         // If the polygon is not oriented as expected, reverse the orientation to ensure it's a valid polygon for CGAL
         if (polygon.orientation() != expected_orientation) polygon.reverse_orientation();
 
-        return std::optional<Polygon2D>{polygon};
+        return polygon;
     }
 
     inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
@@ -113,7 +113,7 @@ namespace BURST::geometry {
         Point2D sum = std::accumulate(points.begin(), points.end(), Point2D{0, 0}, [](const Point2D& acc, const Point2D& point) {
             return Point2D{acc.x() + point.x(), acc.y() + point.y()};
         });
-        return std::optional<Point2D>{Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)}};
+        return Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)};
     }
 
     inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
@@ -151,7 +151,7 @@ namespace BURST::geometry {
             CurvedTraits::X_monotone_curve_2{circle, CurvedTraits::Point_2{center.x() + radius, center.y()}, CurvedTraits::Point_2{center.x() - radius, center.y()}, CGAL::COUNTERCLOCKWISE}
         };
         
-        return std::optional<CurvilinearPolygon2D>{CurvilinearPolygon2D{semicircles.begin(), semicircles.end()}};
+        return CurvilinearPolygon2D{semicircles.begin(), semicircles.end()};
     }
 
     inline Point2D midpoint(const Point2D& a, const Point2D& b) {

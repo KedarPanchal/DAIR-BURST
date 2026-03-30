@@ -72,7 +72,7 @@ namespace BURST {
                 BURST_ERROR("Cannot construct a robot with non-positive radius");
                 return std::nullopt;
             }
-            else return std::optional<Robot>{Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error}, models::MovementModel<T, P>{}}};
+            else return Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error}, models::MovementModel<T, P>{}};
         }
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) {
             // Cannot construct a robot with a non-positive radius
@@ -80,7 +80,7 @@ namespace BURST {
                 BURST_ERROR("Cannot construct a robot with non-positive radius");
                 return std::nullopt;
             }
-            else return std::optional<Robot>{Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error, rotation_seed}, models::MovementModel<T, P>{}}};
+            else return Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error, rotation_seed}, models::MovementModel<T, P>{}};
         }
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) {
             // Cannot construct a robot with a non-positive radius
@@ -88,7 +88,7 @@ namespace BURST {
                 BURST_ERROR("Cannot construct a robot with non-positive radius");
                 return std::nullopt;
             }
-            else return std::optional<Robot>{Robot{robot_radius, starting_point, rotation_model, movement_model}};
+            else return Robot{robot_radius, starting_point, rotation_model, movement_model};
         }
         const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const {
             return *this->configuration_environment;
@@ -182,7 +182,7 @@ namespace BURST {
             }
             // Form a polygon from the rectangle edges and add it into the stadium
             stadium.join(geometry::CurvilinearPolygon2D{rectangle_edges.begin(), rectangle_edges.end()});
-            return std::optional<geometry::CurvilinearPolygonSet2D>{stadium};
+            return stadium;
         }
 
         bool move(const numeric::fscalar& angle, bool perturbed = false) {

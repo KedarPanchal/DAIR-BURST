@@ -77,8 +77,6 @@ namespace BURST::geometry {
             return orientation == CGAL::ON_ORIENTED_BOUNDARY || orientation == CGAL::ON_POSITIVE_SIDE;
         }
 
-        // TODO: Make this function return the edge the point intersects at
-        // TODO: Change the return type to not be monostate and be some edge type. Monostate is a placeholder since we're returning an optional, at least
         std::optional<std::variant<MonotoneCurve2D, Point2D>> intersection(const Point2D& point) const noexcept {
             // Attempt to find the point in the arrangement of the configuration space using a landmarks point location
             auto converted_point = convert_point<CurvilinearPolygonSet2D::Arrangement_2::Point_2>(point);
