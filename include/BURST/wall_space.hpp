@@ -144,7 +144,6 @@ namespace BURST::geometry {
             if (!config_geometry) return false; // Degenerate configuration geometry, can't set it for the robot
             robot.setConfigurationEnvironment(std::move(config_geometry));
 
-            // monostate is used as a replacement for void while still keeping the return type as an optional to indicate failure
             return true;
         }
 
