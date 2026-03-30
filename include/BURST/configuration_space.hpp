@@ -62,9 +62,8 @@ namespace BURST::geometry {
         auto& arrangement() const noexcept {
             return this->configuration_shape.arrangement();
         }
-
-        // TODO: Make this function return the edge the point intersects at
-        bool intersection(const Point2D& point) const noexcept {
+        
+        bool onEdge(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
             return this->configuration_shape.oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY;
@@ -75,6 +74,11 @@ namespace BURST::geometry {
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
             auto orientation = this->configuration_shape.oriented_side(converted_point);
             return orientation == CGAL::ON_ORIENTED_BOUNDARY || orientation == CGAL::ON_POSITIVE_SIDE;
+        }
+
+        // TODO: Make this function return the edge the point intersects at
+        bool intersection(const Point2D& point) const noexcept {
+            return onEdge(point);
         }
         
         template <valid_trajectory_type Trajectory, valid_path_type Path, std::ranges::output_range<Point2D> OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
