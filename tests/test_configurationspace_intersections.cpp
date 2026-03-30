@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 #include <iterator>
+#include <variant>
 
 // -- TEST FIXTURE SETUP -------------------------------------------------------
 
@@ -65,26 +66,38 @@ protected:
 };
 
 
-// -- REGULAR POLYGON POINT EDGE MEMBERSHIP TESTS ------------------------------
+// -- REGULAR POLYGON POINT INTERSECTION TESTS ---------------------------------
 
 // Test point intersection for a ConfigurationSpace with a regular polygon
-// TODO: Once the point intersection function is updated to return an edge, update this test case accordingly
 TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, PointIntersectionRegularPolygon) {
     // Create a point that lies on the edge of the ConfigurationSpace
     BURST::geometry::Point2D intersection_point{1, 5};
 
     // Expect the point to intersect with the ConfigurationSpace
-    EXPECT_TRUE(this->configuration_space->onEdge(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    auto result = this->configuration_space->intersection(intersection_point);
+    EXPECT_TRUE(result.has_value()) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    // Verify that it's the right alternative of the variant
+    if (result.has_value()) {
+        EXPECT_TRUE(std::holds_alternative<BURST::geometry::MonotoneCurve2D>(*result)) << "Expected point intersection to return a MonotoneCurve2D, but got a different type";
+    } else {
+        FAIL() << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    }
 }
 
 // Test point intersection at a corner for a ConfigurationSpace with a regular polygon
-// TODO: Once the point intersection function is updated to return an edge, update this test case accordingly
 TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, PointIntersectionAtCornerRegularPolygon) {
     // Create a point that lies on the corner of the ConfigurationSpace
     BURST::geometry::Point2D intersection_point{1, 1};
 
     // Expect the point to intersect with the ConfigurationSpace
-    EXPECT_TRUE(this->configuration_space->onEdge(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    auto result = this->configuration_space->intersection(intersection_point);
+    EXPECT_TRUE(result.has_value()) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    // Verify that it's the right alternative of the variant
+    if (result.has_value()) {
+        EXPECT_TRUE(std::holds_alternative<BURST::geometry::Point2D>(*result)) << "Expected point intersection at a corner to return a Point2D, but got a different type";
+    } else {
+        FAIL() << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    }
 }
 
 // Test invalid point intersection on the interior of a ConfigurationSpace with a regular polygon
@@ -94,7 +107,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, InvalidPointIntersectio
     BURST::geometry::Point2D intersection_point{5, 5};
 
     // Expect the point to not intersect with the ConfigurationSpace
-    EXPECT_FALSE(this->configuration_space->onEdge(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 // Test invalid point intersection on the exterior of a ConfigurationSpace with a regular polygon
@@ -104,7 +117,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, InvalidPointIntersectio
     BURST::geometry::Point2D intersection_point{15, 5};
 
     // Expect the point to not intersect with the ConfigurationSpace
-    EXPECT_FALSE(this->configuration_space->onEdge(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 
