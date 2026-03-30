@@ -8,9 +8,9 @@
 #include <iterator>
 #include <functional>
 #include <algorithm>
+#include <variant>
 
-#include <CGAL/Exact_predicates_exact_constructions_kernel_with_sqrt.h>
-#include <CGAL/Polygon_2.h>
+#include <CGAL/Arr_landmarks_point_location.h>
 #include <CGAL/Graphics_scene.h>
 
 #include <boost/container/small_vector.hpp>
@@ -19,6 +19,7 @@
 #include "geometric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"
+#include "logging.hpp"
 
 namespace BURST::geometry {
     
@@ -77,8 +78,28 @@ namespace BURST::geometry {
         }
 
         // TODO: Make this function return the edge the point intersects at
-        bool intersection(const Point2D& point) const noexcept {
-            return onEdge(point);
+        // TODO: Change the return type to not be monostate and be some edge type. Monostate is a placeholder since we're returning an optional, at least
+        std::optional<std::variant<MonotoneCurve2D, Point2D>> intersection(const Point2D& point) const noexcept {
+            // Attempt to find the point in the arrangement of the configuration space using a landmarks point location
+            auto converted_point = convert_point<CurvilinearPolygonSet2D::Arrangement_2::Point_2>(point);
+            auto result = CGAL::Arr_landmarks_point_location<
+                CurvilinearPolygonSet2D::Arrangement_2, 
+                CGAL::Arr_landmarks_vertices_generator<CurvilinearPolygonSet2D::Arrangement_2>
+            >{this->arrangement()}.locate(converted_point);
+
+            // Handle according to the type of the result
+            // If the point is located on a face, then it's not an intersection since the point is not on the boundary of the configuration space
+            if (std::holds_alternative<CurvilinearPolygonSet2D::Arrangement_2::Face_const_handle>(result)) {
+                BURST_WARNING("Point is not located on the boundary of the configuration space.");
+                return std::nullopt;
+            } 
+            // If the point is located on an edge, then it's an intersection with the configuration space boundary
+            if (std::holds_alternative<CurvilinearPolygonSet2D::Arrangement_2::Halfedge_const_handle>(result)) {
+                return std::get<CurvilinearPolygonSet2D::Arrangement_2::Halfedge_const_handle>(result)->curve();
+            }
+            // Otherwise, the point is located on a vertex, and it's an intersection with the configuration space boundary
+            // In practice, this should be a very rare case since the robot would have to traverse exactly to a vertex, but handle it anyway
+            return convert_point<Point2D>(std::get<CurvilinearPolygonSet2D::Arrangement_2::Vertex_const_handle>(result)->point());
         }
         
         template <valid_trajectory_type Trajectory, valid_path_type Path, std::ranges::output_range<Point2D> OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>

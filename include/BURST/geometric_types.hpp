@@ -30,6 +30,7 @@ namespace BURST::geometry {
     using Segment2D = Kernel::Segment_2;
     using Line2D = Kernel::Line_2;
     using Ray2D = Kernel::Ray_2;
+    using MonotoneCurve2D = CurvedTraits::X_monotone_curve_2;
     using Polygon2D = CGAL::Polygon_2<Kernel>;
     using HoledPolygon2D = CGAL::Polygon_with_holes_2<Kernel>;
     using CurvilinearPolygon2D = CurvedTraits::General_polygon_2;
@@ -129,7 +130,7 @@ namespace BURST::geometry {
     }
  
     template <valid_path_type P>
-    CurvedTraits::X_monotone_curve_2 construct_curve(const P& path) {
+    MonotoneCurve2D construct_curve(const P& path) {
         if constexpr (std::same_as<P, Segment2D>) {
             return CurvedTraits::X_monotone_curve_2{path.source(), path.target()};
         } else {
