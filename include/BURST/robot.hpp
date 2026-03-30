@@ -102,14 +102,14 @@ namespace BURST {
         // Precondition: The robot is on the border of the configuration space
         void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
             this->configuration_environment = std::move(config_environment);
-            if (!this->configuration_environment->intersection(this->position).has_value()) {
+            if (!this->configuration_environment->intersection(this->position)) {
                 std::string warning_string = "Robot's current position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
                 BURST_WARNING(warning_string.c_str());
             }
         }
         void setPosition(const geometry::Point2D& new_position) {
             this->position = new_position;
-            if (!this->configuration_environment->intersection(this->position).has_value()) {
+            if (!this->configuration_environment->intersection(this->position)) {
                 std::string warning_string = "Robot's new position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
                 BURST_WARNING(warning_string.c_str());
             }

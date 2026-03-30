@@ -77,7 +77,7 @@ namespace BURST::models {
     public:
         std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
-            if (!configuration_space.contains(origin)) {
+            if (!configuration_space.intersection(origin)) {
                 BURST_ERROR("Origin point does not lie on the configuration space boundary, path is invalid");
                 return std::nullopt;
             }

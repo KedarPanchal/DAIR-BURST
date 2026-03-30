@@ -75,7 +75,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, PointIntersectionRegula
 
     // Expect the point to intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection is not nullopt
-    EXPECT_TRUE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    EXPECT_TRUE(this->configuration_space->intersection(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
 }
 
 // Test point intersection at a corner for a ConfigurationSpace with a regular polygon
@@ -86,7 +86,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, PointIntersectionAtCorn
 
     // Expect the point to intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection is not nullopt
-    EXPECT_TRUE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    EXPECT_TRUE(this->configuration_space->intersection(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
 }
 
 // Test invalid point intersection on the interior of a ConfigurationSpace with a regular polygon
@@ -97,7 +97,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, InvalidPointIntersectio
 
     // Expect the point to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection is nullopt
-    EXPECT_FALSE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->intersection(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 // Test invalid point intersection on the exterior of a ConfigurationSpace with a regular polygon
@@ -108,7 +108,7 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, InvalidPointIntersectio
 
     // Expect the point to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection is nullopt
-    EXPECT_FALSE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->intersection(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 
@@ -122,7 +122,7 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, PointIntersectionConcav
 
     // Expect the point to intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection is not nullopt
-    EXPECT_TRUE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
+    EXPECT_TRUE(this->configuration_space->intersection(intersection_point)) << "Expected point to intersect with the ConfigurationSpace, but got nullopt";
 }
 
 // Test invalid point intersection on the interior of a ConfigurationSpace with a concave polygon
@@ -133,7 +133,7 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, InvalidPointIntersectio
 
     // Expect the point to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection is nullopt
-    EXPECT_FALSE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->intersection(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 // Test invalid point intersection on the exterior of a ConfigurationSpace with a concave polygon
@@ -144,7 +144,7 @@ TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, InvalidPointIntersectio
 
     // Expect the point to not intersect with the ConfigurationSpace
     // i.e., ConfigurationSpace::intersection is nullopt
-    EXPECT_FALSE(this->configuration_space->intersection(intersection_point).has_value()) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
+    EXPECT_FALSE(this->configuration_space->intersection(intersection_point)) << "Expected point to not intersect with the ConfigurationSpace, but got a valid intersection";
 }
 
 

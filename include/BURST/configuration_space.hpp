@@ -68,8 +68,7 @@ namespace BURST::geometry {
         bool intersection(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
-            if (this->configuration_shape.oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY) return true;
-            return false;
+            return this->configuration_shape.oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY;
         }
 
         bool contains(const Point2D& point) const noexcept {
