@@ -125,8 +125,15 @@ namespace BURST::geometry {
             T{from_point.x(), from_point.y()};
         } 
     T convert_point(const F& from_point) {
-        using TP = decltype(std::declval<T>().x());
-        return T{TP(from_point.x()), TP(from_point.y())};
+        return T{from_point.x(), from_point.y()};
+    }
+
+    template <typename T, typename F, typename ConvertFn>
+        requires requires(const F& from_point, const ConvertFn& convert_fn) {
+            T{convert_fn(from_point.x()), convert_fn(from_point.y())};
+        } 
+    T convert_point(const F& from_point, const ConvertFn& convert_fn) {
+        return T{convert_fn(from_point.x()), convert_fn(from_point.y())};
     }
  
     template <valid_path_type P>
