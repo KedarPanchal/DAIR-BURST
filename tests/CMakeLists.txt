@@ -24,7 +24,8 @@ if (TEST_SCOPE STREQUAL "all")
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_all PRIVATE -g)
+    target_compile_options(test_all PRIVATE -g -fsanitize=address)
+    target_link_options(test_all PRIVATE -fsanitize=address)
 elseif(TEST_SCOPE STREQUAL "categorized")
     # Build only space-related tests
     add_executable(test_space
@@ -37,7 +38,8 @@ elseif(TEST_SCOPE STREQUAL "categorized")
         GTest::gtest_main
     )
     target_compile_definitions(test_space PRIVATE CGAL_USE_BASIC_VIEWER)
-    target_compile_options(test_space PRIVATE -g)
+    target_compile_options(test_space PRIVATE -g -fsanitize=address)
+    target_link_options(test_space PRIVATE -fsanitize=address)
     
     # Build only rendering-related tests
     add_executable(test_rendering
@@ -48,7 +50,8 @@ elseif(TEST_SCOPE STREQUAL "categorized")
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_rendering PRIVATE -g)
+    target_compile_options(test_rendering PRIVATE -g -fsanitize=address)
+    target_link_options(test_rendering PRIVATE -fsanitize=address)
 
     # Build only model-related tests
     add_executable(test_models
@@ -59,7 +62,8 @@ elseif(TEST_SCOPE STREQUAL "categorized")
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_models PRIVATE -g)
+    target_compile_options(test_models PRIVATE -g -fsanitize=address)
+    target_link_options(test_models PRIVATE -fsanitize=address)
 
     # Build only robot-related tests
     add_executable(test_robot
@@ -69,7 +73,8 @@ elseif(TEST_SCOPE STREQUAL "categorized")
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_robot PRIVATE -g)
+    target_compile_options(test_robot PRIVATE -g -fsanitize=address)
+    target_link_options(test_robot PRIVATE -fsanitize=address)
 else()
     # Build individual test executables for each test file
 
@@ -81,7 +86,8 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_wallspace_construction PRIVATE -g)
+    target_compile_options(test_wallspace_construction PRIVATE -g -fsanitize=address)
+    target_link_options(test_wallspace_construction PRIVATE -fsanitize=address)
 
     # Configuration space construction tests
     add_executable(test_configurationspace_construction
@@ -91,7 +97,8 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_configurationspace_construction PRIVATE -g)
+    target_compile_options(test_configurationspace_construction PRIVATE -g -fsanitize=address)
+    target_link_options(test_configurationspace_construction PRIVATE -fsanitize=address)
 
     # Configuration space intersection tests
     add_executable(test_configurationspace_intersections
@@ -101,7 +108,8 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_configurationspace_intersections PRIVATE -g)
+    target_compile_options(test_configurationspace_intersections PRIVATE -g -fsanitize=address)
+    target_link_options(test_configurationspace_intersections PRIVATE -fsanitize=address)
 
     # Wall space rendering tests
     add_executable(test_wallspace_rendering
@@ -111,7 +119,8 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_wallspace_rendering PRIVATE -g)
+    target_compile_options(test_wallspace_rendering PRIVATE -g -fsanitize=address)
+    target_link_options(test_wallspace_rendering PRIVATE -fsanitize=address)
 
     # Configuration space rendering tests
     add_executable(test_configurationspace_rendering
@@ -121,7 +130,8 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_configurationspace_rendering PRIVATE -g)
+    target_compile_options(test_configurationspace_rendering PRIVATE -g -fsanitize=address)
+    target_link_options(test_configurationspace_rendering PRIVATE -fsanitize=address)
 
     # Rotation model tests
     add_executable(test_rotationmodel
@@ -131,7 +141,8 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_rotationmodel PRIVATE -g)
+    target_compile_options(test_rotationmodel PRIVATE -g -fsanitize=address)
+    target_link_options(test_rotationmodel PRIVATE -fsanitize=address)
 
     # Movement model tests
     add_executable(test_movementmodel
@@ -141,7 +152,8 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_movementmodel PRIVATE -g)
+    target_compile_options(test_movementmodel PRIVATE -g -fsanitize=address)
+    target_link_options(test_movementmodel PRIVATE -fsanitize=address)
 
     # Robot tests
     add_executable(test_robot
@@ -151,5 +163,6 @@ else()
         PRIVATE BURST
         GTest::gtest_main
     )
-    target_compile_options(test_robot PRIVATE -g)
+    target_compile_options(test_robot PRIVATE -g -fsanitize=address)
+    target_link_options(test_robot PRIVATE -fsanitize=address)
 endif()
