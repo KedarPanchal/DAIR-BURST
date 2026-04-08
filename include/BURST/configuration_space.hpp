@@ -85,7 +85,6 @@ namespace BURST::geometry {
 
             // Attempt to find the point in the arrangement of the configuration space using a landmarks point location
             auto converted_point = convert_point<converted_point_t>(point);
-            CurvedTraits traits{};
             auto arrangement = this->configuration_shape->arrangement();
             auto result = CGAL::Arr_naive_point_location<arrangement_t>{arrangement}.locate(converted_point);
 
@@ -101,7 +100,6 @@ namespace BURST::geometry {
             }
             // Otherwise, the point is located on a vertex, and it's an intersection with the configuration space boundary
             // In practice, this should be a very rare case since the robot would have to traverse exactly to a vertex, but handle it anyway
-            std::cout << "Please no segfault\n";
             return convert_point<Point2D, converted_point_t>(std::get<arrangement_t::Vertex_const_handle>(result)->point(), numeric::sqrt_to_fscalar<converted_ft>);
         }
         
