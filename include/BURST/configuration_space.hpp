@@ -30,7 +30,6 @@ namespace BURST::geometry {
     // This is why its constructors are private and only accessible by WallSpace
     class ConfigurationSpace : public Renderable {
     private:
-        CurvedTraits traits;
         std::unique_ptr<CurvilinearPolygonSet2D> configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;
 
