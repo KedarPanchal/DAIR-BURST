@@ -87,10 +87,7 @@ namespace BURST::geometry {
 
             // Handle according to the type of the result
             // If the point is located on a face, then it's not an intersection since the point is not on the boundary of the configuration space
-            if (std::holds_alternative<arrangement_t::Face_const_handle>(result)) {
-                BURST_WARNING("Point is not located on the boundary of the configuration space.");
-                return std::nullopt;
-            } 
+            if (std::holds_alternative<arrangement_t::Face_const_handle>(result)) return std::nullopt;
             // If the point is located on an edge, then it's an intersection with the configuration space boundary
             if (std::holds_alternative<arrangement_t::Halfedge_const_handle>(result)) {
                 return std::get<arrangement_t::Halfedge_const_handle>(result)->curve();
