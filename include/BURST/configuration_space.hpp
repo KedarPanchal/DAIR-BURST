@@ -8,7 +8,6 @@
 #include <iterator>
 #include <functional>
 #include <algorithm>
-#include <variant>
 
 #include <CGAL/Arr_naive_point_location.h>
 #include <CGAL/Graphics_scene.h>
