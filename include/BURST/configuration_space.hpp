@@ -30,13 +30,14 @@ namespace BURST::geometry {
     // This is why its constructors are private and only accessible by WallSpace
     class ConfigurationSpace : public Renderable {
     private:
-        CurvilinearPolygonSet2D configuration_shape;
+        CurvedTraits traits;
+        std::unique_ptr<CurvilinearPolygonSet2D> configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;
 
-        ConfigurationSpace(const CurvilinearPolygonSet2D& shape) noexcept : configuration_shape{shape}, bounding_box{} {}
+        ConfigurationSpace(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept : configuration_shape{std::move(shape)}, bounding_box{} {}
 
-        static std::unique_ptr<ConfigurationSpace> create(const CurvilinearPolygonSet2D& shape) noexcept {
-            return std::unique_ptr<ConfigurationSpace>{new ConfigurationSpace{shape}};
+        static std::unique_ptr<ConfigurationSpace> create(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept {
+            return std::unique_ptr<ConfigurationSpace>{new ConfigurationSpace{std::move(shape)}};
         }
         
         /*
@@ -49,7 +50,7 @@ namespace BURST::geometry {
             if (!this->bounding_box.has_value()) {
                 // Create small vector with buffer of 1, since we expect most configuration spaces to be a single holed polygon
                 boost::container::small_vector<HoledCurvilinearPolygon2D, 1> polygons;
-                this->configuration_shape.polygons_with_holes(std::back_inserter(polygons));
+                this->configuration_shape->polygons_with_holes(std::back_inserter(polygons));
                 this->bounding_box = BoundingBox2D{};
                 for (const HoledCurvilinearPolygon2D& polygon : polygons) *this->bounding_box += polygon.outer_boundary().bbox();
             }
@@ -61,19 +62,19 @@ namespace BURST::geometry {
             return this->bbox(std::monostate{});
         }
         auto& arrangement() const noexcept {
-            return this->configuration_shape.arrangement();
+            return this->configuration_shape->arrangement();
         }
         
         bool onEdge(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
-            return this->configuration_shape.oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY;
+            return this->configuration_shape->oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY;
         }
 
         bool contains(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the containment check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
-            auto orientation = this->configuration_shape.oriented_side(converted_point);
+            auto orientation = this->configuration_shape->oriented_side(converted_point);
             return orientation == CGAL::ON_ORIENTED_BOUNDARY || orientation == CGAL::ON_POSITIVE_SIDE;
         }
 
@@ -84,7 +85,8 @@ namespace BURST::geometry {
 
             // Attempt to find the point in the arrangement of the configuration space using a landmarks point location
             auto converted_point = convert_point<converted_point_t>(point);
-            auto arrangement = this->configuration_shape.arrangement();
+            CurvedTraits traits{};
+            auto arrangement = this->configuration_shape->arrangement();
             auto result = CGAL::Arr_naive_point_location<arrangement_t>{arrangement}.locate(converted_point);
 
             // Handle according to the type of the result
@@ -126,7 +128,7 @@ namespace BURST::geometry {
             Path long_path{ray_source, ray_source + ray_vector * (margin + displacement)};
 
             // Get the arrangement of the ConfigurationSpace to insert the segment into for intersection checking
-            auto arrangement = this->configuration_shape.arrangement();
+            CurvilinearPolygonSet2D::Arrangement_2 arrangement = this->configuration_shape->arrangement();
             // Insert the long segment into the arrangement
             CGAL::insert(arrangement, long_path);
             // Convert the ray source to the traits required for the source containment check
@@ -146,8 +148,8 @@ namespace BURST::geometry {
 
                 // Convert the vertex point back to a Point2D and return it as the intersection point
                 auto intersection_point = vertex_it->point();
+                Point2D to_add = convert_point<Point2D, decltype(intersection_point)>(intersection_point, numeric::sqrt_to_fscalar<decltype(intersection_point.x())>);
                 // Add the point to the output collection using the provided output iterator, given it is not the source of the ray and it lies on the ray path
-                Point2D to_add = Point2D{numeric::sqrt_to_fscalar(intersection_point.x()), numeric::sqrt_to_fscalar(intersection_point.y())};
                 if (to_add != ray_source && long_path.has_on(to_add)) {
                     intersection_points = to_add;
                     intersection_count++;

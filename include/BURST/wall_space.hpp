@@ -58,8 +58,8 @@ namespace BURST::geometry {
             if (outer_inset_results.front().orientation() != CGAL::COUNTERCLOCKWISE) outer_inset_results.front().reverse_orientation();
 
             // Create a polygon set to store all Minkowski sum/difference results to create the configuration space
-            CurvilinearPolygonSet2D config_polygon_set;
-            config_polygon_set.insert(outer_inset_results.front());
+            std::unique_ptr<CurvilinearPolygonSet2D> config_polygon_set = std::make_unique<CurvilinearPolygonSet2D>();
+            config_polygon_set->insert(outer_inset_results.front());
 
             // Compute the outset of all of the holes within the wall polygon, since the holes need to be expanded by the robot radius as well
             // No checks needed for the holes touching the wall since that's a realistic case for when an object is close to a wall
@@ -71,11 +71,11 @@ namespace BURST::geometry {
                 // Compute the difference between the resultant polygon set and outset hole
                 // This is insulated against overlapping holes and border touching
                 // This is possible if two holes or a hole and the wall are close enough that the space between is too small for the robot
-                config_polygon_set.difference(CGAL::approximated_offset_2(oriented_hole, robot_radius, EPSILON));
+                config_polygon_set->difference(CGAL::approximated_offset_2(oriented_hole, robot_radius, EPSILON));
             }
             
             // Create the configuration space from the resulting polygon set
-            return ConfigurationSpace::create(config_polygon_set);
+            return ConfigurationSpace::create(std::move(config_polygon_set));
         }
 
     public:
