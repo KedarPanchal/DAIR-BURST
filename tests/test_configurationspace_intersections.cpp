@@ -47,11 +47,12 @@ protected:
     void SetUp() override {
         auto wall_space = TestWallSpace::create({
             // Construct an already known non-degenerate WallSpace for a simple polygon
-            // In this case, we'll use a concave polygon with an arrowhead shape
-            BURST::geometry::Point2D{0, 20},
+            // In this case, we'll use a concave polygon with an arrowhead shape and a flat top
+            BURST::geometry::Point2D{-5, 20},
             BURST::geometry::Point2D{-20, -20},
             BURST::geometry::Point2D{0, 0},
-            BURST::geometry::Point2D{20, -20}
+            BURST::geometry::Point2D{20, -20},
+            BURST::geometry::Point2D{5, 20}
         });
         // Expect the WallSpace to be non-degenerate
         // i.e. it is not nullopt
@@ -122,10 +123,9 @@ TEST_F(ConfigurationSpaceRegularPolygonIntersectionTest, InvalidPointIntersectio
 // -- CONCAVE POLYGON POINT INTERSECTION TESTS ---------------------------------
 
 // Test point intersection for a ConfigurationSpace with a concave polygon
-// TODO: Once the point intersection function is updated to return an edge, update this test case accordingly
 TEST_F(ConfigurationSpaceConcavePolygonIntersectionTest, PointIntersectionConcavePolygon) {
     // Create a point that lies on the edge of the ConfigurationSpace
-    BURST::geometry::Point2D intersection_point{-1, -1};
+    BURST::geometry::Point2D intersection_point{0, 19};
 
     // Expect the point to intersect with the ConfigurationSpace
     auto result = this->configuration_space->intersection(intersection_point);
