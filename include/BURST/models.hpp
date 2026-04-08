@@ -77,7 +77,7 @@ namespace BURST::models {
     public:
         std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
-            if (!configuration_space.intersection(origin)) {
+            if (!configuration_space.onEdge(origin)) {
                 BURST_ERROR("Origin point does not lie on the configuration space boundary, path is invalid");
                 return std::nullopt;
             }
@@ -108,7 +108,7 @@ namespace BURST::models {
             // If it does, then the trajectory points inward, and the path is valid, so return the endpoint, otherwise return nullopt
             geometry::Point2D midpoint = geometry::midpoint(origin, endpoint);
             if (configuration_space.contains(midpoint)) {
-                return std::optional<geometry::Point2D>{endpoint};
+                return endpoint;
             } else {
                 BURST_ERROR("Trajectory points outward from the configuration space, path is invalid");
                 return std::nullopt;
@@ -126,7 +126,7 @@ namespace BURST::models {
                 return std::nullopt;
             }
             // Otherwise generate a path from the origin to the endpoint and return it
-            return std::optional<Path>{Path{origin, *maybe_endpoint}};
+            return Path{origin, *maybe_endpoint};
         }
     };
 

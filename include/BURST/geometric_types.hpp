@@ -30,6 +30,7 @@ namespace BURST::geometry {
     using Segment2D = Kernel::Segment_2;
     using Line2D = Kernel::Line_2;
     using Ray2D = Kernel::Ray_2;
+    using MonotoneCurve2D = CurvedTraits::X_monotone_curve_2;
     using Polygon2D = CGAL::Polygon_2<Kernel>;
     using HoledPolygon2D = CGAL::Polygon_with_holes_2<Kernel>;
     using CurvilinearPolygon2D = CurvedTraits::General_polygon_2;
@@ -94,7 +95,7 @@ namespace BURST::geometry {
         // If the polygon is not oriented as expected, reverse the orientation to ensure it's a valid polygon for CGAL
         if (polygon.orientation() != expected_orientation) polygon.reverse_orientation();
 
-        return std::optional<Polygon2D>{polygon};
+        return polygon;
     }
 
     inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
@@ -112,7 +113,7 @@ namespace BURST::geometry {
         Point2D sum = std::accumulate(points.begin(), points.end(), Point2D{0, 0}, [](const Point2D& acc, const Point2D& point) {
             return Point2D{acc.x() + point.x(), acc.y() + point.y()};
         });
-        return std::optional<Point2D>{Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)}};
+        return Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)};
     }
 
     inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
@@ -121,15 +122,22 @@ namespace BURST::geometry {
 
     template <typename T, typename F>
         requires requires(const F& from_point) {
-            F{from_point.x(), from_point.y()};
             T{from_point.x(), from_point.y()};
         } 
     T convert_point(const F& from_point) {
         return T{from_point.x(), from_point.y()};
     }
+
+    template <typename T, typename F, typename ConvertFn>
+        requires requires(const F& from_point, const ConvertFn& convert_fn) {
+            T{convert_fn(from_point.x()), convert_fn(from_point.y())};
+        } 
+    T convert_point(const F& from_point, const ConvertFn& convert_fn) {
+        return T{convert_fn(from_point.x()), convert_fn(from_point.y())};
+    }
  
     template <valid_path_type P>
-    CurvedTraits::X_monotone_curve_2 construct_curve(const P& path) {
+    MonotoneCurve2D construct_curve(const P& path) {
         if constexpr (std::same_as<P, Segment2D>) {
             return CurvedTraits::X_monotone_curve_2{path.source(), path.target()};
         } else {
@@ -150,7 +158,7 @@ namespace BURST::geometry {
             CurvedTraits::X_monotone_curve_2{circle, CurvedTraits::Point_2{center.x() + radius, center.y()}, CurvedTraits::Point_2{center.x() - radius, center.y()}, CGAL::COUNTERCLOCKWISE}
         };
         
-        return std::optional<CurvilinearPolygon2D>{CurvilinearPolygon2D{semicircles.begin(), semicircles.end()}};
+        return CurvilinearPolygon2D{semicircles.begin(), semicircles.end()};
     }
 
     inline Point2D midpoint(const Point2D& a, const Point2D& b) {
