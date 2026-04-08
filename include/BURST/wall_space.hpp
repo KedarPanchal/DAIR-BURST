@@ -24,7 +24,6 @@ namespace BURST::geometry {
     // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
     class WallSpace : public Renderable {
     private:
-        
         HoledPolygon2D wall_shape;
         graphics::PolygonOptions wall_render_options;
 
