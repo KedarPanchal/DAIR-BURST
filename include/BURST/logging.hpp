@@ -5,7 +5,7 @@
 #include <cstdio>
 
 #define BURST_WARNING_TO(msg, stream) do { \
-    ::fprintf(stream, "[BURST] Warning\t%s\nFile:\t%s\nLine:\t%d\n", (msg), __FILE__, __LINE__); \
+    ::fprintf(stream, "[BURST] Warning:\t%s\n[BURST] File:\t%s\n[BURST] Line:\t%d\n", (msg), __FILE__, __LINE__); \
 } while(0)
 
 #define BURST_WARNING(msg) BURST_WARNING_TO(msg, stderr)
@@ -22,7 +22,7 @@
 #include <cstdio>
 
 #define BURST_ERROR_TO(msg, stream) do { \
-    ::fprintf(stream, "[BURST] Error\t%s\nFile:\t%s\nLine:\t%d\n", (msg), __FILE__, __LINE__); \
+    ::fprintf(stream, "[BURST] Error:\t%s\n[BURST] File:\t%s\n[BURST] Line:\t%d\n", (msg), __FILE__, __LINE__); \
 } while(0)
 
 #define BURST_ERROR(msg) BURST_ERROR_TO(msg, stderr)
