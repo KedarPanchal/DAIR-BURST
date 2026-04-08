@@ -83,8 +83,7 @@ namespace BURST::geometry {
 
             // Attempt to find the point in the arrangement of the configuration space using a landmarks point location
             auto converted_point = convert_point<converted_point_t>(point);
-            auto arrangement = this->configuration_shape->arrangement();
-            auto result = CGAL::Arr_naive_point_location<arrangement_t>{arrangement}.locate(converted_point);
+            auto result = CGAL::Arr_naive_point_location<arrangement_t>{this->configuration_shape->arrangement()}.locate(converted_point);
 
             // Handle according to the type of the result
             // If the point is located on a face, then it's not an intersection since the point is not on the boundary of the configuration space
