@@ -30,7 +30,7 @@ namespace BURST {
         numeric::valid_rng R = std::mt19937, 
         numeric::valid_distribution<R> D = std::uniform_real_distribution<double>
     >
-    class Robot : public renderable::Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel> {
+    class Robot : public renderable::Renderable {
     private:
         numeric::fscalar radius;
         geometry::Point2D position;
@@ -200,7 +200,15 @@ namespace BURST {
             return true;
         }
 
-        void render(renderable::Scene& scene, const renderable::Color& color) override {
+        renderable::Color defaultColor() const override {
+            return renderable::Color{255, 0, 0};
+        }
+
+        void render(renderable::Scene& scene, const renderable::Color& color) const override {
+            if (this->radius <= 0) return; // If the robot has a non-positive radius, then there's nothing to render
+
+            using arrangement_t = geometry::CurvilinearPolygonSet2D::Arrangement_2;
+            using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
             // Render the robot as a circle at its current position filled with the specific color
             graphics_options_t robot_options;
             robot_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> bool {
@@ -211,7 +219,7 @@ namespace BURST {
             };
 
             // Construct an empty arrangement to enter
-            Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t arrangement;
+            arrangement_t arrangement;
             // Insert the circle representing the robot's current position into the arrangement
             std::optional<geometry::CurvilinearPolygon2D> circle = geometry::construct_circle(this->radius, this->position);
             if (circle) CGAL::insert(arrangement, circle->curves_begin(), circle->curves_end());

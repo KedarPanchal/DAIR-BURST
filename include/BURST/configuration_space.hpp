@@ -26,7 +26,7 @@ namespace BURST::geometry {
 
     // ConfigurationSpace should never be instantiated directly
     // This is why its constructors are private and only accessible by WallSpace
-    class ConfigurationSpace : public renderable::Renderable<CurvedTraits, CurvilinearPolygonSet2D::Dcel> {
+    class ConfigurationSpace : public renderable::Renderable {
     private:
         std::unique_ptr<CurvilinearPolygonSet2D> configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;
@@ -148,10 +148,16 @@ namespace BURST::geometry {
             }
             return intersection_count; // Return the number of intersections found
         }
+
+        renderable::Color defaultColor() const override {
+            return renderable::Color{0, 0, 255}; 
+        }
         
-        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 255}) override {
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 255}) const override {
             if (this->configuration_shape == nullptr) return; // If the configuration shape is null, then there's nothing to render
-                            
+            
+            using arrangement_t = CurvilinearPolygonSet2D::Arrangement_2;
+            using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
             // Just have CGAL render the edges of the configuration space with transparent faces
             graphics_options_t config_options;
             config_options.colored_edge = [](const arrangement_t&, const arrangement_t::Halfedge_const_handle&) -> bool {

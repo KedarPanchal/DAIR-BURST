@@ -24,7 +24,7 @@
 namespace BURST::geometry {
     
     // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
-    class WallSpace : public renderable::Renderable<LinearTraits, LinearPolygonSet2D::Dcel> {
+    class WallSpace : public renderable::Renderable {
     private:
         HoledPolygon2D wall_shape;
 
@@ -146,8 +146,14 @@ namespace BURST::geometry {
 
             return true;
         }
+
+        renderable::Color defaultColor() const override {
+            return renderable::Color{0, 0, 0}; 
+        }
         
-        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}) override {
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}) const override {
+            using arrangement_t = LinearPolygonSet2D::Arrangement_2;
+            using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
             // Render the holes to be black
             graphics_options_t hole_options;
             hole_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle& face) -> bool {
