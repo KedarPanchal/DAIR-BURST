@@ -78,11 +78,6 @@ namespace BURST::geometry {
             return ConfigurationSpace::create(std::move(config_polygon_set));
         }
 
-        renderable::Renderable<LinearTraits, LinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
-            LinearPolygonSet2D graphics_set{this->wall_shape};
-            return graphics_set.arrangement();
-        }
-
     public:
         template <valid_geometric_collection<Point2D> C>
         static std::optional<WallSpace> create(C points) {
@@ -151,7 +146,47 @@ namespace BURST::geometry {
 
             return true;
         }
+        
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}) override {
+            // // Render the outer boundary
+            // graphics_options_t boundary_options;
+            // boundary_options.colored_edge = [](const arrangement_t&, const arrangement_t::Halfedge_const_handle&) -> bool {
+            //     return true; 
+            // };
+            // boundary_options.edge_color = [color](const arrangement_t&, arrangement_t::Halfedge_const_handle) -> renderable::Color {
+            //     return color;
+            // };
 
+            // // Render the holes
+            // graphics_options_t hole_options;
+            // hole_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle& face) -> bool {
+            //     return true; 
+            // };
+            // hole_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
+            //     return renderable::Color{0, 0, 0};
+            // };
+            // for (const auto& hole : this->wall_shape.holes()) {
+            //     LinearPolygonSet2D hole_set{hole};
+            //     CGAL::add_to_graphics_scene(hole_set.arrangement(), scene, hole_options);
+            // }
+
+            // Render the edges of the wall polygon and have white faces
+            graphics_options_t wall_options;
+            wall_options.colored_edge = [](const arrangement_t&, const arrangement_t::Halfedge_const_handle&) -> bool {
+                return true;
+            };
+            wall_options.edge_color = [color](const arrangement_t&, arrangement_t::Halfedge_const_handle) -> renderable::Color {
+                return color;
+            };
+            wall_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> bool {
+                return true;
+            };
+            wall_options.face_color = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> renderable::Color {
+                return renderable::Color{255, 255, 255};
+            };
+            LinearPolygonSet2D wall_set{this->wall_shape};
+            CGAL::add_to_graphics_scene(wall_set.arrangement(), scene, wall_options);
+        }
 
         friend class std::unique_ptr<WallSpace>;
     };

@@ -59,17 +59,6 @@ namespace BURST {
             rotation_model{rotation_model}, 
             movement_model{movement_model} {}
 
-        renderable::Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
-                // Construct an empty arrangement to enter
-                Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t arrangement;
-                // Insert the circle representing the robot's current position into the arrangement
-                std::optional<geometry::CurvilinearPolygon2D> circle = geometry::construct_circle(this->radius, this->position);
-                if (circle) CGAL::insert(arrangement, circle->curves_begin(), circle->curves_end());
-                // This should never occur due to earlier checks, but log the error if it does anyway
-                else BURST_ERROR("Failed to render robot due to non-positive radius.");
-                return arrangement;
-            }
-              
     public:
         using Trajectory = T;
         using Path = P;
@@ -209,6 +198,27 @@ namespace BURST {
             // Otherwise, move the robot to the endpoint
             this->position = *endpoint;
             return true;
+        }
+
+        void render(renderable::Scene& scene, const renderable::Color& color) override {
+            // Render the robot as a circle at its current position filled with the specific color
+            graphics_options_t robot_options;
+            robot_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> bool {
+                return true;
+            };
+            robot_options.face_color = [color](const arrangement_t&, const arrangement_t::Face_const_handle&) -> renderable::Color {
+                return color;
+            };
+
+            // Construct an empty arrangement to enter
+            Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t arrangement;
+            // Insert the circle representing the robot's current position into the arrangement
+            std::optional<geometry::CurvilinearPolygon2D> circle = geometry::construct_circle(this->radius, this->position);
+            if (circle) CGAL::insert(arrangement, circle->curves_begin(), circle->curves_end());
+            // This should never occur due to earlier checks, but log the error if it does anyway
+            else BURST_ERROR("Failed to render robot due to non-positive radius.");
+            
+            CGAL::add_to_graphics_scene(arrangement, scene, robot_options);
         }
     };
 

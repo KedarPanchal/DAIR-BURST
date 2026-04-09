@@ -53,11 +53,6 @@ namespace BURST::geometry {
             return this->bounding_box.value();
         }
 
-    protected:
-        renderable::Renderable<CurvedTraits, CurvilinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
-            return this->configuration_shape->arrangement();
-        }
-
     public:
         const BoundingBox2D& bbox() const noexcept {
             return this->bbox(std::monostate{});
@@ -151,6 +146,20 @@ namespace BURST::geometry {
                 }
             }
             return intersection_count; // Return the number of intersections found
+        }
+        
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 255}) override {
+            // Just have CGAL render the edges of the configuration space with transparent faces
+            graphics_options_t config_options;
+            config_options.colored_edge = [](const arrangement_t&, const arrangement_t::Halfedge_const_handle&) -> bool {
+                return true;
+            };
+            config_options.edge_color = [color](const arrangement_t&, arrangement_t::Halfedge_const_handle) -> renderable::Color {
+                return color;
+            };
+            config_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle& face) -> bool {
+                return false;
+            };
         }
 
         friend class BURST::geometry::WallSpace; // For access to private constructor
