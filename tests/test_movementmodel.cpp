@@ -3,7 +3,7 @@
 #include <boost/math/special_functions.hpp>
 
 #include <BURST/models.hpp>
-#include <BURST/geometric_types.hpp>
+#include <BURST/geometry.hpp>
 #include <BURST/numeric_types.hpp>
 
 #include "test_helpers.hpp"

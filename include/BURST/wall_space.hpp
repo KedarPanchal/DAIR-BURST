@@ -15,7 +15,7 @@
 #include <boost/uuid/uuid.hpp>
 
 #include "numeric_types.hpp"
-#include "geometric_types.hpp"
+#include "geometry.hpp"
 #include "renderable.hpp"
 #include "configuration_space.hpp"
 #include "robot.hpp"

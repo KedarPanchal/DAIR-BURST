@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
-#include <BURST/geometric_types.hpp>
-#include <BURST/graphics_types.hpp>
+#include <BURST/geometry.hpp>
 #include <BURST/wall_space.hpp>
 
 // Utility includes for tests

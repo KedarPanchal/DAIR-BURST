@@ -11,7 +11,7 @@
 #include <iterator>
 #include <vector>
 
-#include "geometric_types.hpp"
+#include "geometry.hpp"
 #include "numeric_types.hpp"
 #include "configuration_space.hpp"
 #include "logging.hpp"

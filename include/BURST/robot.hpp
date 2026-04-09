@@ -11,7 +11,7 @@
 #include <boost/functional/hash.hpp>
 #include <boost/container/small_vector.hpp>
 
-#include "geometric_types.hpp"
+#include "geometry.hpp"
 #include "numeric_types.hpp"
 #include "renderable.hpp"
 #include "configuration_space.hpp"
