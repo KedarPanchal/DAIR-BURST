@@ -6,7 +6,7 @@
 #include <BURST/configuration_space.hpp>
 #include <BURST/numeric.hpp>
 #include <BURST/geometry.hpp>
-#include <BURST/kernel_types.hpp>
+#include <BURST/kernel.hpp>
 
 #include <initializer_list>
 

@@ -2,6 +2,7 @@
 #include <BURST/geometry.hpp>
 #include <BURST/configuration_space.hpp>
 #include <BURST/wall_space.hpp>
+#include <BURST/renderable.hpp>
 
 #include "test_helpers.hpp"
 
@@ -29,7 +30,7 @@ TEST(ConfigurationSpaceRenderingTest, RenderRegularPolygon) {
     ASSERT_NE(configuration_space, nullptr) << "Failed to construct non-degenerate ConfigurationSpace for a regular polygon";
 
     // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace
-    BURST::graphics::Scene scene;
+    BURST::renderable::Scene scene;
     configuration_space->render(scene);
     wall_space->render(scene);
 
@@ -63,7 +64,7 @@ TEST(ConfigurationSpaceRenderingTest, RenderSimplePolygon) {
     ASSERT_NE(configuration_space, nullptr) << "Failed to construct non-degenerate ConfigurationSpace for a simple polygon";
 
     // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace 
-    BURST::graphics::Scene scene;
+    BURST::renderable::Scene scene;
     configuration_space->render(scene);
     wall_space->render(scene);
 

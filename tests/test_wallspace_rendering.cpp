@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 #include <BURST/geometry.hpp>
 #include <BURST/wall_space.hpp>
+#include <BURST/renderable.hpp>
 
 // Utility includes for tests
 
 // Test for rendering a regular polygon
 TEST(WallSpaceRenderingTest, RenderRegularPolygon) {
-    GTEST_SKIP() << "Rendering tests are currently disabled";
     // Construct a WallSpace for a square
     auto wall_space = BURST::geometry::WallSpace::create({
         BURST::geometry::Point2D{0, 0},
@@ -20,7 +20,7 @@ TEST(WallSpaceRenderingTest, RenderRegularPolygon) {
     ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon";
     
     // Create a CGAL Graphics Scene and render the WallSpace
-    BURST::graphics::Scene scene;
+    BURST::renderable::Scene scene;
     wall_space->render(scene);
 
     // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed as this currently crashes the build
@@ -47,7 +47,7 @@ TEST(WallSpaceRenderingTest, RenderSimplePolygon) {
     ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a simple polygon";
 
     // Create a CGAL Graphics Scene and render the WallSpace
-    BURST::graphics::Scene scene;
+    BURST::renderable::Scene scene;
     wall_space->render(scene);
 
     // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed as this currently crashes the build
