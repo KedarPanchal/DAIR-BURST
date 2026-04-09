@@ -12,7 +12,6 @@
 
 #include "geometric_types.hpp"
 #include "numeric_types.hpp"
-#include "graphics_types.hpp"
 #include "renderable.hpp"
 #include "configuration_space.hpp"
 #include "models.hpp"
@@ -30,7 +29,7 @@ namespace BURST {
         numeric::valid_rng R = std::mt19937, 
         numeric::valid_distribution<R> D = std::uniform_real_distribution<double>
     >
-    class Robot : public Renderable<CurvedTraits> {
+    class Robot : public Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel> {
     private:
         numeric::fscalar radius;
         geometry::Point2D position;
@@ -58,6 +57,10 @@ namespace BURST {
             position{starting_point}, 
             rotation_model{rotation_model}, 
             movement_model{movement_model} {}
+
+            Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
+                // TODO: Figure out how to construct an arrangement from the circle representing the robot
+            }
               
     public:
         using Trajectory = T;
@@ -198,10 +201,6 @@ namespace BURST {
             // Otherwise, move the robot to the endpoint
             this->position = *endpoint;
             return true;
-        }
-        
-        // TODO: Implement render function once the graphics library bugs are squashed
-        void render(graphics::Scene& scene) override {
         }
     };
 

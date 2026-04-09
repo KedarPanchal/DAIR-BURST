@@ -16,7 +16,6 @@
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
-#include "graphics_types.hpp"
 #include "renderable.hpp"
 
 namespace BURST::geometry {
@@ -26,7 +25,7 @@ namespace BURST::geometry {
 
     // ConfigurationSpace should never be instantiated directly
     // This is why its constructors are private and only accessible by WallSpace
-    class ConfigurationSpace : public Renderable<CurvedTraits> {
+    class ConfigurationSpace : public Renderable<CurvedTraits, CurvilinearPolygonSet2D::Dcel> {
     private:
         std::unique_ptr<CurvilinearPolygonSet2D> configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;
@@ -52,6 +51,11 @@ namespace BURST::geometry {
                 for (const HoledCurvilinearPolygon2D& polygon : polygons) *this->bounding_box += polygon.outer_boundary().bbox();
             }
             return this->bounding_box.value();
+        }
+
+    protected:
+        Renderable<CurvedTraits, CurvilinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
+            return this->configuration_shape->arrangement();
         }
 
     public:
@@ -147,10 +151,6 @@ namespace BURST::geometry {
                 }
             }
             return intersection_count; // Return the number of intersections found
-        }
-
-        void render(graphics::Scene& scene) noexcept override {
-            // TODO: Figure out how to render a curvilinear polygon
         }
 
         friend class BURST::geometry::WallSpace; // For access to private constructor

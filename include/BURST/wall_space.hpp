@@ -16,7 +16,6 @@
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
-#include "graphics_types.hpp"
 #include "renderable.hpp"
 #include "configuration_space.hpp"
 #include "robot.hpp"
@@ -25,7 +24,7 @@
 namespace BURST::geometry {
     
     // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
-    class WallSpace : public Renderable<LinearTraits> {
+    class WallSpace : public Renderable<LinearTraits, LinearPolygonSet2D::Dcel> {
     private:
         HoledPolygon2D wall_shape;
 
@@ -77,6 +76,11 @@ namespace BURST::geometry {
             
             // Create the configuration space from the resulting polygon set
             return ConfigurationSpace::create(std::move(config_polygon_set));
+        }
+
+        Renderable<LinearTraits, LinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
+            LinearPolygonSet2D graphics_set{this->wall_shape};
+            return graphics_set.arrangement();
         }
 
     public:
@@ -148,26 +152,6 @@ namespace BURST::geometry {
             return true;
         }
 
-        void render(graphics::Scene& scene) noexcept override {
-            graphics_options_t graphics_options;
-            // Set face coloring to color the wall space
-            graphics_options.colored_face = [](const arrangement_t&, arrangement_t::Face_const_handle) -> bool {
-                return true;
-            };
-            graphics_options.face_color = [id= this->id](const arrangement_t&, arrangement_t::Face_const_handle) -> graphics::Color {
-                graphics::Color wall_color;
-                size_t half_size = sizeof(decltype(id)) / 2;
-                double hue = static_cast<double>(id % 360);
-                double saturation = static_cast<double>(id % 100) / 100.0;
-                // Switch the upper and lower halves of the id to get more variability in the value component of the HSV color
-                double value = static_cast<double>(((id >> half_size) | (id << half_size)) % 100) / 100.0;
-                return wall_color.set_hsv(hue, saturation, value);
-            };
-            // Actually render the wall space using its underlying arrangement
-            // Convert to a polygon set to actually get this arrangement
-            LinearPolygonSet2D graphics_polygon_set{this->wall_shape};
-            CGAL::add_to_graphics_scene(graphics_polygon_set.arrangement(), scene, graphics_options);
-        }
 
         friend class std::unique_ptr<WallSpace>;
     };
