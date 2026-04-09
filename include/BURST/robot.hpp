@@ -9,6 +9,7 @@
 
 #include <boost/multiprecision/mpfr.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/container/small_vector.hpp>
 
 #include "geometric_types.hpp"
 #include "numeric_types.hpp"
@@ -59,7 +60,14 @@ namespace BURST {
             movement_model{movement_model} {}
 
             Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
-                // TODO: Figure out how to construct an arrangement from the circle representing the robot
+                // Construct an empty arrangement to enter
+                Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t arrangement;
+                // Insert the circle representing the robot's current position into the arrangement
+                std::optional<geometry::CurvilinearPolygon2D> circle = geometry::construct_circle(this->radius, this->position);
+                if (circle) CGAL::insert(arrangement, circle->curves_begin(), circle->curves_end());
+                // This should never occur due to earlier checks, but log the error if it does anyway
+                else BURST_ERROR("Failed to render robot due to non-positive radius.");
+                return arrangement;
             }
               
     public:
