@@ -12,13 +12,13 @@
 
 namespace BURST {
     
+    using Scene = CGAL::Graphics_scene;
+    using Color = CGAL::IO::Color;
+
     // Renderable is an interface for objects that can be rendered in a visualization.
     template <typename Traits, typename HalfEdgeList>
     class Renderable {
     private:
-        using Scene = CGAL::Graphics_scene;
-        using Color = CGAL::IO::Color;
-
         size_t id; 
 
     protected:
