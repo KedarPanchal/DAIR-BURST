@@ -21,7 +21,7 @@ TEST(WallSpaceRenderingTest, RenderRegularPolygon) {
     
     // Create a CGAL Graphics Scene and render the WallSpace
     BURST::renderable::Scene scene;
-    wall_space->render(scene);
+    wall_space->render(scene, BURST::renderable::Color{255, 0, 0});
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
@@ -47,7 +47,7 @@ TEST(WallSpaceRenderingTest, RenderSimplePolygon) {
 
     // Create a CGAL Graphics Scene and render the WallSpace
     BURST::renderable::Scene scene;
-    wall_space->render(scene);
+    wall_space->render(scene, BURST::renderable::Color{255, 0, 0});
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
