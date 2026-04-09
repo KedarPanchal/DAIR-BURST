@@ -49,7 +49,7 @@ namespace BURST {
             graphics_options.colored_face = [](const arrangement_t&, arrangement_t::Face_const_handle) -> bool {
                 return true;
             };
-            graphics_options.face_color = [id= this->id](const arrangement_t&, arrangement_t::Face_const_handle) -> Color {
+            graphics_options.face_color = [id = this->id](const arrangement_t&, arrangement_t::Face_const_handle) -> Color {
                 Color object_color;
                 double hue = static_cast<double>(id % 360);
                 double saturation = static_cast<double>(id % 100) / 100.0;
@@ -57,6 +57,18 @@ namespace BURST {
                 size_t half_size = sizeof(decltype(id)) / 2;
                 double value = static_cast<double>(((id >> half_size) | (id << half_size)) % 100) / 100.0;
                 return object_color.set_hsv(hue, saturation, value);
+            };
+
+            CGAL::add_to_graphics_scene(this->make_arrangement(), scene, graphics_options);
+        }
+        void render(Scene& scene, const Color& color) {
+            graphics_options_t graphics_options;
+            // Set face coloring to color the renderable object
+            graphics_options.colored_face = [](const arrangement_t&, arrangement_t::Face_const_handle) -> bool {
+                return true;
+            };
+            graphics_options.face_color = [color](const arrangement_t&, arrangement_t::Face_const_handle) -> Color {
+                return color;
             };
 
             CGAL::add_to_graphics_scene(this->make_arrangement(), scene, graphics_options);
