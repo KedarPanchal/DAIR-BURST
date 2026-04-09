@@ -24,7 +24,7 @@
 namespace BURST::geometry {
     
     // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
-    class WallSpace : public Renderable<LinearTraits, LinearPolygonSet2D::Dcel> {
+    class WallSpace : public renderable::Renderable<LinearTraits, LinearPolygonSet2D::Dcel> {
     private:
         HoledPolygon2D wall_shape;
 
@@ -78,7 +78,7 @@ namespace BURST::geometry {
             return ConfigurationSpace::create(std::move(config_polygon_set));
         }
 
-        Renderable<LinearTraits, LinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
+        renderable::Renderable<LinearTraits, LinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
             LinearPolygonSet2D graphics_set{this->wall_shape};
             return graphics_set.arrangement();
         }

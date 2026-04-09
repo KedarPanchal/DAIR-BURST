@@ -10,7 +10,10 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
-namespace BURST {
+namespace BURST::renderable {
+
+    using Scene = CGAL::Graphics_scene;
+    using Color = CGAL::IO::Color;
     
     // Renderable is an interface for objects that can be rendered in a visualization.
     template <typename Traits, typename HalfEdgeList>
@@ -26,9 +29,6 @@ namespace BURST {
         virtual arrangement_t make_arrangement() const noexcept = 0;
 
     public:
-        using Scene = CGAL::Graphics_scene;
-        using Color = CGAL::IO::Color;
-
         Renderable() : id{boost::uuids::hash_value(boost::uuids::random_generator{}())} {}
         
         // Getters and setters for the UUID of the renderable object

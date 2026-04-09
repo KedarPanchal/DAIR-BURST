@@ -30,7 +30,7 @@ namespace BURST {
         numeric::valid_rng R = std::mt19937, 
         numeric::valid_distribution<R> D = std::uniform_real_distribution<double>
     >
-    class Robot : public Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel> {
+    class Robot : public renderable::Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel> {
     private:
         numeric::fscalar radius;
         geometry::Point2D position;
@@ -59,7 +59,7 @@ namespace BURST {
             rotation_model{rotation_model}, 
             movement_model{movement_model} {}
 
-            Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
+        renderable::Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t make_arrangement() const noexcept override {
                 // Construct an empty arrangement to enter
                 Renderable<CurvedTraits, geometry::CurvilinearPolygonSet2D::Dcel>::arrangement_t arrangement;
                 // Insert the circle representing the robot's current position into the arrangement
