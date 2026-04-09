@@ -116,7 +116,7 @@ namespace BURST::geometry {
         });
         return Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)};
     }
-
+    
     inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
         return average<std::initializer_list<Point2D>>(points);
     }

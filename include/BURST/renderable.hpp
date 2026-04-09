@@ -1,6 +1,8 @@
 #ifndef BURST_RENDERABLE_HPP
 #define BURST_RENDERABLE_HPP
 
+#include <ranges>
+
 #include <CGAL/Arrangement_2.h>
 #include <CGAL/Graphics_scene.h>
 #include <CGAL/Graphics_scene_options.h>
@@ -24,6 +26,18 @@ namespace BURST::renderable {
     public:
         virtual void render(Scene& scene, const Color& color) = 0;
     };
+
+    // Sequences the rendering of a collection of renderables
+    template <template <typename> typename C, typename Traits, typename HalfEdgeList> requires std::ranges::bidirectional_range<C<Renderable<Traits, HalfEdgeList>>>
+    void render_all(const C<Renderable<Traits, HalfEdgeList>>& renderables, Scene& scene) {
+        for (const auto& renderable : renderables | std::views::reverse) {
+            renderable.render(scene);
+        }
+    }
+    template <typename Traits, typename HalfEdgeList>
+    inline void render_all(const std::initializer_list<Renderable<Traits, HalfEdgeList>>& renderables, Scene& scene) {
+        render_all<std::initializer_list<Renderable<Traits, HalfEdgeList>>>(renderables, scene);
+    }
 
 }
 #endif
