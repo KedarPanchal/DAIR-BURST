@@ -18,7 +18,6 @@
 #include "geometric_types.hpp"
 #include "graphics_types.hpp"
 #include "renderable.hpp"
-#include "logging.hpp"
 
 namespace BURST::geometry {
     
@@ -150,7 +149,7 @@ namespace BURST::geometry {
             return intersection_count; // Return the number of intersections found
         }
 
-        void render(graphics::Scene& scene) const noexcept {
+        void render(graphics::Scene& scene) noexcept override {
             // TODO: Figure out how to render a curvilinear polygon
         }
 

@@ -8,8 +8,11 @@
 #include <CGAL/approximated_offset_2.h>
 #include <CGAL/General_polygon_set_2.h>
 #include <CGAL/Boolean_set_operations_2.h>
+#include <CGAL/Graphics_scene_options.h>
+#include <CGAL/draw_arrangement_2.h>
 
 #include <boost/container/small_vector.hpp>
+#include <boost/uuid/uuid.hpp>
 
 #include "numeric_types.hpp"
 #include "geometric_types.hpp"
@@ -24,14 +27,17 @@ namespace BURST::geometry {
     // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
     class WallSpace : public Renderable {
     private:
+        using arrangement_t = CGAL::Arrangement_2<CurvedTraits>;
+        using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
+
         HoledPolygon2D wall_shape;
-        graphics::PolygonOptions wall_render_options;
+        graphics_options_t graphics_options;
 
     protected: 
         // Protected constructors since the public API is through the static create method
         // Abstracting this away to protected constructors allows subclassing WallSpace in a test environment without depending on the static create method and its constraints
-        WallSpace(const Polygon2D& shape) noexcept : wall_shape{shape} {}
-        WallSpace(const HoledPolygon2D& shape) noexcept : wall_shape{shape} {}
+        WallSpace(const Polygon2D& shape) noexcept : Renderable{}, wall_shape{shape} {}
+        WallSpace(const HoledPolygon2D& shape) noexcept : Renderable{}, wall_shape{shape} {}
 
         // Protected methods since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
@@ -146,16 +152,22 @@ namespace BURST::geometry {
             return true;
         }
 
-        void render(graphics::Scene& scene) const noexcept override {
-            graphics::PolygonOptions graphics_options{};
-            graphics_options.face_color = [](const Polygon2D& polygon, void* fh) noexcept {
-                return graphics::Color(173, 216, 230);  // Light blue walls
-            };
-            graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
+        void render(graphics::Scene& scene) noexcept override {
+            this->graphics_options.colored_face = [](const arrangement_t&, arrangement_t::Face_const_handle) -> bool {
                 return true;
             };
-            // TODO: This import (CGAL/draw_polygon_2.h) is broken, find a way to fix
-            // CGAL::add_to_graphics_scene(this->wall_shape, scene, graphics_options);
+            this->graphics_options.face_color = [hash= boost::uuids::hash_value(this->uuid())](const arrangement_t&, arrangement_t::Face_const_handle) -> graphics::Color {
+                graphics::Color wall_color;
+                size_t half_size = sizeof(decltype(hash)) / 2;
+                double hue = static_cast<double>(hash % 360);
+                double saturation = static_cast<double>(hash % 100) / 100.0;
+                // Switch the upper and lower halves of the hash to get more variability in the value component of the HSV color
+                double value = static_cast<double>(((hash >> half_size) | (hash << half_size)) % 100) / 100.0;
+                return wall_color.set_hsv(hue, saturation, value);
+            };
+            
+            LinearPolygonSet2D graphics_polygon_set{this->wall_shape};
+            CGAL::add_to_graphics_scene(graphics_polygon_set.arrangement(), scene, graphics_options);
         }
 
         friend class std::unique_ptr<WallSpace>;

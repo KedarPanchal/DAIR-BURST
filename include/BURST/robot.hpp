@@ -200,7 +200,7 @@ namespace BURST {
         }
         
         // TODO: Implement render function once the graphics library bugs are squashed
-        void render(graphics::Scene& scene) const override {
+        void render(graphics::Scene& scene) override {
         }
     };
 

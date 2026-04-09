@@ -39,6 +39,7 @@ namespace BURST::geometry {
     
     // Composite/complex types
     using CurvilinearPolygonSet2D = CGAL::General_polygon_set_2<CurvedTraits>;
+    using LinearPolygonSet2D = CGAL::General_polygon_set_2<LinearTraits>;
     using BoundingBox2D = CGAL::Bbox_2;
     using WindingOrder = CGAL::Orientation;
 
