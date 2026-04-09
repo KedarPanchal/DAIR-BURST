@@ -14,7 +14,6 @@ TEST(WallSpaceRenderingTest, RenderRegularPolygon) {
         BURST::geometry::Point2D{10, 10},
         BURST::geometry::Point2D{0, 10}
     });
-
     // Expect the WallSpace to be non-degenerate
     // i.e., it is not nullopt
     ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon";
@@ -40,7 +39,6 @@ TEST(WallSpaceRenderingTest, RenderSimplePolygon) {
         BURST::geometry::Point2D{0, 0},
         BURST::geometry::Point2D{20, -20}
     });
-
     // Expect the WallSpace to be non-degenerate
     // i.e., it is not nullopt
     ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a simple polygon";
@@ -91,7 +89,6 @@ TEST(WallSpaceRenderingTest, RenderRegularPolygonWithHoles) {
         *hole1,
         *hole2
     });
-
     // Expect the WallSpace with holes to be non-degenerate and valid
     // i.e., it is not nullopt
     ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a regular polygon with multiple holes in the middle";
@@ -130,7 +127,6 @@ TEST(WallSpaceRenderingTest, RenderSimplePolygonWithHole) {
     {
         *hole
     });
-
     // Expect the WallSpace with holes to be non-degenerate and valid
     // i.e., it is not nullopt
     ASSERT_TRUE(wall_space.has_value()) << "Failed to construct non-degenerate WallSpace for a simple polygon with a hole in the middle";
