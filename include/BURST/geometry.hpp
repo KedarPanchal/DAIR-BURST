@@ -17,7 +17,7 @@
 
 #include <boost/container/small_vector.hpp>
 
-#include "kernel_types.hpp"
+#include "kernel.hpp"
 #include "numeric.hpp"
 #include "logging.hpp"
 

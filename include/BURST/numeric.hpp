@@ -8,7 +8,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include "kernel_types.hpp"
+#include "kernel.hpp"
 
 // This namespace contains numeric types for CGAL
 namespace BURST::numeric {
