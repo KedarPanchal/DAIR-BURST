@@ -30,8 +30,8 @@ TEST(ConfigurationSpaceRenderingTest, RenderRegularPolygon) {
 
     // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace
     BURST::renderable::Scene scene;
-    wall_space->render(scene);
     configuration_space->render(scene);
+    wall_space->render(scene);
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
@@ -63,8 +63,8 @@ TEST(ConfigurationSpaceRenderingTest, RenderSimplePolygon) {
 
     // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace 
     BURST::renderable::Scene scene;
-    wall_space->render(scene);
     configuration_space->render(scene);
+    wall_space->render(scene);
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
@@ -120,8 +120,8 @@ TEST(ConfigurationSpaceRenderingTest, RenderRegularPolygonWithHoles) {
 
     // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace
     BURST::renderable::Scene scene;
-    wall_space->render(scene);
     configuration_space->render(scene);
+    wall_space->render(scene);
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
@@ -165,8 +165,8 @@ TEST(ConfigurationSpaceRenderingTest, RenderSimplePolygonWithHole) {
 
     // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace
     BURST::renderable::Scene scene;
-    wall_space->render(scene);
     configuration_space->render(scene);
+    wall_space->render(scene);
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
