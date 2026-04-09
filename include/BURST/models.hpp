@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "geometry.hpp"
-#include "numeric_types.hpp"
+#include "numeric.hpp"
 #include "configuration_space.hpp"
 #include "logging.hpp"
 

@@ -14,7 +14,7 @@
 #include <boost/container/small_vector.hpp>
 #include <boost/uuid/uuid.hpp>
 
-#include "numeric_types.hpp"
+#include "numeric.hpp"
 #include "geometry.hpp"
 #include "renderable.hpp"
 #include "configuration_space.hpp"

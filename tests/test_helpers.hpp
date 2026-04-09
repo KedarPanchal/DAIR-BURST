@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <BURST/wall_space.hpp>
 #include <BURST/configuration_space.hpp>
-#include <BURST/numeric_types.hpp>
+#include <BURST/numeric.hpp>
 #include <BURST/geometry.hpp>
 #include <BURST/kernel_types.hpp>
 

@@ -4,7 +4,7 @@
 
 #include <BURST/models.hpp>
 #include <BURST/geometry.hpp>
-#include <BURST/numeric_types.hpp>
+#include <BURST/numeric.hpp>
 
 #include "test_helpers.hpp"
 

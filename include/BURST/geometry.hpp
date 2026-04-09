@@ -18,7 +18,7 @@
 #include <boost/container/small_vector.hpp>
 
 #include "kernel_types.hpp"
-#include "numeric_types.hpp"
+#include "numeric.hpp"
 #include "logging.hpp"
 
 namespace BURST::geometry {
