@@ -10,7 +10,6 @@
 
 // Test for rendering a regular polygon and its ConfigurationSpace
 TEST(ConfigurationSpaceRenderingTest, RenderRegularPolygon) {
-    GTEST_SKIP() << "Rendering tests are currently disabled";
     // Construct a WallSpace for a square
     auto wall_space = TestWallSpace::create({
         BURST::geometry::Point2D{0, 0},
@@ -31,11 +30,11 @@ TEST(ConfigurationSpaceRenderingTest, RenderRegularPolygon) {
 
     // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace
     BURST::renderable::Scene scene;
-    configuration_space->render(scene);
     wall_space->render(scene);
+    configuration_space->render(scene);
 
-    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed as this currently crashes the build
-    // CGAL::draw_graphics_scene(scene);
+    // Draw the scene in a CGAL viewer
+    CGAL::draw_graphics_scene(scene);
     
     // If we reach this point without crashing, the test is successful
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";
@@ -43,7 +42,6 @@ TEST(ConfigurationSpaceRenderingTest, RenderRegularPolygon) {
 
 // Test for rendering a simple polygon and its ConfigurationSpace
 TEST(ConfigurationSpaceRenderingTest, RenderSimplePolygon) {
-    GTEST_SKIP() << "Rendering tests are currently disabled";
     // Construct a WallSpace for a simple polygon
     // In this case, we'll use a concave polygon with an arrowhead shape
     auto wall_space = TestWallSpace::create({
@@ -65,11 +63,11 @@ TEST(ConfigurationSpaceRenderingTest, RenderSimplePolygon) {
 
     // Create a CGAL Graphics Scene and render the WallSpace and ConfigurationSpace 
     BURST::renderable::Scene scene;
-    configuration_space->render(scene);
     wall_space->render(scene);
+    configuration_space->render(scene);
 
-    // Draw the scene in a CGAL viewer -- TODO: Re-enable once rendering import issues are fixed as this currently crashes the build
-    // CGAL::draw_graphics_scene(scene);
+    // Draw the scene in a CGAL viewer
+    CGAL::draw_graphics_scene(scene);
     
     // If we reach this point without crashing, the test is successful
     EXPECT_TRUE(true) << "If you're seeing this, something has gone terribly wrong, and EXPECT_TRUE(true) is a LIE";
