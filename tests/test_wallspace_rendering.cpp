@@ -57,7 +57,7 @@ TEST(WallSpaceRenderingTest, RenderSimplePolygon) {
 }
 
 // Test for rendering a regular polygon with holes in the middle
-TEST(WallSpaceRenderingTest, RenderRegularPolygonWithHole) {
+TEST(WallSpaceRenderingTest, RenderRegularPolygonWithHoles) {
     // Construct the first 3x3 square hole
     std::optional<BURST::geometry::Polygon2D> hole1 = BURST::geometry::construct_polygon({
         BURST::geometry::Point2D{5, 6},
