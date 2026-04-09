@@ -2,13 +2,13 @@
 #define BURST_RENDERABLE_HPP
 
 #include <CGAL/Arrangement_2.h>
+#include <CGAL/Graphics_scene.h>
 #include <CGAL/Graphics_scene_options.h>
 #include <CGAL/draw_arrangement_2.h>
+#include <CGAL/IO/Color.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-
-#include "kernel.hpp"
 
 namespace BURST {
     
@@ -16,6 +16,9 @@ namespace BURST {
     template <typename Traits, typename HalfEdgeList>
     class Renderable {
     private:
+        using Scene = CGAL::Graphics_scene;
+        using Color = CGAL::IO::Color;
+
         size_t id; 
 
     protected:
