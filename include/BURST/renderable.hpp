@@ -13,21 +13,30 @@
 namespace BURST {
     
     // Renderable is an interface for objects that can be rendered in a visualization.
-    template <typename Traits, typename EdgeList>
+    template <typename Traits, typename HalfEdgeList>
     class Renderable {
+    private:
+        size_t id; 
+
     protected:
-        using arrangement_t = CGAL::Arrangement_2<Traits, EdgeList>;
+        using arrangement_t = CGAL::Arrangement_2<Traits, HalfEdgeList>;
         using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
 
-        const size_t id;
-
         virtual arrangement_t make_arrangement() const noexcept = 0;
+
     public:
         Renderable() : id{boost::uuids::hash_value(boost::uuids::random_generator{}())} {}
         
         size_t uuid() const noexcept { 
             return this->id; 
         }
+        void setUuid(size_t new_id) noexcept {
+            this->id = new_id;
+        }
+        void resetUuid() noexcept {
+            this->id = boost::uuids::hash_value(boost::uuids::random_generator{}());
+        }
+
         void render(graphics::Scene& scene) {
             graphics_options_t graphics_options;
             // Set face coloring to color the renderable object
