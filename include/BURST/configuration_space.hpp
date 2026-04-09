@@ -11,6 +11,7 @@
 
 #include <CGAL/Arr_naive_point_location.h>
 #include <CGAL/Graphics_scene.h>
+#include <CGAL/draw_arrangement_2.h>
 
 #include <boost/container/small_vector.hpp>
 
@@ -149,6 +150,8 @@ namespace BURST::geometry {
         }
         
         void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 255}) override {
+            if (this->configuration_shape == nullptr) return; // If the configuration shape is null, then there's nothing to render
+                            
             // Just have CGAL render the edges of the configuration space with transparent faces
             graphics_options_t config_options;
             config_options.colored_edge = [](const arrangement_t&, const arrangement_t::Halfedge_const_handle&) -> bool {
@@ -163,6 +166,8 @@ namespace BURST::geometry {
             config_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
                 return renderable::Color{0, 0, 0, 0}; // Transparent faces
             };
+
+            CGAL::add_to_graphics_scene(this->configuration_shape->arrangement(), scene, config_options);
         }
 
         friend class BURST::geometry::WallSpace; // For access to private constructor
