@@ -158,7 +158,10 @@ namespace BURST::geometry {
                 return color;
             };
             config_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle& face) -> bool {
-                return false;
+                return true;
+            };
+            config_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
+                return renderable::Color{0, 0, 0, 0}; // Transparent faces
             };
         }
 
