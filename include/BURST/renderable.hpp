@@ -2,13 +2,13 @@
 #define BURST_RENDERABLE_HPP
 
 #include <CGAL/Arrangement_2.h>
+#include <CGAL/Graphics_scene.h>
 #include <CGAL/Graphics_scene_options.h>
 #include <CGAL/draw_arrangement_2.h>
+#include <CGAL/IO/Color.h>
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-
-#include "graphics_types.hpp"
 
 namespace BURST {
     
@@ -16,6 +16,9 @@ namespace BURST {
     template <typename Traits, typename HalfEdgeList>
     class Renderable {
     private:
+        using Scene = CGAL::Graphics_scene;
+        using Color = CGAL::IO::Color;
+
         size_t id; 
 
     protected:
@@ -37,14 +40,14 @@ namespace BURST {
             this->id = boost::uuids::hash_value(boost::uuids::random_generator{}());
         }
 
-        void render(graphics::Scene& scene) {
+        void render(Scene& scene) {
             graphics_options_t graphics_options;
             // Set face coloring to color the renderable object
             graphics_options.colored_face = [](const arrangement_t&, arrangement_t::Face_const_handle) -> bool {
                 return true;
             };
-            graphics_options.face_color = [id= this->id](const arrangement_t&, arrangement_t::Face_const_handle) -> graphics::Color {
-                graphics::Color object_color;
+            graphics_options.face_color = [id= this->id](const arrangement_t&, arrangement_t::Face_const_handle) -> Color {
+                Color object_color;
                 double hue = static_cast<double>(id % 360);
                 double saturation = static_cast<double>(id % 100) / 100.0;
                 // Switch the upper and lower halves of the id to get more variability in the value component of the HSV color
