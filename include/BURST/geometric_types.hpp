@@ -155,8 +155,8 @@ namespace BURST::geometry {
         CGAL::Circle_2<Kernel> circle = CGAL::Circle_2<Kernel>{center, radius * radius};
 
         boost::container::small_vector<CurvedTraits::X_monotone_curve_2, 2> semicircles{
-            CurvedTraits::X_monotone_curve_2{circle, CurvedTraits::Point_2{center.x() - radius, center.y()}, CurvedTraits::Point_2{center.x() + radius, center.y()}, CGAL::COUNTERCLOCKWISE},
-            CurvedTraits::X_monotone_curve_2{circle, CurvedTraits::Point_2{center.x() + radius, center.y()}, CurvedTraits::Point_2{center.x() - radius, center.y()}, CGAL::COUNTERCLOCKWISE}
+            MonotoneCurve2D{circle, CurvedTraits::Point_2{center.x() - radius, center.y()}, CurvedTraits::Point_2{center.x() + radius, center.y()}, CGAL::COUNTERCLOCKWISE},
+            MonotoneCurve2D{circle, CurvedTraits::Point_2{center.x() + radius, center.y()}, CurvedTraits::Point_2{center.x() - radius, center.y()}, CGAL::COUNTERCLOCKWISE}
         };
         
         return CurvilinearPolygon2D{semicircles.begin(), semicircles.end()};
