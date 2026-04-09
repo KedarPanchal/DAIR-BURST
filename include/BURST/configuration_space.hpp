@@ -26,7 +26,7 @@ namespace BURST::geometry {
 
     // ConfigurationSpace should never be instantiated directly
     // This is why its constructors are private and only accessible by WallSpace
-    class ConfigurationSpace : public Renderable {
+    class ConfigurationSpace : public Renderable<CurvedTraits> {
     private:
         std::unique_ptr<CurvilinearPolygonSet2D> configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;

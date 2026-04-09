@@ -30,7 +30,7 @@ namespace BURST {
         numeric::valid_rng R = std::mt19937, 
         numeric::valid_distribution<R> D = std::uniform_real_distribution<double>
     >
-    class Robot : public Renderable {
+    class Robot : public Renderable<CurvedTraits> {
     private:
         numeric::fscalar radius;
         geometry::Point2D position;

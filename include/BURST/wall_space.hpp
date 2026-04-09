@@ -25,13 +25,9 @@
 namespace BURST::geometry {
     
     // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
-    class WallSpace : public Renderable {
+    class WallSpace : public Renderable<LinearTraits> {
     private:
-        using arrangement_t = CGAL::Arrangement_2<CurvedTraits>;
-        using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
-
         HoledPolygon2D wall_shape;
-        graphics_options_t graphics_options;
 
     protected: 
         // Protected constructors since the public API is through the static create method
@@ -153,16 +149,17 @@ namespace BURST::geometry {
         }
 
         void render(graphics::Scene& scene) noexcept override {
-            this->graphics_options.colored_face = [](const arrangement_t&, arrangement_t::Face_const_handle) -> bool {
+            graphics_options_t graphics_options;
+            graphics_options.colored_face = [](const arrangement_t&, arrangement_t::Face_const_handle) -> bool {
                 return true;
             };
-            this->graphics_options.face_color = [hash= boost::uuids::hash_value(this->uuid())](const arrangement_t&, arrangement_t::Face_const_handle) -> graphics::Color {
+            graphics_options.face_color = [id= this->id](const arrangement_t&, arrangement_t::Face_const_handle) -> graphics::Color {
                 graphics::Color wall_color;
-                size_t half_size = sizeof(decltype(hash)) / 2;
-                double hue = static_cast<double>(hash % 360);
-                double saturation = static_cast<double>(hash % 100) / 100.0;
-                // Switch the upper and lower halves of the hash to get more variability in the value component of the HSV color
-                double value = static_cast<double>(((hash >> half_size) | (hash << half_size)) % 100) / 100.0;
+                size_t half_size = sizeof(decltype(id)) / 2;
+                double hue = static_cast<double>(id % 360);
+                double saturation = static_cast<double>(id % 100) / 100.0;
+                // Switch the upper and lower halves of the id to get more variability in the value component of the HSV color
+                double value = static_cast<double>(((id >> half_size) | (id << half_size)) % 100) / 100.0;
                 return wall_color.set_hsv(hue, saturation, value);
             };
             
