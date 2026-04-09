@@ -53,6 +53,7 @@ namespace BURST {
     protected:
         // Protected constructor since preconditions are validated by public static create functions
         Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) : 
+            Renderable{},
             radius{robot_radius}, 
             position{starting_point}, 
             rotation_model{rotation_model}, 

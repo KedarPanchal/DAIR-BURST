@@ -150,6 +150,7 @@ namespace BURST::geometry {
 
         void render(graphics::Scene& scene) noexcept override {
             graphics_options_t graphics_options;
+            // Set face coloring to color the wall space
             graphics_options.colored_face = [](const arrangement_t&, arrangement_t::Face_const_handle) -> bool {
                 return true;
             };
@@ -162,7 +163,8 @@ namespace BURST::geometry {
                 double value = static_cast<double>(((id >> half_size) | (id << half_size)) % 100) / 100.0;
                 return wall_color.set_hsv(hue, saturation, value);
             };
-            
+            // Actually render the wall space using its underlying arrangement
+            // Convert to a polygon set to actually get this arrangement
             LinearPolygonSet2D graphics_polygon_set{this->wall_shape};
             CGAL::add_to_graphics_scene(graphics_polygon_set.arrangement(), scene, graphics_options);
         }

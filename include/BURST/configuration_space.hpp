@@ -31,7 +31,7 @@ namespace BURST::geometry {
         std::unique_ptr<CurvilinearPolygonSet2D> configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;
 
-        ConfigurationSpace(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept : configuration_shape{std::move(shape)}, bounding_box{} {}
+        ConfigurationSpace(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept : Renderable{}, configuration_shape{std::move(shape)}, bounding_box{} {}
 
         static std::unique_ptr<ConfigurationSpace> create(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept {
             return std::unique_ptr<ConfigurationSpace>{new ConfigurationSpace{std::move(shape)}};
