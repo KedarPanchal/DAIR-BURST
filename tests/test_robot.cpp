@@ -1,13 +1,12 @@
-#include <BURST/numeric_types.hpp>
 #include <gtest/gtest.h>
 
 #include <BURST/robot.hpp>
+#include <BURST/numeric.hpp>
 #include <BURST/wall_space.hpp>
 #include <BURST/geometry.hpp>
 #include <BURST/models.hpp>
 
 #include <optional>
-#include <variant>
 
 // -- TEST FIXTURE SETUP -------------------------------------------------------
 class RobotTest : public ::testing::Test {
