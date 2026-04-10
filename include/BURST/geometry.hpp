@@ -14,12 +14,14 @@
 #include <CGAL/General_polygon_set_2.h>
 #include <CGAL/enum.h>
 #include <CGAL/Aff_transformation_2.h>
+#include <CGAL/draw_arrangement_2.h>
 
 #include <boost/container/small_vector.hpp>
 
 #include "kernel.hpp"
 #include "numeric.hpp"
 #include "logging.hpp"
+#include "renderable.hpp"
 
 namespace BURST::geometry {
 
@@ -66,18 +68,40 @@ namespace BURST::geometry {
         T{origin, direction};
     };
 
-    // Checks is a collection is a valid input collection for constructing a polygon
-    // Prior to C++23, std::initializer_list doesn't satisfy the condition for sized_range, so an explicit check is included here
-    template <typename C, typename V>
-    concept valid_geometric_collection = 
-        std::ranges::sized_range<C> && std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, V> ||
-        std::same_as<C, std::initializer_list<V>>;
+    // Checks if a type is a valid geometric collection, which is a sized range of a specific geometric type or an initializer list of that geometric type
+    template <typename C, typename G>
+    concept valid_geometric_collection = std::ranges::sized_range<C> &&
+        std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, G> ||
+        std::same_as<C, std::initializer_list<G>>;
 
+    // Define mappings for types to their corresponding polygon set types for rendering
+    template <typename P>
+    struct set_type_v;
+    template <>
+    struct set_type_v<Polygon2D> {
+        using type = LinearPolygonSet2D;
+    };
+    template<>
+    struct set_type_v<LinearPolygonSet2D> {
+        using type = LinearPolygonSet2D;
+    };
+    template <>
+    struct set_type_v<CurvilinearPolygon2D> {
+        using type = CurvilinearPolygonSet2D;
+    };
+    template<>
+    struct set_type_v<CurvilinearPolygonSet2D> {
+        using type = CurvilinearPolygonSet2D;
+    };
+    template <typename P>
+    concept has_set_type = requires {
+        typename set_type_v<P>::type;
+    };
 
     // -- HELPER FUNCTIONS -----------------------------------------------------
-
+    
     // Utility function to construct a polygon off of any collection of points
-    template <valid_geometric_collection<Point2D> C>
+    template <typename C> requires valid_geometric_collection<C, Point2D>
     std::optional<Polygon2D> construct_polygon(const C& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         // Can't make a polygon with 2 or fewer points
         if (std::ranges::size(points) <= 2) {
@@ -98,12 +122,11 @@ namespace BURST::geometry {
 
         return polygon;
     }
-
     inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation);
     }
 
-    template <valid_geometric_collection<Point2D> C>
+    template <typename C> requires valid_geometric_collection<C, Point2D>
     std::optional<Point2D> average(const C& points) {
         // Can't compute the average of an empty collection
         if (std::ranges::size(points) == 0) {
@@ -116,7 +139,6 @@ namespace BURST::geometry {
         });
         return Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)};
     }
-    
     inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
         return average<std::initializer_list<Point2D>>(points);
     }
@@ -128,7 +150,6 @@ namespace BURST::geometry {
     T convert_point(const F& from_point) {
         return T{from_point.x(), from_point.y()};
     }
-
     template <typename T, typename F, typename ConvertFn>
         requires requires(const F& from_point, const ConvertFn& convert_fn) {
             T{convert_fn(from_point.x()), convert_fn(from_point.y())};
@@ -165,7 +186,110 @@ namespace BURST::geometry {
     inline Point2D midpoint(const Point2D& a, const Point2D& b) {
         return Point2D{(a.x() + b.x())/2, (a.y() + b.y())/2};
     }
+    
+    
+    namespace detail {
+        
+    }
+    template <typename V> requires has_set_type<V>
+    inline std::unique_ptr<renderable::Renderable> renderable(const V& renderable, renderable::Scene& scene, const renderable::Color& color) {
+        using set_t = typename set_type_v<V>::type;
 
+        // Convert the renderable to its corresponding polygon set type if it isn't a set type already
+        set_t renderable_set = [&renderable]() {
+            if constexpr (std::same_as<V, set_t>) {
+                return renderable;
+            } else {
+                return set_t{renderable};
+            }
+        }();
+
+        // Create an anonymous renderable instance to render the polygon
+        class RenderablePolygon : public renderable::Renderable {
+        private:
+            set_t polygon_set;
+            renderable::Color color;
+        public:
+            RenderablePolygon(const set_t& set, const renderable::Color& color) : polygon_set{set}, color{color} {}
+            renderable::Color defaultColor() const override {
+                return this->color;
+            }
+
+            void render(renderable::Scene& scene, const renderable::Color& color) const override {
+                using arrangement_t = typename set_t::Arrangement_2;
+                using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
+
+                graphics_options_t polygon_options;
+                polygon_options.colored_face = [](const arrangement_t&, const typename arrangement_t::Face_const_handle&) -> bool {
+                    return true; 
+                };
+                polygon_options.face_color = [color](const arrangement_t&, typename arrangement_t::Face_const_handle) -> renderable::Color {
+                    return color;
+                };
+
+                CGAL::add_to_graphics_scene(this->polygon_set.arrangement(), scene, polygon_options);
+            }
+        };
+        
+        return std::make_unique<RenderablePolygon>(renderable_set, color);
+    }
+    
+    // Allows CGAL geometric types to be wrapped in a renderable for rendering in the scene
+    // The return value of this can be passed in render_all to render the geometric type in the scene with the specified color
+    template <typename HP> 
+        requires std::same_as<HP, HoledPolygon2D> || 
+        std::same_as<HP, HoledCurvilinearPolygon2D>
+    inline std::unique_ptr<renderable::Renderable> renderable(const HP& renderable, renderable::Scene& scene, const renderable::Color& color) {
+        using set_t = typename set_type_v<typename HP::Polygon_2>::type;
+
+        // Create an anonymous renderable instance to render the holed polygon
+        class RenderableHoledPolygon : public renderable::Renderable {
+        private:
+            HP holed_polygon;
+            renderable::Color color;
+        public:
+            RenderableHoledPolygon(const HP& polygon, const renderable::Color& color) : holed_polygon{polygon}, color{color} {}
+            renderable::Color defaultColor() const override {
+                return this->color;
+            }
+            
+            void render(renderable::Scene& scene, const renderable::Color& color) const override {
+                using arrangement_t = typename set_t::Arrangement_2;
+                using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
+
+                // Render the holes to be black
+                graphics_options_t hole_options;
+                hole_options.colored_face = [](const arrangement_t&, const typename arrangement_t::Face_const_handle&) -> bool {
+                    return true; 
+                };
+                hole_options.face_color = [](const arrangement_t&, typename arrangement_t::Face_const_handle) -> renderable::Color {
+                    return renderable::Color{0, 0, 0};
+                };
+                // Copy the holes since we need to reverse their orientation to render them correctly
+                for (auto hole : this->holed_polygon.holes()) {
+                    // Reverse since holes are stored clockwise
+                    auto reversed_hole = hole;
+                    reversed_hole.reverse_orientation(); 
+                    set_t hole_set{reversed_hole};
+                    CGAL::add_to_graphics_scene(hole_set.arrangement(), scene, hole_options);
+                }
+
+                // Render the outer boundary as a colored face
+                graphics_options_t boundary_options;
+                boundary_options.colored_face = [](const arrangement_t&, const typename arrangement_t::Face_const_handle&) -> bool {
+                    return true; 
+                };
+                boundary_options.face_color = [color](const arrangement_t&, typename arrangement_t::Face_const_handle) -> renderable::Color {
+                    return color;
+                };
+                
+                set_t outer_boundary_set{this->holed_polygon.outer_boundary()};
+                CGAL::add_to_graphics_scene(outer_boundary_set.arrangement(), scene, boundary_options);
+            }
+        };
+
+        return std::make_unique<RenderableHoledPolygon>(renderable, color);
+    }
 }
 
 #endif

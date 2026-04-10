@@ -156,7 +156,7 @@ namespace BURST::geometry {
             using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
             // Render the holes to be black
             graphics_options_t hole_options;
-            hole_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle& face) -> bool {
+            hole_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> bool {
                 return true; 
             };
             hole_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
@@ -181,7 +181,7 @@ namespace BURST::geometry {
             boundary_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> bool {
                 return true; 
             };
-            boundary_options.face_color = [color](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
+            boundary_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
                 return renderable::Color{255, 255, 255};
             };
             LinearPolygonSet2D wall_set{this->wall_shape.outer_boundary()};
