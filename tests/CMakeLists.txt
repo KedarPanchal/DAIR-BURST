@@ -30,6 +30,7 @@ if (TEST_SCOPE STREQUAL "all")
         test_rotationmodel.cpp
         test_movementmodel.cpp
         test_robot.cpp
+        test_robot_rendering.cpp
     )
     target_link_libraries(test_all
         PRIVATE BURST
@@ -56,6 +57,7 @@ elseif(TEST_SCOPE STREQUAL "categorized")
     add_executable(test_rendering
         test_wallspace_rendering.cpp
         test_configurationspace_rendering.cpp
+        test_robot_rendering.cpp
     )
     target_link_libraries(test_rendering
         PRIVATE BURST
@@ -166,6 +168,15 @@ else()
         GTest::gtest_main
     )
 
+    # Robot rendering tests
+    add_executable(test_robot_rendering
+        test_robot_rendering.cpp
+    )
+    target_link_libraries(test_robot_rendering
+        PRIVATE BURST
+        GTest::gtest_main
+    )
+
     if (ASAN_SUPPORTED)
         target_compile_options(test_wallspace_construction PRIVATE -g -fsanitize=address)
         target_link_options(test_wallspace_construction PRIVATE -fsanitize=address)
@@ -183,5 +194,7 @@ else()
         target_link_options(test_movementmodel PRIVATE -fsanitize=address)
         target_compile_options(test_robot PRIVATE -g -fsanitize=address)
         target_link_options(test_robot PRIVATE -fsanitize=address)
+        target_compile_options(test_robot_rendering PRIVATE -g -fsanitize=address)
+        target_link_options(test_robot_rendering PRIVATE -fsanitize=address)
     endif()
 endif()
