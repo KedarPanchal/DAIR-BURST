@@ -108,6 +108,12 @@ namespace BURST {
                 BURST_WARNING(warning_string.c_str());
             }
         }
+        const geometry::ConfigurationSpace& getConfigurationEnvironment() {
+            return *this->configuration_environment;
+        }
+        std::shared_ptr<geometry::ConfigurationSpace> getConfigurationEnvironmentPtr() {
+            return this->configuration_environment;
+        }
         void setPosition(const geometry::Point2D& new_position) {
             this->position = new_position;
             if (!this->configuration_environment->intersection(this->position)) {
