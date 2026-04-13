@@ -17,7 +17,7 @@
 // Define a test fixture containing a valid ConfigurationSpace for testing the MovementModel
 class MovementModelInSquareTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
+    std::shared_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
     BURST::geometry::Point2D corner_vertex;
     BURST::geometry::Point2D edge_midpoint;
 
@@ -51,7 +51,7 @@ protected:
  */
 class MovementModelInConcaveTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
+    std::shared_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
     BURST::geometry::Point2D concave_vertex;
     BURST::geometry::Point2D edge_midpoint;
 
@@ -132,7 +132,7 @@ protected:
 // Define a test fixture containing a valid ConfigurationSpace with multiple holes for testing the MovementModel
 class MovementModelWithHolesTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
+    std::shared_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
     BURST::geometry::Point2D edge_midpoint;
     BURST::geometry::Point2D edge_midpoint_to_hole_corner;
     BURST::geometry::Point2D hole1_midpoint;

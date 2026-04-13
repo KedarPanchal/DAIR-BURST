@@ -38,7 +38,7 @@ namespace BURST::geometry {
         // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
 
         // Constructs a configuration space given a robot radius
-        std::unique_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
+        std::shared_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
             // TODO: Find an actually good epsilon instead of this approximation
             const double EPSILON = 0.000001;
 

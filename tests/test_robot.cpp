@@ -3,6 +3,7 @@
 #include <BURST/robot.hpp>
 #include <BURST/numeric.hpp>
 #include <BURST/wall_space.hpp>
+#include <BURST/configuration_space.hpp>
 #include <BURST/geometry.hpp>
 #include <BURST/models.hpp>
 

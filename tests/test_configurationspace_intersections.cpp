@@ -17,7 +17,7 @@
 // Create a test fixture for ConfigurationSpace intersection tests with a regular polygon
 class ConfigurationSpaceRegularPolygonIntersectionTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
+    std::shared_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
 
     void SetUp() override {
         // Construct an already known non-degenerate WallSpace for a square
@@ -42,7 +42,7 @@ protected:
 // Create a test fixture for ConfigurationSpace intersection tests with a simple, but concave polygon
 class ConfigurationSpaceConcavePolygonIntersectionTest : public ::testing::Test {
 protected:
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
+    std::shared_ptr<BURST::geometry::ConfigurationSpace> configuration_space;
 
     void SetUp() override {
         auto wall_space = TestWallSpace::create({

@@ -50,7 +50,7 @@ public:
         return CGAL::is_valid_polygon_with_holes(wall_shape, BURST::LinearTraits{}) ? std::optional<TestWallSpace>{TestWallSpace{wall_shape}} : std::nullopt;
 
     }
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> testConstructConfigurationSpace(BURST::numeric::fscalar robot_radius) const {
+    std::shared_ptr<BURST::geometry::ConfigurationSpace> testConstructConfigurationSpace(BURST::numeric::fscalar robot_radius) const {
         return this->constructConfigurationSpace(robot_radius);
     }
 };

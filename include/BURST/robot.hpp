@@ -34,7 +34,7 @@ namespace BURST {
     private:
         numeric::fscalar radius;
         geometry::Point2D position;
-        std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_environment;
+        std::shared_ptr<BURST::geometry::ConfigurationSpace> configuration_environment;
 
         models::RotationModel<R, D> rotation_model;
         models::MovementModel<T, P> movement_model;
@@ -101,7 +101,7 @@ namespace BURST {
             return this->position;
         }
         // Precondition: The robot is on the border of the configuration space
-        void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
+        void setConfigurationEnvironment(std::shared_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
             this->configuration_environment = std::move(config_environment);
             if (!this->configuration_environment->onEdge(this->position)) {
                 std::string warning_string = "Robot's current position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";

@@ -28,13 +28,13 @@ namespace BURST::geometry {
     // This is why its constructors are private and only accessible by WallSpace
     class ConfigurationSpace : public renderable::Renderable {
     private:
-        std::unique_ptr<CurvilinearPolygonSet2D> configuration_shape;
+        std::shared_ptr<CurvilinearPolygonSet2D> configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;
 
-        ConfigurationSpace(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept : Renderable{}, configuration_shape{std::move(shape)}, bounding_box{} {}
+        ConfigurationSpace(std::shared_ptr<CurvilinearPolygonSet2D>&& shape) noexcept : Renderable{}, configuration_shape{std::move(shape)}, bounding_box{} {}
 
-        static std::unique_ptr<ConfigurationSpace> create(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept {
-            return std::unique_ptr<ConfigurationSpace>{new ConfigurationSpace{std::move(shape)}};
+        static std::shared_ptr<ConfigurationSpace> create(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept {
+            return std::shared_ptr<ConfigurationSpace>{new ConfigurationSpace{std::move(shape)}};
         }
         
         /*
