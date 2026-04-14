@@ -21,6 +21,8 @@ namespace BURST::renderable {
     public:
         virtual Color defaultColor() const = 0;
         virtual void render(Scene& scene, const Color& color) const = 0;
+        // Create virtual destructor for Renderable to ensure proper cleanup of derived classes
+        virtual ~Renderable() = default;
     };
 
     // Sequences the rendering of a collection of renderables
