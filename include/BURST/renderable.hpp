@@ -2,6 +2,8 @@
 #define BURST_RENDERABLE_HPP
 
 #include <ranges>
+#include <type_traits>
+#include <initializer_list>
 
 #include <CGAL/Arrangement_2.h>
 #include <CGAL/Graphics_scene.h>

@@ -6,6 +6,8 @@
 #include <numeric>
 #include <optional>
 #include <ranges>
+#include <type_traits>
+#include <memory>
 
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polygon_with_holes_2.h>
