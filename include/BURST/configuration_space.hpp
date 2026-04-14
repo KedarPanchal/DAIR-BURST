@@ -11,14 +11,13 @@
 
 #include <CGAL/Arr_naive_point_location.h>
 #include <CGAL/Graphics_scene.h>
+#include <CGAL/draw_arrangement_2.h>
 
 #include <boost/container/small_vector.hpp>
 
-#include "numeric_types.hpp"
-#include "geometric_types.hpp"
-#include "graphics_types.hpp"
+#include "numeric.hpp"
+#include "geometry.hpp"
 #include "renderable.hpp"
-#include "logging.hpp"
 
 namespace BURST::geometry {
     
@@ -27,15 +26,15 @@ namespace BURST::geometry {
 
     // ConfigurationSpace should never be instantiated directly
     // This is why its constructors are private and only accessible by WallSpace
-    class ConfigurationSpace : public Renderable {
+    class ConfigurationSpace : public renderable::Renderable {
     private:
-        std::unique_ptr<CurvilinearPolygonSet2D> configuration_shape;
+        std::shared_ptr<CurvilinearPolygonSet2D> configuration_shape;
         mutable std::optional<BoundingBox2D> bounding_box;
 
-        ConfigurationSpace(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept : configuration_shape{std::move(shape)}, bounding_box{} {}
+        ConfigurationSpace(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept : Renderable{}, configuration_shape{std::move(shape)}, bounding_box{} {}
 
-        static std::unique_ptr<ConfigurationSpace> create(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept {
-            return std::unique_ptr<ConfigurationSpace>{new ConfigurationSpace{std::move(shape)}};
+        static std::shared_ptr<ConfigurationSpace> create(std::unique_ptr<CurvilinearPolygonSet2D>&& shape) noexcept {
+            return std::shared_ptr<ConfigurationSpace>{new ConfigurationSpace{std::move(shape)}};
         }
         
         /*
@@ -150,8 +149,31 @@ namespace BURST::geometry {
             return intersection_count; // Return the number of intersections found
         }
 
-        void render(graphics::Scene& scene) const noexcept {
-            // TODO: Figure out how to render a curvilinear polygon
+        renderable::Color defaultColor() const override {
+            return renderable::Color{0, 0, 255}; 
+        }
+        
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 255}) const override {
+            if (this->configuration_shape == nullptr) return; // If the configuration shape is null, then there's nothing to render
+            
+            using arrangement_t = CurvilinearPolygonSet2D::Arrangement_2;
+            using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
+            // Just have CGAL render the edges of the configuration space with transparent faces
+            graphics_options_t config_options;
+            config_options.colored_edge = [](const arrangement_t&, const arrangement_t::Halfedge_const_handle&) -> bool {
+                return true;
+            };
+            config_options.edge_color = [color](const arrangement_t&, arrangement_t::Halfedge_const_handle) -> renderable::Color {
+                return color;
+            };
+            config_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle& face) -> bool {
+                return true;
+            };
+            config_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
+                return renderable::Color{255, 255, 255, 0}; // Transparent faces
+            };
+
+            CGAL::add_to_graphics_scene(this->configuration_shape->arrangement(), scene, config_options);
         }
 
         friend class BURST::geometry::WallSpace; // For access to private constructor

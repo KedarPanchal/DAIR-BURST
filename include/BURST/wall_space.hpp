@@ -8,12 +8,14 @@
 #include <CGAL/approximated_offset_2.h>
 #include <CGAL/General_polygon_set_2.h>
 #include <CGAL/Boolean_set_operations_2.h>
+#include <CGAL/Graphics_scene_options.h>
+#include <CGAL/draw_arrangement_2.h>
 
 #include <boost/container/small_vector.hpp>
+#include <boost/uuid/uuid.hpp>
 
-#include "numeric_types.hpp"
-#include "geometric_types.hpp"
-#include "graphics_types.hpp"
+#include "numeric.hpp"
+#include "geometry.hpp"
 #include "renderable.hpp"
 #include "configuration_space.hpp"
 #include "robot.hpp"
@@ -22,22 +24,21 @@
 namespace BURST::geometry {
     
     // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
-    class WallSpace : public Renderable {
+    class WallSpace : public renderable::Renderable {
     private:
         HoledPolygon2D wall_shape;
-        graphics::PolygonOptions wall_render_options;
 
     protected: 
         // Protected constructors since the public API is through the static create method
         // Abstracting this away to protected constructors allows subclassing WallSpace in a test environment without depending on the static create method and its constraints
-        WallSpace(const Polygon2D& shape) noexcept : wall_shape{shape} {}
-        WallSpace(const HoledPolygon2D& shape) noexcept : wall_shape{shape} {}
+        WallSpace(const Polygon2D& shape) noexcept : Renderable{}, wall_shape{shape} {}
+        WallSpace(const HoledPolygon2D& shape) noexcept : Renderable{}, wall_shape{shape} {}
 
         // Protected methods since the public API depends on the robot
         // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
 
         // Constructs a configuration space given a robot radius
-        std::unique_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
+        std::shared_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
             // TODO: Find an actually good epsilon instead of this approximation
             const double EPSILON = 0.000001;
 
@@ -146,16 +147,45 @@ namespace BURST::geometry {
             return true;
         }
 
-        void render(graphics::Scene& scene) const noexcept override {
-            graphics::PolygonOptions graphics_options{};
-            graphics_options.face_color = [](const Polygon2D& polygon, void* fh) noexcept {
-                return graphics::Color(173, 216, 230);  // Light blue walls
+        renderable::Color defaultColor() const override {
+            return renderable::Color{0, 0, 0}; 
+        }
+        
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}) const override {
+            using arrangement_t = LinearPolygonSet2D::Arrangement_2;
+            using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
+            // Render the holes to be black
+            graphics_options_t hole_options;
+            hole_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> bool {
+                return true; 
             };
-            graphics_options.colored_face = [](const Polygon2D& polygon, void* fh) noexcept {
-                return true;
+            hole_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
+                return renderable::Color{0, 0, 0};
             };
-            // TODO: This import (CGAL/draw_polygon_2.h) is broken, find a way to fix
-            // CGAL::add_to_graphics_scene(this->wall_shape, scene, graphics_options);
+            // Copy the holes since we need to reverse their orientation to render them correctly
+            for (auto hole : this->wall_shape.holes()) {
+                // Reverse since holes are stored clockwise
+                hole.reverse_orientation(); 
+                LinearPolygonSet2D hole_set{hole};
+                CGAL::add_to_graphics_scene(hole_set.arrangement(), scene, hole_options);
+            }
+
+            // Render the outer boundary as a white face
+            graphics_options_t boundary_options;
+            boundary_options.colored_edge = [](const arrangement_t&, const arrangement_t::Halfedge_const_handle&) -> bool {
+                return true; 
+            };
+            boundary_options.edge_color = [color](const arrangement_t&, arrangement_t::Halfedge_const_handle) -> renderable::Color {
+                return color;
+            };
+            boundary_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> bool {
+                return true; 
+            };
+            boundary_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
+                return renderable::Color{255, 255, 255};
+            };
+            LinearPolygonSet2D wall_set{this->wall_shape.outer_boundary()};
+            CGAL::add_to_graphics_scene(wall_set.arrangement(), scene, boundary_options);
         }
 
         friend class std::unique_ptr<WallSpace>;

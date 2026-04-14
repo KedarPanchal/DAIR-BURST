@@ -9,10 +9,10 @@
 
 #include <boost/multiprecision/mpfr.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/container/small_vector.hpp>
 
-#include "geometric_types.hpp"
-#include "numeric_types.hpp"
-#include "graphics_types.hpp"
+#include "geometry.hpp"
+#include "numeric.hpp"
 #include "renderable.hpp"
 #include "configuration_space.hpp"
 #include "models.hpp"
@@ -30,11 +30,11 @@ namespace BURST {
         numeric::valid_rng R = std::mt19937, 
         numeric::valid_distribution<R> D = std::uniform_real_distribution<double>
     >
-    class Robot : public Renderable {
+    class Robot : public renderable::Renderable {
     private:
         numeric::fscalar radius;
         geometry::Point2D position;
-        std::unique_ptr<BURST::geometry::ConfigurationSpace> configuration_environment;
+        std::shared_ptr<BURST::geometry::ConfigurationSpace> configuration_environment;
 
         models::RotationModel<R, D> rotation_model;
         models::MovementModel<T, P> movement_model;
@@ -53,11 +53,12 @@ namespace BURST {
     protected:
         // Protected constructor since preconditions are validated by public static create functions
         Robot(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) : 
+            Renderable{},
             radius{robot_radius}, 
             position{starting_point}, 
             rotation_model{rotation_model}, 
             movement_model{movement_model} {}
-              
+
     public:
         using Trajectory = T;
         using Path = P;
@@ -100,12 +101,18 @@ namespace BURST {
             return this->position;
         }
         // Precondition: The robot is on the border of the configuration space
-        void setConfigurationEnvironment(std::unique_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
+        void setConfigurationEnvironment(std::shared_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
             this->configuration_environment = std::move(config_environment);
             if (!this->configuration_environment->onEdge(this->position)) {
                 std::string warning_string = "Robot's current position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
                 BURST_WARNING(warning_string.c_str());
             }
+        }
+        const geometry::ConfigurationSpace& getConfigurationEnvironment() {
+            return *this->configuration_environment;
+        }
+        std::shared_ptr<geometry::ConfigurationSpace> getConfigurationEnvironmentPtr() {
+            return this->configuration_environment;
         }
         void setPosition(const geometry::Point2D& new_position) {
             this->position = new_position;
@@ -198,9 +205,34 @@ namespace BURST {
             this->position = *endpoint;
             return true;
         }
-        
-        // TODO: Implement render function once the graphics library bugs are squashed
-        void render(graphics::Scene& scene) const override {
+
+        renderable::Color defaultColor() const override {
+            return renderable::Color{255, 0, 0};
+        }
+
+        void render(renderable::Scene& scene, const renderable::Color& color) const override {
+            if (this->radius <= 0) return; // If the robot has a non-positive radius, then there's nothing to render
+
+            using arrangement_t = geometry::CurvilinearPolygonSet2D::Arrangement_2;
+            using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
+            // Render the robot as a circle at its current position filled with the specific color
+            graphics_options_t robot_options;
+            robot_options.colored_face = [](const arrangement_t&, const arrangement_t::Face_const_handle&) -> bool {
+                return true;
+            };
+            robot_options.face_color = [color](const arrangement_t&, const arrangement_t::Face_const_handle&) -> renderable::Color {
+                return color;
+            };
+
+            // Construct an empty arrangement to enter
+            arrangement_t arrangement;
+            // Insert the circle representing the robot's current position into the arrangement
+            std::optional<geometry::CurvilinearPolygon2D> circle = geometry::construct_circle(this->radius, this->position);
+            if (circle) CGAL::insert(arrangement, circle->curves_begin(), circle->curves_end());
+            // This should never occur due to earlier checks, but log the error if it does anyway
+            else BURST_ERROR("Failed to render robot due to non-positive radius.");
+            
+            CGAL::add_to_graphics_scene(arrangement, scene, robot_options);
         }
     };
 

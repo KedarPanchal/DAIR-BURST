@@ -4,9 +4,9 @@
 #include <gtest/gtest.h>
 #include <BURST/wall_space.hpp>
 #include <BURST/configuration_space.hpp>
-#include <BURST/numeric_types.hpp>
-#include <BURST/geometric_types.hpp>
-#include <BURST/kernel_types.hpp>
+#include <BURST/numeric.hpp>
+#include <BURST/geometry.hpp>
+#include <BURST/kernel.hpp>
 
 #include <initializer_list>
 
@@ -50,7 +50,7 @@ public:
         return CGAL::is_valid_polygon_with_holes(wall_shape, BURST::LinearTraits{}) ? std::optional<TestWallSpace>{TestWallSpace{wall_shape}} : std::nullopt;
 
     }
-    std::unique_ptr<BURST::geometry::ConfigurationSpace> testConstructConfigurationSpace(BURST::numeric::fscalar robot_radius) const {
+    std::shared_ptr<BURST::geometry::ConfigurationSpace> testConstructConfigurationSpace(BURST::numeric::fscalar robot_radius) const {
         return this->constructConfigurationSpace(robot_radius);
     }
 };
