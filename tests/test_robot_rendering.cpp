@@ -38,9 +38,10 @@ protected:
         ASSERT_TRUE(wall_space.has_value()) << "Failed to construct wall space";
 
         // Construct a robot
+        BURST::numeric::fscalar robot_radius = 0.5;
         this->robot = BURST::Robot<>::create(
-            1.0, 
-            BURST::geometry::Point2D{1, 1},
+            robot_radius, 
+            BURST::geometry::Point2D{robot_radius, robot_radius},
             0.1,
             42
         );
