@@ -63,8 +63,8 @@ TEST_F(RobotRenderingTest, Render) {
 
     // Render all elements
     BURST::renderable::render_all({
-        &*this->wall_space,
         this->config_space.get(),
+        &*this->wall_space,
         &*this->robot
     }, scene);
 
@@ -87,8 +87,8 @@ TEST_F(RobotRenderingTest, RenderStadiumFromBoundaryToBoundary) {
 
     // Render all elements
     BURST::renderable::render_all({
-        &*this->wall_space,
         this->config_space.get(),
+        &*this->wall_space,
         BURST::geometry::renderable(*maybe_stadium, scene, BURST::renderable::Color{0, 255, 0}).get(),
         &*this->robot
     }, scene);
@@ -111,8 +111,8 @@ TEST_F(RobotRenderingTest, RenderStadiumFromBoundaryToHoleBoundary) {
 
     // Render all elements
     BURST::renderable::render_all({
-        &*this->wall_space,
         this->config_space.get(),
+        &*this->wall_space,
         BURST::geometry::renderable(*maybe_stadium, scene, BURST::renderable::Color{0, 255, 0}).get(),
         &*this->robot
     }, scene);
@@ -138,8 +138,8 @@ TEST_F(RobotRenderingTest, RenderStadiumFromHoleBoundaryToBoundary) {
 
     // Render all elements
     BURST::renderable::render_all({
-        &*this->wall_space,
         this->config_space.get(),
+        &*this->wall_space,
         BURST::geometry::renderable(*maybe_stadium, scene, BURST::renderable::Color{0, 255, 0}).get(),
         &*this->robot
     }, scene);

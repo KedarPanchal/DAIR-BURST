@@ -170,7 +170,7 @@ namespace BURST::geometry {
                 return true;
             };
             config_options.face_color = [](const arrangement_t&, arrangement_t::Face_const_handle) -> renderable::Color {
-                return renderable::Color{255, 255, 255}; // Transparent faces
+                return renderable::Color{255, 255, 255, 0}; // Transparent faces
             };
 
             CGAL::add_to_graphics_scene(this->configuration_shape->arrangement(), scene, config_options);
