@@ -187,10 +187,8 @@ namespace BURST::geometry {
         return Point2D{(a.x() + b.x())/2, (a.y() + b.y())/2};
     }
     
-    
-    namespace detail {
-        
-    }
+    // Allows CGAL geometric types to be wrapped in a renderable for rendering in the scene
+    // The return value of this can be passed in render_all to render the geometric type in the scene with the specified color
     template <typename V> requires has_set_type<V>
     inline std::unique_ptr<renderable::Renderable> renderable(const V& renderable, renderable::Scene& scene, const renderable::Color& color) {
         using set_t = typename set_type_v<V>::type;

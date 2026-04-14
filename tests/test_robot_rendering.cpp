@@ -41,7 +41,7 @@ protected:
         BURST::numeric::fscalar robot_radius = 0.5;
         this->robot = BURST::Robot<>::create(
             robot_radius, 
-            BURST::geometry::Point2D{robot_radius, robot_radius},
+            BURST::geometry::Point2D{robot_radius * 2, robot_radius},
             0.1,
             42
         );
@@ -76,3 +76,77 @@ TEST_F(RobotRenderingTest, Render) {
 }
 
 // -- STADIUM RENDERING TESTS --------------------------------------------------
+// Test rendering a stadium for a motion from the boundary of the configuration space to another spot on the boundary of the configuration space
+TEST_F(RobotRenderingTest, RenderStadiumFromBoundaryToBoundary) {
+    // Generate a stadium for a motion from the robot's position to another spot on the boundary of the configuration space
+    std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = this->robot->coveredArea(3 * CGAL_PI/4);
+    ASSERT_TRUE(maybe_stadium.has_value()) << "Failed to generate stadium for motion from boundary to boundary";
+
+    // Create a CGAL Graphics Scene to render the wall, robot, configuration space, and stadium
+    BURST::renderable::Scene scene;
+
+    // Render all elements
+    BURST::renderable::render_all({
+        &*this->wall_space,
+        this->config_space.get(),
+        BURST::geometry::renderable(*maybe_stadium, scene, BURST::renderable::Color{0, 255, 0}).get(),
+        &*this->robot
+    }, scene);
+
+    // Draw the scene in a CGAL viewer
+    CGAL::draw_graphics_scene(scene);
+
+    // If we reach this point without crashing, the test is successful
+    SUCCEED() << "If you're seeing this, something has gone terribly wrong";
+}
+
+// Test rendering a stadium for a motion from the boundary of the configuration space to a spot on the hole boundary of the configuration space
+TEST_F(RobotRenderingTest, RenderStadiumFromBoundaryToHoleBoundary) {
+    // Generate a stadium for a motion from the robot's position to a spot on the hole boundary of the configuration space
+    std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = this->robot->coveredArea(CGAL_PI/4);
+    ASSERT_TRUE(maybe_stadium.has_value()) << "Failed to generate stadium for motion from boundary to hole boundary";
+
+    // Create a CGAL Graphics Scene to render the wall, robot, configuration space, and stadium
+    BURST::renderable::Scene scene;
+
+    // Render all elements
+    BURST::renderable::render_all({
+        &*this->wall_space,
+        this->config_space.get(),
+        BURST::geometry::renderable(*maybe_stadium, scene, BURST::renderable::Color{0, 255, 0}).get(),
+        &*this->robot
+    }, scene);
+
+    // Draw the scene in a CGAL viewer
+    CGAL::draw_graphics_scene(scene);
+
+    // If we reach this point without crashing, the test is successful
+    SUCCEED() << "If you're seeing this, something has gone terribly wrong";
+}
+
+// Test rendering a stadium for a motion from the hole boundary of the configuration space to a spot on the boundary of the configuration space
+TEST_F(RobotRenderingTest, RenderStadiumFromHoleBoundaryToBoundary) {
+    // Set the position of the robot to be on the hole boundary
+    this->robot->setPosition(BURST::geometry::Point2D{5, 3.5});
+
+    // Generate a stadium for a motion from the robot's position to a spot on the boundary of the configuration space
+    std::optional<BURST::geometry::CurvilinearPolygonSet2D> maybe_stadium = this->robot->coveredArea(3 * CGAL_PI/2);
+    ASSERT_TRUE(maybe_stadium.has_value()) << "Failed to generate stadium for motion from hole boundary to boundary";
+
+    // Create a CGAL Graphics Scene to render the wall, robot, configuration space, and stadium
+    BURST::renderable::Scene scene;
+
+    // Render all elements
+    BURST::renderable::render_all({
+        &*this->wall_space,
+        this->config_space.get(),
+        BURST::geometry::renderable(*maybe_stadium, scene, BURST::renderable::Color{0, 255, 0}).get(),
+        &*this->robot
+    }, scene);
+
+    // Draw the scene in a CGAL viewer
+    CGAL::draw_graphics_scene(scene);
+
+    // If we reach this spot without crashing, the test is successful
+    SUCCEED() << "If you're seeing this, something has gone terribly wrong";
+}
