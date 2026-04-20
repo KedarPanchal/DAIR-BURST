@@ -106,41 +106,35 @@ namespace BURST::geometry {
     concept valid_geometric_collection = std::ranges::sized_range<C> &&
         std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, G> ||
         std::same_as<C, std::initializer_list<G>>;
-
-    /**
-     * @brief Maps a polygon or polygon-set type to the @ref General_polygon_set_2 specialization used for rendering.
-     *
-     * Specializations are provided for @ref Polygon2D, @ref CurvilinearPolygon2D, and their
-     * corresponding set types. Used by @ref renderable overloads.
-     *
-     * @tparam P Polygon-like type.
-     */
-    template <typename P>
-    struct set_type_v;
-    /** @brief Linear polygons map to @ref LinearPolygonSet2D. */
-    template <>
-    struct set_type_v<Polygon2D> {
-        using type = LinearPolygonSet2D;
-    };
-    /** @brief Identity mapping for @ref LinearPolygonSet2D. */
-    template<>
-    struct set_type_v<LinearPolygonSet2D> {
-        using type = LinearPolygonSet2D;
-    };
-    /** @brief Curvilinear polygons map to @ref CurvilinearPolygonSet2D. */
-    template <>
-    struct set_type_v<CurvilinearPolygon2D> {
-        using type = CurvilinearPolygonSet2D;
-    };
-    /** @brief Identity mapping for @ref CurvilinearPolygonSet2D. */
-    template<>
-    struct set_type_v<CurvilinearPolygonSet2D> {
-        using type = CurvilinearPolygonSet2D;
-    };
-    /** @brief Whether @ref set_type_v is defined for `P`. */
+    
+    namespace detail {
+        template <typename P>
+        struct set_type_v;
+        
+        template <>
+        struct set_type_v<Polygon2D> {
+            using type = LinearPolygonSet2D;
+        };
+        
+        template<>
+        struct set_type_v<LinearPolygonSet2D> {
+            using type = LinearPolygonSet2D;
+        };
+        
+        template <>
+        struct set_type_v<CurvilinearPolygon2D> {
+            using type = CurvilinearPolygonSet2D;
+        };
+        
+        template<>
+        struct set_type_v<CurvilinearPolygonSet2D> {
+            using type = CurvilinearPolygonSet2D;
+        };
+    }
+    
     template <typename P>
     concept has_set_type = requires {
-        typename set_type_v<P>::type;
+        typename detail::set_type_v<P>::type;
     };
 
     /**
@@ -283,7 +277,7 @@ namespace BURST::geometry {
      */
     template <typename V> requires has_set_type<V>
     std::unique_ptr<renderable::Renderable> renderable(renderable::Scene& scene, const renderable::Color& color, const V& renderable) {
-        using set_t = typename set_type_v<V>::type;
+        using set_t = typename detail::set_type_v<V>::type;
 
         // Convert the renderable to its corresponding polygon set type if it isn't a set type already
         set_t renderable_set = [&renderable]() {
@@ -337,7 +331,7 @@ namespace BURST::geometry {
         requires std::same_as<HP, HoledPolygon2D> || 
         std::same_as<HP, HoledCurvilinearPolygon2D>
     std::unique_ptr<renderable::Renderable> renderable(renderable::Scene& scene, const renderable::Color& color, const HP& renderable) {
-        using set_t = typename set_type_v<typename HP::Polygon_2>::type;
+        using set_t = typename detail::set_type_v<typename HP::Polygon_2>::type;
 
         // Create an anonymous renderable instance to render the holed polygon
         class RenderableHoledPolygon : public renderable::Renderable {
