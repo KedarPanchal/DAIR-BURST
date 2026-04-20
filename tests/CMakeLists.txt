@@ -31,6 +31,7 @@ if (TEST_SCOPE STREQUAL "all")
         test_movementmodel.cpp
         test_robot.cpp
         test_robot_rendering.cpp
+        test_miscellaneous_rendering.cpp
     )
     target_link_libraries(test_all
         PRIVATE BURST
@@ -58,6 +59,7 @@ elseif(TEST_SCOPE STREQUAL "categorized")
         test_wallspace_rendering.cpp
         test_configurationspace_rendering.cpp
         test_robot_rendering.cpp
+        test_miscellaneous_rendering.cpp
     )
     target_link_libraries(test_rendering
         PRIVATE BURST
@@ -173,6 +175,15 @@ else()
         test_robot_rendering.cpp
     )
     target_link_libraries(test_robot_rendering
+        PRIVATE BURST
+        GTest::gtest_main
+    )
+
+    # Miscellaneous rendering tests
+    add_executable(test_miscellaneous_rendering
+        test_miscellaneous_rendering.cpp
+    )
+    target_link_libraries(test_miscellaneous_rendering
         PRIVATE BURST
         GTest::gtest_main
     )
