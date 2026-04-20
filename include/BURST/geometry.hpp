@@ -276,13 +276,13 @@ namespace BURST::geometry {
      * is selected via @ref set_type_v. The returned object draws filled faces in the CGAL scene.
      *
      * @tparam V Polygon-like type with a corresponding @ref set_type_v specialization.
-     * @param renderable Polygon or polygon-set geometry to be wrapped.
      * @param scene Scene passed through for API symmetry; the returned object owns the geometry.
      * @param color Fill color used as the default render color.
+     * @param renderable Polygon or polygon-set geometry to be wrapped.
      * @return Heap-allocated renderable wrapper for the given geometry.
      */
     template <typename V> requires has_set_type<V>
-    std::unique_ptr<renderable::Renderable> renderable(const V& renderable, renderable::Scene& scene, const renderable::Color& color) {
+    std::unique_ptr<renderable::Renderable> renderable(renderable::Scene& scene, const renderable::Color& color, const V& renderable) {
         using set_t = typename set_type_v<V>::type;
 
         // Convert the renderable to its corresponding polygon set type if it isn't a set type already
@@ -328,15 +328,15 @@ namespace BURST::geometry {
      * drawing conventions.
      *
      * @tparam HP Either @ref HoledPolygon2D or @ref HoledCurvilinearPolygon2D.
-     * @param renderable Holed polygon geometry to be wrapped.
      * @param scene Scene passed through for API symmetry; the returned object owns the geometry.
      * @param color Color used for the outer boundary region.
+     * @param renderable Holed polygon geometry to be wrapped.
      * @return Heap-allocated renderable wrapper for the given holed polygon.
      */
     template <typename HP> 
         requires std::same_as<HP, HoledPolygon2D> || 
         std::same_as<HP, HoledCurvilinearPolygon2D>
-    std::unique_ptr<renderable::Renderable> renderable(const HP& renderable, renderable::Scene& scene, const renderable::Color& color) {
+    std::unique_ptr<renderable::Renderable> renderable(renderable::Scene& scene, const renderable::Color& color, const HP& renderable) {
         using set_t = typename set_type_v<typename HP::Polygon_2>::type;
 
         // Create an anonymous renderable instance to render the holed polygon
@@ -396,13 +396,13 @@ namespace BURST::geometry {
      * (faces are not colored).
      *
      * @tparam V All types in the pack must be either @ref Segment2D or @ref MonotoneCurve2D.
-     * @param renderable One or more segments/curves to insert into the arrangement.
      * @param scene Scene passed through for API symmetry; the returned object owns the geometry.
      * @param color Default edge color used for rendering.
+     * @param renderable One or more segments/curves to insert into the arrangement.
      * @return Heap-allocated renderable wrapper for the arrangement.
      */
     template <typename ... V> requires (std::same_as<V, Segment2D> && ...) || (std::same_as<V, MonotoneCurve2D> && ...)
-    std::unique_ptr<renderable::Renderable> renderable(const V& ... renderable, renderable::Scene& scene, const renderable::Color& color) {
+    std::unique_ptr<renderable::Renderable> renderable(renderable::Scene& scene, const renderable::Color& color, const V& ... renderable) {
         // Convert the segment or curve to its corresponding arrangement type if not already
         auto arrangement = []() {
             if constexpr ((std::same_as<V, Segment2D> && ...)) return CGAL::Arrangement_2<LinearTraits>{};

@@ -7,6 +7,7 @@
 
 // -- GEOMETRY::RENDERABLE (POLYGON / SET) TESTS --------------------------------
 
+// Tests rendering a square polygon as a renderable
 TEST(MiscellaneousRenderingTest, RenderLinearPolygonRenderable) {
     // Construct a simple square polygon
     auto polygon = BURST::geometry::construct_polygon({
@@ -20,16 +21,17 @@ TEST(MiscellaneousRenderingTest, RenderLinearPolygonRenderable) {
     // Create a CGAL Graphics Scene and render the polygon wrapper
     BURST::renderable::Scene scene;
     const BURST::renderable::Color color{255, 0, 0};
-    auto r = BURST::geometry::renderable(*polygon, scene, color);
+    auto to_render = BURST::geometry::renderable(scene, color, *polygon);
 
-    EXPECT_EQ(r->defaultColor(), color) << "Renderable default color should match the provided color.";
-    r->render(scene, r->defaultColor());
+    EXPECT_EQ(to_render->defaultColor(), color) << "Renderable default color should match the provided color.";
+    to_render->render(scene, to_render->defaultColor());
 
     // Draw the scene in a CGAL viewer
     CGAL::draw_graphics_scene(scene);
     SUCCEED() << "If you're seeing this, something has gone terribly wrong.";
 }
 
+// Test rendering a polygon set created from a square polygon as a renderable
 TEST(MiscellaneousRenderingTest, RenderLinearPolygonSetRenderable) {
     // Construct a simple square polygon
     auto polygon = BURST::geometry::construct_polygon({
@@ -44,15 +46,16 @@ TEST(MiscellaneousRenderingTest, RenderLinearPolygonSetRenderable) {
     BURST::geometry::LinearPolygonSet2D polygon_set{*polygon};
     BURST::renderable::Scene scene;
     const BURST::renderable::Color color{0, 255, 0};
-    auto r = BURST::geometry::renderable(polygon_set, scene, color);
+    auto to_render = BURST::geometry::renderable(scene, color, polygon_set);
 
-    EXPECT_EQ(r->defaultColor(), color) << "Renderable default color should match the provided color.";
-    r->render(scene, r->defaultColor());
+    EXPECT_EQ(to_render->defaultColor(), color) << "Renderable default color should match the provided color.";
+    to_render->render(scene, to_render->defaultColor());
 
     CGAL::draw_graphics_scene(scene);
     SUCCEED() << "If you're seeing this, something has gone terribly wrong.";
 }
 
+// Test rendering a curvilinear polygon (circle) as a renderable
 TEST(MiscellaneousRenderingTest, RenderCurvilinearPolygonRenderable) {
     // Construct a circle as a curvilinear polygon
     auto circle = BURST::geometry::construct_circle(5, BURST::geometry::Point2D{0, 0});
@@ -60,28 +63,29 @@ TEST(MiscellaneousRenderingTest, RenderCurvilinearPolygonRenderable) {
 
     BURST::renderable::Scene scene;
     const BURST::renderable::Color color{0, 0, 255};
-    auto r = BURST::geometry::renderable(*circle, scene, color);
+    auto to_render = BURST::geometry::renderable(scene, color, *circle);
 
-    EXPECT_EQ(r->defaultColor(), color) << "Renderable default color should match the provided color.";
-    r->render(scene, r->defaultColor());
+    EXPECT_EQ(to_render->defaultColor(), color) << "Renderable default color should match the provided color.";
+    to_render->render(scene, to_render->defaultColor());
 
     CGAL::draw_graphics_scene(scene);
     SUCCEED() << "If you're seeing this, something has gone terribly wrong.";
 }
 
+// Test rendering a polygon set created from a curvilinear polygon (circle) as a renderable
 TEST(MiscellaneousRenderingTest, RenderCurvilinearPolygonSetRenderable) {
     // Construct a circle as a curvilinear polygon
     auto circle = BURST::geometry::construct_circle(5, BURST::geometry::Point2D{0, 0});
     ASSERT_TRUE(circle.has_value()) << "Failed to construct non-degenerate curvilinear circle polygon.";
 
     // Convert to a curvilinear polygon set and render
-    BURST::geometry::CurvilinearPolygonSet2D polygon_set{*circle};
+    BURST::geometry::CurvilinearPolygonSet2D circle_set{*circle};
     BURST::renderable::Scene scene;
     const BURST::renderable::Color color{255, 0, 255};
-    auto r = BURST::geometry::renderable(polygon_set, scene, color);
+    auto to_render = BURST::geometry::renderable(scene, color, circle_set);
 
-    EXPECT_EQ(r->defaultColor(), color) << "Renderable default color should match the provided color.";
-    r->render(scene, r->defaultColor());
+    EXPECT_EQ(to_render->defaultColor(), color) << "Renderable default color should match the provided color.";
+    to_render->render(scene, to_render->defaultColor());
 
     CGAL::draw_graphics_scene(scene);
     SUCCEED() << "If you're seeing this, something has gone terribly wrong.";
@@ -89,6 +93,7 @@ TEST(MiscellaneousRenderingTest, RenderCurvilinearPolygonSetRenderable) {
 
 // -- GEOMETRY::RENDERABLE (HOLED POLYGON) TESTS --------------------------------
 
+// Test rendering a holed linear polygon (square with a smaller square hole) as a renderable
 TEST(MiscellaneousRenderingTest, RenderHoledLinearPolygonRenderable) {
     // Outer boundary: 10x10 square
     auto outer = BURST::geometry::construct_polygon({
@@ -116,15 +121,16 @@ TEST(MiscellaneousRenderingTest, RenderHoledLinearPolygonRenderable) {
 
     BURST::renderable::Scene scene;
     const BURST::renderable::Color color{255, 255, 0};
-    auto r = BURST::geometry::renderable(holed, scene, color);
+    auto to_render = BURST::geometry::renderable(scene, color, holed);
 
-    EXPECT_EQ(r->defaultColor(), color) << "Renderable default color should match the provided color.";
-    r->render(scene, r->defaultColor());
+    EXPECT_EQ(to_render->defaultColor(), color) << "Renderable default color should match the provided color.";
+    to_render->render(scene, to_render->defaultColor());
 
     CGAL::draw_graphics_scene(scene);
     SUCCEED() << "If you're seeing this, something has gone terribly wrong.";
 }
 
+// Test rendering a holed curvilinear polygon (circle with a smaller circle hole) as a renderable
 TEST(MiscellaneousRenderingTest, RenderHoledCurvilinearPolygonRenderable) {
     // Outer boundary: circle radius 10, hole: circle radius 3 (same center)
     auto outer = BURST::geometry::construct_circle(10, BURST::geometry::Point2D{0, 0});
@@ -133,14 +139,15 @@ TEST(MiscellaneousRenderingTest, RenderHoledCurvilinearPolygonRenderable) {
     ASSERT_TRUE(hole.has_value()) << "Failed to construct non-degenerate hole circle.";
 
     BURST::geometry::HoledCurvilinearPolygon2D holed{*outer};
+    hole->reverse_orientation(); // Reverse to clockwise since its a hole
     holed.add_hole(*hole);
 
     BURST::renderable::Scene scene;
     const BURST::renderable::Color color{0, 255, 255};
-    auto r = BURST::geometry::renderable(holed, scene, color);
+    auto to_render = BURST::geometry::renderable(scene, color, holed);
 
-    EXPECT_EQ(r->defaultColor(), color) << "Renderable default color should match the provided color.";
-    r->render(scene, r->defaultColor());
+    EXPECT_EQ(to_render->defaultColor(), color) << "Renderable default color should match the provided color.";
+    to_render->render(scene, to_render->defaultColor());
 
     CGAL::draw_graphics_scene(scene);
     SUCCEED() << "If you're seeing this, something has gone terribly wrong.";
@@ -148,6 +155,7 @@ TEST(MiscellaneousRenderingTest, RenderHoledCurvilinearPolygonRenderable) {
 
 // -- GEOMETRY::RENDERABLE (ARRANGEMENT) TESTS ----------------------------------
 
+// Test rendering an arrangement of two crossing segments as a renderable
 TEST(MiscellaneousRenderingTest, RenderSegmentArrangementRenderable) {
     // Two segments that cross to create a non-trivial arrangement
     const BURST::geometry::Segment2D s1{
@@ -161,15 +169,16 @@ TEST(MiscellaneousRenderingTest, RenderSegmentArrangementRenderable) {
 
     BURST::renderable::Scene scene;
     const BURST::renderable::Color color{128, 128, 128};
-    auto r = BURST::geometry::renderable(s1, s2, scene, color);
+    auto to_render = BURST::geometry::renderable(scene, color, s1, s2);
 
-    EXPECT_EQ(r->defaultColor(), color) << "Renderable default color should match the provided color.";
-    r->render(scene, r->defaultColor());
+    EXPECT_EQ(to_render->defaultColor(), color) << "Renderable default color should match the provided color.";
+    to_render->render(scene, to_render->defaultColor());
 
     CGAL::draw_graphics_scene(scene);
     SUCCEED() << "If you're seeing this, something has gone terribly wrong.";
 }
 
+// Test rendering an arrangement of two crossing curves (constructed from segments) as a renderable
 TEST(MiscellaneousRenderingTest, RenderCurveArrangementRenderable) {
     // Build curves via geometry::construct_curve from segments to avoid relying on CGAL arc constructors.
     const BURST::geometry::Segment2D s1{
@@ -185,10 +194,10 @@ TEST(MiscellaneousRenderingTest, RenderCurveArrangementRenderable) {
 
     BURST::renderable::Scene scene;
     const BURST::renderable::Color color{200, 100, 50};
-    auto r = BURST::geometry::renderable(c1, c2, scene, color);
+    auto to_render = BURST::geometry::renderable(scene, color, c1, c2);
 
-    EXPECT_EQ(r->defaultColor(), color) << "Renderable default color should match the provided color.";
-    r->render(scene, r->defaultColor());
+    EXPECT_EQ(to_render->defaultColor(), color) << "Renderable default color should match the provided color.";
+    to_render->render(scene, to_render->defaultColor());
 
     CGAL::draw_graphics_scene(scene);
     SUCCEED() << "If you're seeing this, something has gone terribly wrong.";
