@@ -52,6 +52,8 @@ namespace BURST::geometry {
          * Performs a Minkowski sum/difference operation on the wall polygon and the robot's radius to create a configuration space.
          * The resulting region is a curvilinear polygon set suitable for @ref ConfigurationSpace. May return null when the
          * wall polygon is too small for the robot to fit in.
+         *
+         * @return Generated configuration space, or `nullptr` when no free region can be constructed.
          */
         std::shared_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
             // TODO: Find an actually good epsilon instead of this approximation
@@ -105,6 +107,8 @@ namespace BURST::geometry {
          * @brief Create a simply-connected wall from an outer vertex ring.
          *
          * Delegates to @ref construct_polygon; returns `std::nullopt` for degenerate input.
+         *
+         * @return Wall space if construction succeeds, `std::nullopt` otherwise.
          */
         template <valid_geometric_collection<Point2D> C>
         static std::optional<WallSpace> create(C points) {
@@ -117,6 +121,8 @@ namespace BURST::geometry {
          *
          * Holes are enforced clockwise; the combined holed polygon must satisfy CGAL’s validity
          * checks (holes inside the outer boundary, pairwise non-intersection, simplicity).
+         *
+         * @return Wall space if construction succeeds, `std::nullopt` otherwise.
          */
         template <valid_geometric_collection<Point2D> C1, valid_geometric_collection<Polygon2D> C2>
         static std::optional<WallSpace> create(C1 points, C2 holes) {
@@ -177,6 +183,8 @@ namespace BURST::geometry {
          * Uses @ref constructConfigurationSpace; returns `false` when the free region cannot be
          * constructed (e.g. environment too narrow). Template parameters are inferred from
          * @ref Robot.
+         *
+         * @return True if the configuration space was generated and attached, false otherwise.
          */
         template <typename T, typename P, typename R, typename D>
         bool generateConfigurationSpace(Robot<T, P, R, D>& robot) const {
@@ -187,7 +195,10 @@ namespace BURST::geometry {
             return true;
         }
 
-        /** @brief Default wall edge color (black); faces use white/black scheme in @ref render. */
+        /** 
+         * @brief Default wall edge color (black); faces use white/black scheme in @ref render.
+         * @return Default wall edge color.
+         */
         renderable::Color defaultColor() const override {
             return renderable::Color{0, 0, 0}; 
         }
@@ -232,46 +243,76 @@ namespace BURST::geometry {
             CGAL::add_to_graphics_scene(wall_set.arrangement(), scene, boundary_options);
         }
 
-        /** @brief Iterator to the first hole polygon. */
+        /** 
+         * @brief Iterator to the first hole polygon.
+         * @return Iterator to the first hole.
+         */
         Hole_iterator holes_begin() const {
             return this->wall_shape.holes_begin();
         }
 
-        /** @brief Past-the-end iterator for holes. */
+        /** 
+         * @brief Past-the-end iterator for holes.
+         * @return Past-the-end iterator for holes.
+         */
         Hole_iterator holes_end() const {
             return this->wall_shape.holes_end();
         }
 
-        /** @brief First edge of the outer boundary. */
+        /** 
+         * @brief First edge of the outer boundary.
+         * @return Iterator to the first outer-boundary edge.
+         */
         Edge_iterator edges_begin() const {
             return this->wall_shape.outer_boundary().edges_begin();
         }
-        /** @brief Past-the-end edge iterator for the outer boundary. */
+        /** 
+         * @brief Past-the-end edge iterator for the outer boundary.
+         * @return Past-the-end iterator for outer-boundary edges.
+         */
         Edge_iterator edges_end() const {
             return this->wall_shape.outer_boundary().edges_end();
         }
-        /** @brief First edge of a specific `hole` polygon. */
+        /** 
+         * @brief First edge of a specific `hole` polygon.
+         * @return Iterator to the first edge of `hole`.
+         */
         Edge_iterator edges_begin(Polygon hole) const {
             return hole.edges_begin();
         }
-        /** @brief Past-the-end edges for `hole`. */
+        /** 
+         * @brief Past-the-end edges for `hole`.
+         * @return Past-the-end iterator for edges of `hole`.
+         */
         Edge_iterator edges_end(Polygon hole) const {
             return hole.edges_end();
         }
 
-        /** @brief First vertex of the outer boundary. */
+        /** 
+         * @brief First vertex of the outer boundary.
+         * @return Iterator to the first outer-boundary vertex.
+         */
         Vertex_iterator vertices_begin() const {
             return this->wall_shape.outer_boundary().vertices_begin();
         }
-        /** @brief Past-the-end vertex iterator for the outer boundary. */
+        /** 
+         * @brief Past-the-end vertex iterator for the outer boundary.
+         * @return Past-the-end iterator for outer-boundary vertices.
+         */
         Vertex_iterator vertices_end() const {
             return this->wall_shape.outer_boundary().vertices_end();
         }
-        /** @brief First vertex of `hole`. */
+        /** 
+         * @brief First vertex of `hole`.
+         * @return Iterator to the first vertex of `hole`.
+         */
         Vertex_iterator vertices_begin(Polygon hole) const {
             return hole.vertices_begin();
         }
-        /** @brief Past-the-end vertices for `hole`. */
+        /** 
+         * @brief Past-the-end vertices for `hole`.
+         * @return Past-the-end iterator for vertices of `hole`.
+         */
         Vertex_iterator vertices_end(Polygon hole) const {
             return hole.vertices_end();
         }

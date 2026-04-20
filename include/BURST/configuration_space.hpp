@@ -51,7 +51,10 @@ namespace BURST::geometry {
             return std::shared_ptr<ConfigurationSpace>{new ConfigurationSpace{std::move(shape)}};
         }
         
-        /** @internal Lazy bounding-box computation; `flag` is unused (overload disambiguation only). */
+        /** 
+         * @internal Lazy bounding-box computation; `flag` is unused (overload disambiguation only).
+         * @return Cached bounding box (computed on first request).
+         */
         BoundingBox2D& bbox(const std::monostate& flag) const noexcept {
             if (!this->bounding_box.has_value()) {
                 // Create small vector with buffer of 1, since we expect most configuration spaces to be a single holed polygon
@@ -68,6 +71,8 @@ namespace BURST::geometry {
          * @brief Axis-aligned bounding box of the configuration region.
          *
          * The box is computed on first use and cached for subsequent queries.
+         *
+         * @return Cached bounding box of the configuration region.
          */
         const BoundingBox2D& bbox() const noexcept {
             return this->bbox(std::monostate{});
@@ -77,6 +82,8 @@ namespace BURST::geometry {
          *
          * Exposes faces, edges, and vertices for advanced queries or interoperability with
          * CGAL algorithms.
+         *
+         * @return Const reference to the underlying arrangement.
          */
         auto& arrangement() const noexcept {
             return this->configuration_shape->arrangement();
@@ -86,6 +93,7 @@ namespace BURST::geometry {
          * @brief Whether `point` lies on the boundary of the configuration space.
          *
          * @param point Query point in workspace coordinates.
+         * @return True if `point` lies on the configuration-space boundary.
          */
         bool onEdge(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
@@ -97,6 +105,7 @@ namespace BURST::geometry {
          * @brief Whether `point` lies inside or on the boundary of the configuration space.
          *
          * @param point Query point in workspace coordinates.
+         * @return True if `point` is inside or on the boundary of the configuration space.
          */
         bool contains(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the containment check
@@ -113,6 +122,7 @@ namespace BURST::geometry {
          * vertex, returns that @ref Point2D.
          *
          * @param point Query point; most useful when known to lie on or near the boundary.
+         * @return `std::nullopt` if `point` is in a face interior; otherwise the incident curve or vertex point.
          */
         std::optional<std::variant<MonotoneCurve2D, Point2D>> intersection(const Point2D& point) const noexcept {
             using arrangement_t = CurvilinearPolygonSet2D::Arrangement_2;
@@ -207,7 +217,10 @@ namespace BURST::geometry {
             return intersection_count; // Return the number of intersections found
         }
 
-        /** @brief Default visualization color (blue edges). */
+        /** 
+         * @brief Default visualization color (blue edges).
+         * @return Default configuration-space edge color.
+         */
         renderable::Color defaultColor() const override {
             return renderable::Color{0, 0, 255}; 
         }

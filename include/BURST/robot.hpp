@@ -97,6 +97,7 @@ namespace BURST {
         }
         /**
          * @brief Same as @ref create with explicit PRNG seed for reproducible rotation noise.
+         * @return `std::nullopt` if `robot_radius <= 0`.
          */
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) {
             // Cannot construct a robot with a non-positive radius
@@ -108,6 +109,7 @@ namespace BURST {
         }
         /**
          * @brief Construct a robot with fully custom rotation and movement models.
+         * @return `std::nullopt` if `robot_radius <= 0`.
          */
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) {
             // Cannot construct a robot with a non-positive radius
@@ -121,11 +123,17 @@ namespace BURST {
         const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const {
             return *this->configuration_environment;
         }
-        /** @brief Disk radius in workspace units. */
+        /** 
+         * @brief Disk radius in workspace units.
+         * @return Robot radius.
+         */
         numeric::fscalar getRadius() const {
             return this->radius;
         }
-        /** @brief Current center of the robot. */
+        /** 
+         * @brief Current center of the robot.
+         * @return Current robot center position.
+         */
         BURST::geometry::Point2D getPosition() const {
             return this->position;
         }
@@ -144,11 +152,15 @@ namespace BURST {
         }
         /**
          * @brief Get the configuration space.
+         * @return Reference to the attached configuration space.
          */
         const geometry::ConfigurationSpace& getConfigurationEnvironment() {
             return *this->configuration_environment;
         }
-        /** @brief Get the configuration space as a shared pointer. */
+        /** 
+         * @brief Get the configuration space as a shared pointer.
+         * @return Shared pointer to the attached configuration space.
+         */
         std::shared_ptr<geometry::ConfigurationSpace> getConfigurationEnvironmentPtr() {
             return this->configuration_environment;
         }
@@ -168,6 +180,7 @@ namespace BURST {
 
         /**
          * @brief Apply the rotation model to a commanded heading (no translation).
+         * @return Perturbed angle.
          */
         numeric::fscalar perturb(const numeric::fscalar& angle) const {
             return this->rotation_model(angle);
@@ -190,6 +203,8 @@ namespace BURST {
          *
          * Unites start and end circular footprints with the connecting strip bounded by the
          * movement path type. Empty if the trajectory cannot be resolved.
+         *
+         * @return Covered region if the motion is feasible, `std::nullopt` otherwise.
          */
         std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(const numeric::fscalar& angle, bool perturbed = false) const {
             // Cannot generate a stadium if configuration environment does not exist
@@ -271,7 +286,10 @@ namespace BURST {
             return true;
         }
 
-        /** @brief Default visualization color (red disk). */
+        /** 
+         * @brief Default visualization color (red disk).
+         * @return Default robot color.
+         */
         renderable::Color defaultColor() const override {
             return renderable::Color{255, 0, 0};
         }

@@ -52,17 +52,24 @@ namespace BURST::models {
 
         /**
          * @brief Sample a perturbed angle: `angle + noise * max_rotation_error`.
+         * @return Perturbed angle sample.
          */
         numeric::fscalar operator()(numeric::fscalar angle) const {
             // Generate a random rotation error scaled by max_rotation_error
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
-        /** @brief Upper limit of possible angles: `angle + max_rotation_error`. */
+        /** 
+         * @brief Upper limit of possible angles: `angle + max_rotation_error`.
+         * @return Upper bound value.
+         */
         numeric::fscalar max(numeric::fscalar angle) const {
             return angle + this->max_rotation_error;
         }
-        /** @brief Lower limit of possible angles: `angle - max_rotation_error`. */
+        /** 
+         * @brief Lower limit of possible angles: `angle - max_rotation_error`.
+         * @return Lower bound value.
+         */
         numeric::fscalar min(numeric::fscalar angle) const {
             return angle - this->max_rotation_error;
         }
@@ -110,6 +117,7 @@ namespace BURST::models {
          * @param origin Point on the configuration-space boundary (see @ref geometry::ConfigurationSpace::onEdge).
          * @param angle Heading in radians defining the motion direction.
          * @param configuration_space Configuration space for the robot.
+         * @return Endpoint on the boundary if the motion is valid, `std::nullopt` otherwise.
          */
         std::optional<geometry::Point2D> operator()(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
@@ -154,6 +162,8 @@ namespace BURST::models {
          * @brief Same as @ref operator() but returns a `Path` segment (or curve) from `origin` to the endpoint.
          *
          * The path is empty if the motion is invalid or degenerate (same start and end).
+         *
+         * @return Path from `origin` to endpoint if valid and non-degenerate, `std::nullopt` otherwise.
          */
         std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function

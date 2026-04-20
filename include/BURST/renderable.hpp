@@ -37,7 +37,10 @@ namespace BURST::renderable {
      */
     class Renderable {
     public:
-        /** @brief Suggested stroke/fill color when the caller does not override a color. */
+        /** 
+         * @brief Suggested stroke/fill color when the caller does not override a color.
+         * @return Default color for this renderable.
+         */
         virtual Color defaultColor() const = 0;
         /**
          * @brief Draw this object into `scene` using `color` for applicable primitives.

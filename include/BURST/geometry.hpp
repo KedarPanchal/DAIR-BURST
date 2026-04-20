@@ -205,6 +205,7 @@ namespace BURST::geometry {
      * @brief Convert between point types by copying `x` and `y` coordinates.
      * @tparam T Target point type constructible from two coordinates.
      * @tparam F Source point type exposing `x()` and `y()`.
+     * @return Converted point of type `T`.
      */
     template <typename T, typename F>
         requires requires(const F& from_point) {
@@ -216,6 +217,7 @@ namespace BURST::geometry {
     /**
      * @brief Convert coordinates with a per-coordinate mapping (e.g. square-root evaluation).
      * @tparam ConvertFn Callable applied to each coordinate.
+     * @return Converted point of type `T`.
      */
     template <typename T, typename F, typename ConvertFn>
         requires requires(const F& from_point, const ConvertFn& convert_fn) {
@@ -229,6 +231,8 @@ namespace BURST::geometry {
      * @brief Turn a @ref valid_path_type into an @ref MonotoneCurve2D for curvilinear algorithms.
      *
      * Segments are promoted to X-monotone curves; other path types convert explicitly.
+     *
+     * @return X-monotone curve corresponding to `path`.
      */
     template <valid_path_type P>
     MonotoneCurve2D construct_curve(const P& path) {

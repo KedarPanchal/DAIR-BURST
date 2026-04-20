@@ -89,6 +89,7 @@ namespace BURST::numeric {
     /**
      * @brief Absolute value for exact scalar types supporting ordered comparison.
      * @tparam FT Numeric type comparable to zero.
+     * @return `value` if non-negative, otherwise `-value`.
      */
     template <typename FT>
     FT abs(const FT& value) {
@@ -98,6 +99,7 @@ namespace BURST::numeric {
     /**
      * @brief Convert a value to @ref hpscalar for high-precision representation.
      * @tparam FT Source scalar type.
+     * @return High-precision representation of `value`.
      */
     template <typename FT>
     hpscalar to_high_precision(const FT& value) {
@@ -117,6 +119,7 @@ namespace BURST::numeric {
      * controlled way.
      *
      * @tparam N Source type streamable with sufficient precision.
+     * @return Converted value as @ref fscalar.
      */
     template <typename N>
     fscalar to_fscalar(const N& value) {
@@ -127,6 +130,7 @@ namespace BURST::numeric {
     
     /**
      * @brief Convert a @ref valid_sqrt_type value to @ref fscalar.
+     * @return Converted scalar value.
      */
     template <valid_sqrt_type SqrtType>
     inline fscalar sqrt_to_fscalar(const SqrtType& value) {
@@ -140,6 +144,7 @@ namespace BURST::numeric {
 
     /**
      * @brief Human-readable decimal string for a scalar at high fixed precision.
+     * @return Decimal string representation of `value`.
      */
     template <typename N>
     std::string to_string(const N& value) {
@@ -158,13 +163,22 @@ namespace BURST::numeric {
     class flat_distribution {
     public:
         flat_distribution(double = 0.0, double = 0.0) {}
-        /** @brief Returns `1.0` regardless of `rng`. */
+        /** 
+         * @brief Returns `1.0` regardless of `rng`.
+         * @return `1.0`.
+         */
         template <typename RNG> double operator() (RNG&) const {
             return 1.0;
         }
-        /** @brief Lower bound of the (degenerate) range. */
+        /** 
+         * @brief Lower bound of the (degenerate) range.
+         * @return `1.0`.
+         */
         double min() const { return 1.0; }
-        /** @brief Upper bound of the (degenerate) range. */
+        /** 
+         * @brief Upper bound of the (degenerate) range.
+         * @return `1.0`.
+         */
         double max() const { return 1.0; }
     };
 
