@@ -21,23 +21,38 @@
 #include "robot.hpp"
 #include "logging.hpp"
 
+/**
+ * @file wall_space.hpp
+ * @brief Environment boundary as a (possibly holed) polygon and factory for @ref ConfigurationSpace.
+ */
+
 namespace BURST::geometry {
     
-    // WallSpace represents the geometry of the walls in the environment. It is defined by a polygon.
+    /**
+     * @brief Static environment geometry: outer walls and optional holes (obstacles).
+     *
+     * The outer boundary is a simple linear polygon; holes represent excluded regions. From this
+     * representation and a robot radius, BURST derives the free configuration region where the
+     * robot’s center can move. @ref WallSpace is also @ref renderable::Renderable (white interior,
+     * black holes by default).
+     */
     class WallSpace : public renderable::Renderable {
     private:
         HoledPolygon2D wall_shape;
 
     protected: 
-        // Protected constructors since the public API is through the static create method
-        // Abstracting this away to protected constructors allows subclassing WallSpace in a test environment without depending on the static create method and its constraints
+        /** @brief Build from an outer polygon without holes. */
         WallSpace(const Polygon2D& shape) noexcept : Renderable{}, wall_shape{shape} {}
+        /** @brief Build from a full holed polygon representation. */
         WallSpace(const HoledPolygon2D& shape) noexcept : Renderable{}, wall_shape{shape} {}
 
-        // Protected methods since the public API depends on the robot
-        // Abstracting this away to a protected method allows subclassing WallSpace in a test environment without depending on the Robot class
-
-        // Constructs a configuration space given a robot radius
+        /**
+         * @brief Compute the configuration space for a robot of radius `robot_radius`.
+         *
+         * Performs a Minkowski sum/difference operation on the wall polygon and the robot's radius to create a configuration space.
+         * The resulting region is a curvilinear polygon set suitable for @ref ConfigurationSpace. May return null when the
+         * wall polygon is too small for the robot to fit in.
+         */
         std::shared_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
             // TODO: Find an actually good epsilon instead of this approximation
             const double EPSILON = 0.000001;
@@ -79,19 +94,30 @@ namespace BURST::geometry {
         }
 
     public:
-        using Polygon = HoledPolygon2D::Polygon_2;
-        using Hole_iterator = HoledPolygon2D::Hole_const_iterator;
-        using Edge = HoledPolygon2D::Polygon_2::Segment_2;
-        using Edge_iterator = HoledPolygon2D::Polygon_2::Edge_const_iterator;
-        using Vertex = HoledPolygon2D::Polygon_2::Point_2;
-        using Vertex_iterator = HoledPolygon2D::Polygon_2::Vertex_const_iterator;
+        using Polygon = HoledPolygon2D::Polygon_2;                      /**< Linear polygon type for holes and boundaries. */
+        using Hole_iterator = HoledPolygon2D::Hole_const_iterator;      /**< Iterator over hole polygons. */
+        using Edge = HoledPolygon2D::Polygon_2::Segment_2;            /**< Wall edge segment type. */
+        using Edge_iterator = HoledPolygon2D::Polygon_2::Edge_const_iterator; /**< Edge iterator for outer or hole rings. */
+        using Vertex = HoledPolygon2D::Polygon_2::Point_2;              /**< Vertex / point type. */
+        using Vertex_iterator = HoledPolygon2D::Polygon_2::Vertex_const_iterator; /**< Vertex iterator. */
 
+        /**
+         * @brief Create a simply-connected wall from an outer vertex ring.
+         *
+         * Delegates to @ref construct_polygon; returns `std::nullopt` for degenerate input.
+         */
         template <valid_geometric_collection<Point2D> C>
         static std::optional<WallSpace> create(C points) {
             auto wall_polygon_opt = construct_polygon(points);  
             // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
             return wall_polygon_opt.has_value() ? std::optional<WallSpace>{WallSpace{wall_polygon_opt.value()}} : std::nullopt;
         }
+        /**
+         * @brief Create walls with holes from an outer ring and a collection of hole polygons.
+         *
+         * Holes are enforced clockwise; the combined holed polygon must satisfy CGAL’s validity
+         * checks (holes inside the outer boundary, pairwise non-intersection, simplicity).
+         */
         template <valid_geometric_collection<Point2D> C1, valid_geometric_collection<Polygon2D> C2>
         static std::optional<WallSpace> create(C1 points, C2 holes) {
             auto wall_polygon_opt = construct_polygon(points);
@@ -127,14 +153,16 @@ namespace BURST::geometry {
                 return std::nullopt;
             }
         }
-        // Inlined overloads for std::initializer_list since it doesn't satisfy the sized_range condition below C++23
+        /** @copydoc create */
         inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points) {
             return create<std::initializer_list<Point2D>>(points);
         }
+        /** @copydoc create(C1 points, C2 holes) */
         template <valid_geometric_collection<Point2D> C>
         inline static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes) {
             return create<C, std::initializer_list<Polygon2D>>(points, holes);
         }
+        /** @copydoc create(C1 points, C2 holes) */
         template <valid_geometric_collection<Polygon2D> C>
         inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes) {
             return create<std::initializer_list<Point2D>, C>(points, holes);
@@ -143,8 +171,13 @@ namespace BURST::geometry {
             return create<std::initializer_list<Point2D>>(points, std::initializer_list<Polygon2D>(holes));
         }
 
-        // Template is not needed for any implementation, but is needed for Robot
-        // Thus this can be ommitted when called and the template parameters can be inferred
+        /**
+         * @brief Build and attach the @ref ConfigurationSpace for `robot`’s radius to `robot`.
+         *
+         * Uses @ref constructConfigurationSpace; returns `false` when the free region cannot be
+         * constructed (e.g. environment too narrow). Template parameters are inferred from
+         * @ref Robot.
+         */
         template <typename T, typename P, typename R, typename D>
         bool generateConfigurationSpace(Robot<T, P, R, D>& robot) const {
             auto config_geometry = this->constructConfigurationSpace(robot.getRadius());
@@ -154,10 +187,14 @@ namespace BURST::geometry {
             return true;
         }
 
+        /** @brief Default wall edge color (black); faces use white/black scheme in @ref render. */
         renderable::Color defaultColor() const override {
             return renderable::Color{0, 0, 0}; 
         }
         
+        /**
+         * @brief Draw holes as black-filled regions and the outer boundary as a white face with colored edges.
+         */
         void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}) const override {
             using arrangement_t = LinearPolygonSet2D::Arrangement_2;
             using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
@@ -195,36 +232,46 @@ namespace BURST::geometry {
             CGAL::add_to_graphics_scene(wall_set.arrangement(), scene, boundary_options);
         }
 
+        /** @brief Iterator to the first hole polygon. */
         Hole_iterator holes_begin() const {
             return this->wall_shape.holes_begin();
         }
 
+        /** @brief Past-the-end iterator for holes. */
         Hole_iterator holes_end() const {
             return this->wall_shape.holes_end();
         }
 
+        /** @brief First edge of the outer boundary. */
         Edge_iterator edges_begin() const {
             return this->wall_shape.outer_boundary().edges_begin();
         }
+        /** @brief Past-the-end edge iterator for the outer boundary. */
         Edge_iterator edges_end() const {
             return this->wall_shape.outer_boundary().edges_end();
         }
+        /** @brief First edge of a specific `hole` polygon. */
         Edge_iterator edges_begin(Polygon hole) const {
             return hole.edges_begin();
         }
+        /** @brief Past-the-end edges for `hole`. */
         Edge_iterator edges_end(Polygon hole) const {
             return hole.edges_end();
         }
 
+        /** @brief First vertex of the outer boundary. */
         Vertex_iterator vertices_begin() const {
             return this->wall_shape.outer_boundary().vertices_begin();
         }
+        /** @brief Past-the-end vertex iterator for the outer boundary. */
         Vertex_iterator vertices_end() const {
             return this->wall_shape.outer_boundary().vertices_end();
         }
+        /** @brief First vertex of `hole`. */
         Vertex_iterator vertices_begin(Polygon hole) const {
             return hole.vertices_begin();
         }
+        /** @brief Past-the-end vertices for `hole`. */
         Vertex_iterator vertices_end(Polygon hole) const {
             return hole.vertices_end();
         }

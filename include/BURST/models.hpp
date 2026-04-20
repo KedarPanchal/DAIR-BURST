@@ -16,37 +16,59 @@
 #include "configuration_space.hpp"
 #include "logging.hpp"
 
-// Contains models for how the robot's rotation and movement are affected by noise
+/**
+ * @file models.hpp
+ * @brief Pluggable noise models for orientation and translation against a @ref geometry::ConfigurationSpace.
+ *
+ * These templates decouple how the robot's commanded heading is perturbed and how a straight or
+ * curved trajectory is resolved to a boundary intersection from the @ref Robot geometry.
+ */
+
 namespace BURST::models {
     
-    // -- ROTATION MODEL -------------------------------------------------------
-
-    /*
-     * RotationModel defines how the robot's rotation is affected by noise.
+    /**
+     * @brief Bounded random perturbation applied to commanded orientations.
+     *
+     * Each sampled rotation error is drawn from `Dist` over `[-1, 1]` (by default) and scaled by
+     * the absolute `max_rotation_error` bound. The model is stateful via the PRNG and is
+     * copy-friendly for use inside @ref Robot.
+     *
+     * @tparam PRNG Engine satisfying @ref numeric::valid_rng (default `std::mt19937`).
+     * @tparam Dist Distribution satisfying @ref numeric::valid_distribution with `PRNG`.
      */
     template <numeric::valid_rng PRNG = std::mt19937, numeric::valid_distribution<PRNG> Dist = std::uniform_real_distribution<double>>
     class RotationModel {
     private:
         numeric::fscalar max_rotation_error;
         mutable PRNG prng;
-        mutable Dist rand_dist; // Generate from -1 to 1 to scale max_rotation_error by
+        mutable Dist rand_dist;
 
     public:
+        /**
+         * @param max_rotation_error Absolute bound on additive angle error (magnitude is taken).
+         * @param seed PRNG seed; defaults to a non-deterministic source when available.
+         */
         RotationModel(numeric::fscalar max_rotation_error, unsigned int seed = std::random_device{}()) : max_rotation_error{CGAL::abs(max_rotation_error)}, prng{seed}, rand_dist{-1.0, 1.0} {}
 
-        numeric::fscalar operator() (numeric::fscalar angle) const {
+        /**
+         * @brief Sample a perturbed angle: `angle + noise * max_rotation_error`.
+         */
+        numeric::fscalar operator()(numeric::fscalar angle) const {
             // Generate a random rotation error scaled by max_rotation_error
             return angle + this->rand_dist(this->prng) * max_rotation_error;
         }
 
+        /** @brief Upper limit of possible angles: `angle + max_rotation_error`. */
         numeric::fscalar max(numeric::fscalar angle) const {
             return angle + this->max_rotation_error;
         }
+        /** @brief Lower limit of possible angles: `angle - max_rotation_error`. */
         numeric::fscalar min(numeric::fscalar angle) const {
             return angle - this->max_rotation_error;
         }
     };
 
+    /** @brief @ref RotationModel with deterministic noise (see @ref numeric::flat_distribution). */
     using MaximumRotationModel = RotationModel<std::mt19937, numeric::flat_distribution>;
 
     // Internal implementations not intended for public use
@@ -62,20 +84,34 @@ namespace BURST::models {
         struct is_valid_rotation_model<BURST::models::RotationModel<PRNG, Dist>> : std::true_type {};
     }
     
-    // Checks if a type is a valid rotation model, as defined above, and wraps it as a concept
+    /** @brief True if `R` is some `RotationModel<PRNG, Dist>` specialization. */
     template <typename R>
     concept valid_rotation_model = detail::is_valid_rotation_model<R>::value;
 
     
-    // -- MOVEMENT MODEL -------------------------------------------------------
-
-    /*
-     * MovementModel defines how the robot's movement is affected by noise.
+    /**
+     * @brief Maps a motion command to a feasible boundary point on the configuration space.
+     *
+     * Given a starting point on the boundary of `configuration_space` and a heading `angle`,
+     * constructs a `Trajectory` ray from the origin along the corresponding unit vector, finds
+     * intersections with the boundary, and selects the endpoint that lies along the inward
+     * direction (validated by the midpoint test). If the origin is not on the boundary, no
+     * intersection exists, or the motion would leave the configuration space, returns `std::nullopt`.
+     *
+     * @tparam Trajectory Trajectory type satisfying @ref geometry::valid_trajectory_type.
+     * @tparam Path       Path type satisfying @ref geometry::valid_path_type for the chord joining
+     *                    start and end boundary points.
      */
     template <geometry::valid_trajectory_type Trajectory, geometry::valid_path_type Path>
     class MovementModel {
     public:
-        std::optional<geometry::Point2D> operator() (const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
+        /**
+         * @brief Resolve the endpoint of a valid inward motion, if one exists.
+         * @param origin Point on the configuration-space boundary (see @ref geometry::ConfigurationSpace::onEdge).
+         * @param angle Heading in radians defining the motion direction.
+         * @param configuration_space Configuration space for the robot.
+         */
+        std::optional<geometry::Point2D> operator()(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
             if (!configuration_space.onEdge(origin)) {
                 BURST_ERROR("Origin point does not lie on the configuration space boundary, path is invalid");
@@ -114,6 +150,11 @@ namespace BURST::models {
                 return std::nullopt;
             }
         }
+        /**
+         * @brief Same as @ref operator() but returns a `Path` segment (or curve) from `origin` to the endpoint.
+         *
+         * The path is empty if the motion is invalid or degenerate (same start and end).
+         */
         std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
             // Identify the endpoint of the path by using the operator() function
             std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_space);
@@ -130,23 +171,19 @@ namespace BURST::models {
         }
     };
 
+    /** @brief Standard motion model: infinite ray trajectory clipped to a straight segment path. */
     using LinearMovementModel = MovementModel<geometry::Ray2D, geometry::Segment2D>;
     
-    // Internal implementations not intended for public use
     namespace detail {
-        /*
-         * Declare type traits to check if a type is a valid movement model
-         * This means it must be an instantiation of the MovementModel template
-         * Since the library is targeting C++20, this SFINAE needs to be used in tandem with concepts, since is_specialization_of is a C++23 feature
-         */
         template <typename T>
         struct is_valid_movement_model : std::false_type {};
         template <typename Trajectory, typename Path>
         struct is_valid_movement_model<BURST::models::MovementModel<Trajectory, Path>> : std::true_type {}; 
     }
     
+    /** @brief True if `M` is some `MovementModel<Trajectory, Path>` specialization. */
     template <typename M>
-    using valid_movement_model = detail::is_valid_movement_model<M>::value;
+    concept valid_movement_model = detail::is_valid_movement_model<M>::value;
     
 }
 #endif

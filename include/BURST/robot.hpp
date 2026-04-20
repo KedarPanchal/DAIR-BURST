@@ -18,11 +18,24 @@
 #include "models.hpp"
 #include "logging.hpp"
 
+/**
+ * @file robot.hpp
+ * @brief Circular robot with configurable rotation and movement noise models in a configuration space.
+ */
+
 namespace BURST {
 
-    /*
-     * The robot class represents a circular, blind, unreliable robot.
-     * Its rotational and translational movements are affected by noise and uses models to determine the impact of this noise.
+    /**
+     * @brief Kinematic agent modeled as a disk with stochastic heading error and boundary-constrained motion.
+     *
+     * The robot carries a @ref models::RotationModel for perturbed turns and a
+     * @ref models::MovementModel that resolves straight or curved moves against a shared
+     * @ref geometry::ConfigurationSpace. It is drawable as a filled disk via @ref renderable::Renderable.
+     *
+     * @tparam T Trajectory type for the movement model (default @ref geometry::Ray2D).
+     * @tparam P Path type for boundary-to-boundary segments (default @ref geometry::Segment2D).
+     * @tparam R PRNG type for the rotation model (default `std::mt19937`).
+     * @tparam D Distribution type for the rotation model (default `std::uniform_real_distribution<double>`).
      */
     template <
         geometry::valid_trajectory_type T = geometry::Ray2D, 
@@ -60,13 +73,20 @@ namespace BURST {
             movement_model{movement_model} {}
 
     public:
-        using Trajectory = T;
-        using Path = P;
-        using PRNG = R;
-        using Dist = D;
-        using RotationModelType = models::RotationModel<R, D>;
-        using MovementModelType = models::MovementModel<T, P>;
+        using Trajectory = T;           /**< Trajectory template parameter. */
+        using Path = P;                 /**< Path template parameter. */
+        using PRNG = R;                 /**< Rotation PRNG type. */
+        using Dist = D;                 /**< Rotation distribution type. */
+        using RotationModelType = models::RotationModel<R, D>;   /**< Concrete rotation model type. */
+        using MovementModelType = models::MovementModel<T, P>;     /**< Concrete movement model type. */
 
+        /**
+         * @brief Construct a robot with default-constructed models and a rotation bound.
+         * @param robot_radius Physical radius of the disk; must be positive.
+         * @param starting_point Initial center position.
+         * @param max_rotation_error Absolute bound passed to @ref models::RotationModel.
+         * @return `std::nullopt` if `robot_radius <= 0`.
+         */
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
@@ -75,6 +95,9 @@ namespace BURST {
             }
             else return Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error}, models::MovementModel<T, P>{}};
         }
+        /**
+         * @brief Same as @ref create with explicit PRNG seed for reproducible rotation noise.
+         */
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
@@ -83,6 +106,9 @@ namespace BURST {
             }
             else return Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error, rotation_seed}, models::MovementModel<T, P>{}};
         }
+        /**
+         * @brief Construct a robot with fully custom rotation and movement models.
+         */
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
@@ -91,16 +117,24 @@ namespace BURST {
             }
             else return Robot{robot_radius, starting_point, rotation_model, movement_model};
         }
+        /** @brief Read-only view of the current configuration space (undefined if never set). */
         const BURST::geometry::ConfigurationSpace& getConfigurationEnvironment() const {
             return *this->configuration_environment;
         }
+        /** @brief Disk radius in workspace units. */
         numeric::fscalar getRadius() const {
             return this->radius;
         }
+        /** @brief Current center of the robot. */
         BURST::geometry::Point2D getPosition() const {
             return this->position;
         }
-        // Precondition: The robot is on the border of the configuration space
+        /**
+         * @brief Attach the configuration space used for motion and coverage queries.
+         *
+         * If the robot's current position is not on the boundary of the new space, a warning may
+         * be logged because subsequent moves assume a boundary start configuration.
+         */
         void setConfigurationEnvironment(std::shared_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
             this->configuration_environment = std::move(config_environment);
             if (!this->configuration_environment->onEdge(this->position)) {
@@ -108,12 +142,22 @@ namespace BURST {
                 BURST_WARNING(warning_string.c_str());
             }
         }
+        /**
+         * @brief Get the configuration space.
+         */
         const geometry::ConfigurationSpace& getConfigurationEnvironment() {
             return *this->configuration_environment;
         }
+        /** @brief Get the configuration space as a shared pointer. */
         std::shared_ptr<geometry::ConfigurationSpace> getConfigurationEnvironmentPtr() {
             return this->configuration_environment;
         }
+        /**
+         * @brief Move the robot's center to `new_position`.
+         *
+         * If a configuration environment is set, may warn when the position is not consistent with
+         * expected boundary motion.
+         */
         void setPosition(const geometry::Point2D& new_position) {
             this->position = new_position;
             if (!this->configuration_environment->intersection(this->position)) {
@@ -122,15 +166,31 @@ namespace BURST {
             }
         }
 
+        /**
+         * @brief Apply the rotation model to a commanded heading (no translation).
+         */
         numeric::fscalar perturb(const numeric::fscalar& angle) const {
             return this->rotation_model(angle);
         }
 
+        /**
+         * @brief Compute where the robot would stop if it moved along `angle` without updating state.
+         *
+         * When `perturbed` is true, the heading is first passed through the rotation model.
+         *
+         * @return `std::nullopt` if no configuration space is set or the motion is infeasible.
+         */
         std::optional<geometry::Point2D> shootRay(const numeric::fscalar& angle, bool perturbed = false) const {
             // Cannot shoot ray if configuration environment does not exist
             if (!this->configuration_environment) return std::nullopt;
             return this->movement_model(this->position, perturbed ? this->rotation_model(angle) : angle, *this->configuration_environment);
         }
+        /**
+         * @brief Minkowski-style “stadium” swept by the disk along the feasible motion for `angle`.
+         *
+         * Unites start and end circular footprints with the connecting strip bounded by the
+         * movement path type. Empty if the trajectory cannot be resolved.
+         */
         std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(const numeric::fscalar& angle, bool perturbed = false) const {
             // Cannot generate a stadium if configuration environment does not exist
             if (!this->configuration_environment) return std::nullopt;
@@ -192,6 +252,11 @@ namespace BURST {
             return stadium;
         }
 
+        /**
+         * @brief Execute a motion: update @ref getPosition to the inward boundary hit, if any.
+         *
+         * @return `false` when no configuration space is set or the move is invalid.
+         */
         bool move(const numeric::fscalar& angle, bool perturbed = false) {
             // Cannot move if configuration environment does not exist
             if (!this->configuration_environment) return false;
@@ -206,10 +271,12 @@ namespace BURST {
             return true;
         }
 
+        /** @brief Default visualization color (red disk). */
         renderable::Color defaultColor() const override {
             return renderable::Color{255, 0, 0};
         }
 
+        /** @brief Draw the robot as a filled circle at the current position. */
         void render(renderable::Scene& scene, const renderable::Color& color) const override {
             if (this->radius <= 0) return; // If the robot has a non-positive radius, then there's nothing to render
 

@@ -1,6 +1,11 @@
 #ifndef BURST_CONFIGURATION_SPACE_HPP
 #define BURST_CONFIGURATION_SPACE_HPP
 
+/**
+ * @file configuration_space.hpp
+ * @brief Configuration-space representation and boundary queries for motion planning in BURST.
+ */
+
 #include <optional>
 #include <variant>
 #include <memory>
@@ -24,8 +29,17 @@ namespace BURST::geometry {
     // Forward declare WallSpace for ConfigurationSpace
     class WallSpace;
 
-    // ConfigurationSpace should never be instantiated directly
-    // This is why its constructors are private and only accessible by WallSpace
+    /**
+     * @brief Free space available to the robot’s reference point for a given wall layout and radius.
+     *
+     * The configuration space is a (generally curvilinear) region in the plane where the robot’s
+     * center may lie while remaining collision-free with respect to the environment. It is derived
+     * from @ref WallSpace by insetting the outer boundary and expanding holes by the robot
+     * radius, then taking the appropriate boolean combination.
+     *
+     * @note Obtain instances only via @ref WallSpace::generateConfigurationSpace or internal
+     *       construction from @ref WallSpace; direct public construction is not supported.
+     */
     class ConfigurationSpace : public renderable::Renderable {
     private:
         std::shared_ptr<CurvilinearPolygonSet2D> configuration_shape;
@@ -37,12 +51,7 @@ namespace BURST::geometry {
             return std::shared_ptr<ConfigurationSpace>{new ConfigurationSpace{std::move(shape)}};
         }
         
-        /*
-         * Functions used to lazily compute bounding box and polygon set since these can be expensive to compute
-         * These return by reference to modify the mutable optionals in place
-         * They're distinguished from the const reference public API functions by taking a dummy std::monostate argument
-         * This is only used for preventing overload conflicts and has no semantic meaning
-         */
+        /** @internal Lazy bounding-box computation; `flag` is unused (overload disambiguation only). */
         BoundingBox2D& bbox(const std::monostate& flag) const noexcept {
             if (!this->bounding_box.has_value()) {
                 // Create small vector with buffer of 1, since we expect most configuration spaces to be a single holed polygon
@@ -55,19 +64,40 @@ namespace BURST::geometry {
         }
 
     public:
+        /**
+         * @brief Axis-aligned bounding box of the configuration region.
+         *
+         * The box is computed on first use and cached for subsequent queries.
+         */
         const BoundingBox2D& bbox() const noexcept {
             return this->bbox(std::monostate{});
         }
+        /**
+         * @brief CGAL arrangement backing the configuration polygon set.
+         *
+         * Exposes faces, edges, and vertices for advanced queries or interoperability with
+         * CGAL algorithms.
+         */
         auto& arrangement() const noexcept {
             return this->configuration_shape->arrangement();
         }
         
+        /**
+         * @brief Whether `point` lies on the boundary of the configuration space.
+         *
+         * @param point Query point in workspace coordinates.
+         */
         bool onEdge(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the intersection check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
             return this->configuration_shape->oriented_side(converted_point) == CGAL::ON_ORIENTED_BOUNDARY;
         }
 
+        /**
+         * @brief Whether `point` lies inside or on the boundary of the configuration space.
+         *
+         * @param point Query point in workspace coordinates.
+         */
         bool contains(const Point2D& point) const noexcept {
             // Convert the point to the traits required for the containment check
             auto converted_point = CurvedTraits::Point_2(point.x(), point.y());
@@ -75,6 +105,15 @@ namespace BURST::geometry {
             return orientation == CGAL::ON_ORIENTED_BOUNDARY || orientation == CGAL::ON_POSITIVE_SIDE;
         }
 
+        /**
+         * @brief Classify boundary incidence for a point on the configuration space boundary.
+         *
+         * If the point lies strictly in the interior of a face, returns `std::nullopt`. If it lies
+         * on an edge, returns the corresponding @ref MonotoneCurve2D. If it coincides with a
+         * vertex, returns that @ref Point2D.
+         *
+         * @param point Query point; most useful when known to lie on or near the boundary.
+         */
         std::optional<std::variant<MonotoneCurve2D, Point2D>> intersection(const Point2D& point) const noexcept {
             using arrangement_t = CurvilinearPolygonSet2D::Arrangement_2;
             using converted_point_t = arrangement_t::Point_2;
@@ -96,6 +135,25 @@ namespace BURST::geometry {
             return convert_point<Point2D, converted_point_t>(std::get<arrangement_t::Vertex_const_handle>(result)->point(), numeric::sqrt_to_fscalar<converted_ft>);
         }
         
+        /**
+         * @brief Intersect a directed trajectory with the configuration boundary and collect hit points.
+         *
+         * The trajectory is treated as a ray-like object: `source` yields the origin and
+         * `vectorize` yields a direction vector (see @ref valid_trajectory_type). The implementation
+         * extends the ray to pass through the bounding box, intersects it with the arrangement, and
+         * appends every boundary hit point except the ray origin (if any) to `intersection_points`.
+         *
+         * @tparam Trajectory Trajectory type satisfying @ref valid_trajectory_type.
+         * @tparam Path       @ref valid_path_type used for the extended segment geometry.
+         * @tparam OutputIteratorCollection Back-insertable container of @ref Point2D.
+         * @tparam SourceFunc   Member pointer or callable returning the trajectory origin.
+         * @tparam VectorizeFunc Member pointer or callable returning the direction vector.
+         * @param trajectory   Instance to query.
+         * @param intersection_points Output iterator (back insert) receiving boundary points.
+         * @param source       Defaults to `&Trajectory::source`.
+         * @param vectorize    Defaults to `&Trajectory::to_vector`.
+         * @return Number of intersection points appended (excluding the ray source when skipped).
+         */
         template <valid_trajectory_type Trajectory, valid_path_type Path, std::ranges::output_range<Point2D> OutputIteratorCollection, typename SourceFunc = const Point2D&(Trajectory::*)() const, typename VectorizeFunc = Vector2D(Trajectory::*)() const>
         size_t intersection(
                 const Trajectory& trajectory,
@@ -149,10 +207,16 @@ namespace BURST::geometry {
             return intersection_count; // Return the number of intersections found
         }
 
+        /** @brief Default visualization color (blue edges). */
         renderable::Color defaultColor() const override {
             return renderable::Color{0, 0, 255}; 
         }
         
+        /**
+         * @brief Draw the configuration boundary as colored edges with transparent faces.
+         * @param scene Target CGAL graphics scene.
+         * @param color Edge color; faces are drawn fully transparent.
+         */
         void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 255}) const override {
             if (this->configuration_shape == nullptr) return; // If the configuration shape is null, then there's nothing to render
             

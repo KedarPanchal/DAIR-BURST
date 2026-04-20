@@ -25,84 +25,134 @@
 #include "logging.hpp"
 #include "renderable.hpp"
 
+/**
+ * @file geometry.hpp
+ * @brief Core 2D geometric aliases, concepts, and helpers built on CGAL types.
+ *
+ * This header centralizes point/segment/polygon aliases for both linear and curvilinear geometry,
+ * validates collections used to build polygons, and provides small utilities for construction,
+ * conversion, and optional CGAL graphics integration.
+ */
+
 namespace BURST::geometry {
 
-    // -- GEOMETRIC TYPES ------------------------------------------------------
-    
-    // Primitive types
+    /** @brief Point in the workspace plane (`Kernel::Point_2`). */
     using Point2D = Kernel::Point_2;
+    /** @brief Closed segment between two points. */
     using Segment2D = Kernel::Segment_2;
+    /** @brief Infinite line. */
     using Line2D = Kernel::Line_2;
+    /** @brief Ray: origin and direction to infinity. */
     using Ray2D = Kernel::Ray_2;
+    /** @brief X-monotone curve in @ref CurvedTraits (segments and circular arcs). */
     using MonotoneCurve2D = CurvedTraits::X_monotone_curve_2;
+    /** @brief Simple linear polygon with straight edges. */
     using Polygon2D = CGAL::Polygon_2<Kernel>;
+    /** @brief Linear polygon with zero or more interior holes. */
     using HoledPolygon2D = CGAL::Polygon_with_holes_2<Kernel>;
+    /** @brief Curvilinear simple polygon (arcs and segments). */
     using CurvilinearPolygon2D = CurvedTraits::General_polygon_2;
+    /** @brief Curvilinear polygon with holes. */
     using HoledCurvilinearPolygon2D = CGAL::General_polygon_with_holes_2<CurvilinearPolygon2D>;
+    /** @brief 2D displacement vector. */
     using Vector2D = CGAL::Vector_2<Kernel>;
     
-    // Composite/complex types
+    /** @brief Boolean combination of curvilinear regions. */
     using CurvilinearPolygonSet2D = CGAL::General_polygon_set_2<CurvedTraits>;
+    /** @brief Boolean combination of linear (segment) regions. */
     using LinearPolygonSet2D = CGAL::General_polygon_set_2<LinearTraits>;
+    /** @brief Axis-aligned bounding box (`CGAL::Bbox_2`). */
     using BoundingBox2D = CGAL::Bbox_2;
+    /** @brief Polygon winding/orientation enum (`CGAL::Orientation`). */
     using WindingOrder = CGAL::Orientation;
 
-    // Iterator types
+    /** @brief Const iterator over vertices of a @ref Polygon2D. */
     using vertex_iterator = Polygon2D::Vertex_const_iterator;
+    /** @brief Const iterator over edges of a @ref Polygon2D. */
     using edge_iterator = Polygon2D::Edge_const_iterator;
 
-    // Transformation types
+    /** @brief Affine transform in the plane (rotation, translation, scaling). */
     using Transformation = CGAL::Aff_transformation_2<Kernel>;
 
 
-    // -- GEOMETRIC CONCEPTS ---------------------------------------------------
-
-    // Checks if a type is a valid path type, which can be constructed from a start and end point
-    // It can either be a Segment2D or a curve type that's convertible to an X_monotone_curve_2
+    /**
+     * @brief Path type connectable by two endpoints and usable as an X-monotone curve when curved.
+     *
+     * Satisfied by @ref Segment2D or any type constructible from two @ref Point2D values and
+     * convertible to `CurvedTraits::X_monotone_curve_2` for curvilinear use.
+     */
     template <typename T>
     concept valid_path_type = requires (geometry::Point2D start, geometry::Point2D end) {
         T{start, end};
     } && (std::same_as<Segment2D, T> || std::convertible_to<T, CurvedTraits::X_monotone_curve_2>);
     
-    // Checks if a type is a valid trajectory type, which can be constructed from an origin point and a direction vector
+    /**
+     * @brief Trajectory type defined by an origin and a direction vector (e.g. @ref Ray2D).
+     *
+     * Used by movement models and configuration-space ray intersection.
+     */
     template <typename T>
     concept valid_trajectory_type = requires (geometry::Point2D origin, geometry::Vector2D direction) {
         T{origin, direction};
     };
 
-    // Checks if a type is a valid geometric collection, which is a sized range of a specific geometric type or an initializer list of that geometric type
+    /**
+     * @brief Sized range of `G`, or an `std::initializer_list<G>`, for polygon construction APIs.
+     *
+     * @tparam C Collection type.
+     * @tparam G Element type (e.g. @ref Point2D or @ref Polygon2D).
+     */
     template <typename C, typename G>
     concept valid_geometric_collection = std::ranges::sized_range<C> &&
         std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, G> ||
         std::same_as<C, std::initializer_list<G>>;
 
-    // Define mappings for types to their corresponding polygon set types for rendering
+    /**
+     * @brief Maps a polygon or polygon-set type to the @ref General_polygon_set_2 specialization used for rendering.
+     *
+     * Specializations are provided for @ref Polygon2D, @ref CurvilinearPolygon2D, and their
+     * corresponding set types. Used by @ref renderable overloads.
+     *
+     * @tparam P Polygon-like type.
+     */
     template <typename P>
     struct set_type_v;
+    /** @brief Linear polygons map to @ref LinearPolygonSet2D. */
     template <>
     struct set_type_v<Polygon2D> {
         using type = LinearPolygonSet2D;
     };
+    /** @brief Identity mapping for @ref LinearPolygonSet2D. */
     template<>
     struct set_type_v<LinearPolygonSet2D> {
         using type = LinearPolygonSet2D;
     };
+    /** @brief Curvilinear polygons map to @ref CurvilinearPolygonSet2D. */
     template <>
     struct set_type_v<CurvilinearPolygon2D> {
         using type = CurvilinearPolygonSet2D;
     };
+    /** @brief Identity mapping for @ref CurvilinearPolygonSet2D. */
     template<>
     struct set_type_v<CurvilinearPolygonSet2D> {
         using type = CurvilinearPolygonSet2D;
     };
+    /** @brief Whether @ref set_type_v is defined for `P`. */
     template <typename P>
     concept has_set_type = requires {
         typename set_type_v<P>::type;
     };
 
-    // -- HELPER FUNCTIONS -----------------------------------------------------
-    
-    // Utility function to construct a polygon off of any collection of points
+    /**
+     * @brief Build a simple @ref Polygon2D from vertices if the ring is valid.
+     *
+     * Requires at least three points, simplicity (no self-intersection), and reverses winding to
+     * match `expected_orientation` when needed. On failure, logs via @ref BURST_ERROR and returns
+     * `std::nullopt`.
+     *
+     * @param points Vertex ring; interpreted in order.
+     * @param expected_orientation Desired outer boundary orientation (typically counterclockwise).
+     */
     template <typename C> requires valid_geometric_collection<C, Point2D>
     std::optional<Polygon2D> construct_polygon(const C& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         // Can't make a polygon with 2 or fewer points
@@ -124,10 +174,15 @@ namespace BURST::geometry {
 
         return polygon;
     }
+    /** @copydoc construct_polygon */
     inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation);
     }
 
+    /**
+     * @brief Arithmetic mean of a non-empty point collection.
+     * @return `std::nullopt` if the collection is empty.
+     */
     template <typename C> requires valid_geometric_collection<C, Point2D>
     std::optional<Point2D> average(const C& points) {
         // Can't compute the average of an empty collection
@@ -141,10 +196,16 @@ namespace BURST::geometry {
         });
         return Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)};
     }
+    /** @copydoc average */
     inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
         return average<std::initializer_list<Point2D>>(points);
     }
 
+    /**
+     * @brief Convert between point types by copying `x` and `y` coordinates.
+     * @tparam T Target point type constructible from two coordinates.
+     * @tparam F Source point type exposing `x()` and `y()`.
+     */
     template <typename T, typename F>
         requires requires(const F& from_point) {
             T{from_point.x(), from_point.y()};
@@ -152,6 +213,10 @@ namespace BURST::geometry {
     T convert_point(const F& from_point) {
         return T{from_point.x(), from_point.y()};
     }
+    /**
+     * @brief Convert coordinates with a per-coordinate mapping (e.g. square-root evaluation).
+     * @tparam ConvertFn Callable applied to each coordinate.
+     */
     template <typename T, typename F, typename ConvertFn>
         requires requires(const F& from_point, const ConvertFn& convert_fn) {
             T{convert_fn(from_point.x()), convert_fn(from_point.y())};
@@ -160,6 +225,11 @@ namespace BURST::geometry {
         return T{convert_fn(from_point.x()), convert_fn(from_point.y())};
     }
  
+    /**
+     * @brief Turn a @ref valid_path_type into an @ref MonotoneCurve2D for curvilinear algorithms.
+     *
+     * Segments are promoted to X-monotone curves; other path types convert explicitly.
+     */
     template <valid_path_type P>
     MonotoneCurve2D construct_curve(const P& path) {
         if constexpr (std::same_as<P, Segment2D>) {
@@ -169,6 +239,11 @@ namespace BURST::geometry {
         }
     }
        
+    /**
+     * @brief Curvilinear polygon approximating a full circle of given `radius` about `center`.
+     *
+     * @return `std::nullopt` if `radius` is non-positive.
+     */
     inline std::optional<CurvilinearPolygon2D> construct_circle(const numeric::fscalar& radius, const Point2D& center) {
         // Only construct circles with positive radius
         if (radius <= 0) {
@@ -185,12 +260,19 @@ namespace BURST::geometry {
         return CurvilinearPolygon2D{semicircles.begin(), semicircles.end()};
     }
 
+    /** @brief Euclidean midpoint of two points. */
     inline Point2D midpoint(const Point2D& a, const Point2D& b) {
         return Point2D{(a.x() + b.x())/2, (a.y() + b.y())/2};
     }
     
-    // Allows CGAL geometric types to be wrapped in a renderable for rendering in the scene
-    // The return value of this can be passed in render_all to render the geometric type in the scene with the specified color
+    /**
+     * @brief Wrap a polygon or polygon set as a @ref renderable::Renderable filled with `color`.
+     *
+     * `V` may be a simple polygon type or a compatible `CGAL::General_polygon_set_2`; the appropriate set type
+     * is selected via @ref set_type_v. The returned object draws filled faces in the CGAL scene.
+     *
+     * @param scene Scene passed through for API symmetry; the renderable holds the geometry.
+     */
     template <typename V> requires has_set_type<V>
     inline std::unique_ptr<renderable::Renderable> renderable(const V& renderable, renderable::Scene& scene, const renderable::Color& color) {
         using set_t = typename set_type_v<V>::type;
@@ -234,8 +316,12 @@ namespace BURST::geometry {
         return std::make_unique<RenderablePolygon>(renderable_set, color);
     }
     
-    // Allows CGAL geometric types to be wrapped in a renderable for rendering in the scene
-    // The return value of this can be passed in render_all to render the geometric type in the scene with the specified color
+    /**
+     * @brief Wrap a holed polygon for visualization: outer boundary in `color`, holes in black.
+     *
+     * Supports both linear and curvilinear holed polygons; hole orientation is adjusted for CGAL
+     * drawing conventions.
+     */
     template <typename HP> 
         requires std::same_as<HP, HoledPolygon2D> || 
         std::same_as<HP, HoledCurvilinearPolygon2D>

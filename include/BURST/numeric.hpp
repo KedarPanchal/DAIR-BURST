@@ -10,12 +10,22 @@
 
 #include "kernel.hpp"
 
-// This namespace contains numeric types for CGAL
+/**
+ * @file numeric.hpp
+ * @brief Scalar types, numeric concepts, and conversions used alongside CGAL's exact kernel.
+ *
+ * Field types from @ref BURST::Kernel are the primary runtime scalars; additional MPFR-backed
+ * high-precision scalars support trigonometry and analysis where extended precision is helpful.
+ */
+
 namespace BURST::numeric {
     
-    // -- NUMERIC CONCEPTS -----------------------------------------------------
-
-    // Checks if a type is a valid square root number type, which models the form a0 + a1 * sqrt(root) where a0, a1, and root are convertible to the kernel's field type
+    /**
+     * @brief Matches CGAL-style square-root field elements `a0 + a1 * sqrt(root)`.
+     *
+     * Satisfied when `a0()`, `a1()`, and `root()` are convertible to the kernel field type,
+     * which is how several CGAL exact types expose irrational coordinates.
+     */
     template <typename T>
     concept valid_sqrt_type = requires (T value) {
         { value.a0() } -> std::convertible_to<Kernel::FT>;
@@ -23,17 +33,26 @@ namespace BURST::numeric {
         { value.root() } -> std::convertible_to<Kernel::FT>;
     };
 
-    // Checks if a type is a valid random number generator, which must be callable with no arguments and return a value convertible to unsigned int
+    /**
+     * @brief Minimal random number generator concept for templated noise models.
+     *
+     * Requires a default-callable engine whose result is convertible to `unsigned int`, matching
+     * common PRNGs such as `std::mt19937`.
+     */
     template <typename R>
     concept valid_rng = requires(R rng) {
         {rng()} -> std::convertible_to<unsigned int>;
     };
 
-    /*
-     * Checks if a type is a valid random number distribution, which must be:
-     * Default constructible
-     * Have min() and max() functions that return values convertible to double
-     * Be callable with a random number generator to produce a value convertible to double
+    /**
+     * @brief Distribution interface compatible with @ref valid_rng engines.
+     *
+     * Default-constructible, exposes `min()` / `max()` as `double`-convertible bounds, and
+     * produces `double`-convertible samples when invoked with a compatible RNG—similar to
+     * `std::uniform_real_distribution`.
+     *
+     * @tparam D Distribution type.
+     * @tparam R Engine type satisfying @ref valid_rng.
      */
     template <typename D, typename R>
     concept valid_distribution = valid_rng<R> && requires(D dist, R rng) {
@@ -44,28 +63,42 @@ namespace BURST::numeric {
     };
 
 
-    // -- NUMERIC CONSTANTS ----------------------------------------------------
+    /** @brief Decimal precision (digits) used by @ref hpscalar. */
+    constexpr unsigned int HP_PRECISION = 100;
 
-    constexpr unsigned int HP_PRECISION = 100; // 100 decimal digits of precision for high-precision scalar type
 
-
-    // -- NUMERIC TYPES --------------------------------------------------------
-
+    /** @brief Primary numeric type from @ref BURST::Kernel (`Kernel::FT`). */
     using fscalar = Kernel::FT;
+
+    /** 
+     * @brief Ring type from @ref BURST::Kernel (`Kernel::RT`).
+     * 
+     * Largely unused in the library, but exposed for external use.
+     */
     using rscalar = Kernel::RT;
+
+    /**
+     * @brief High-precision floating scalar based on MPFR with @ref HP_PRECISION decimal digits.
+     *
+     * Used where extended precision beyond the kernel field is desired (e.g. trigonometric
+     * evaluation) while still interoperable with conversions back to @ref fscalar where needed.
+     */
     using hpscalar = boost::multiprecision::number<boost::multiprecision::mpfr_float_backend<HP_PRECISION>>;
    
 
-    // -- NUMERIC FUNCTIONS ----------------------------------------------------
-
-    // Computes the absolute value of a number
+    /**
+     * @brief Absolute value for exact scalar types supporting ordered comparison.
+     * @tparam FT Numeric type comparable to zero.
+     */
     template <typename FT>
     FT abs(const FT& value) {
         return value < 0 ? -value : value;
     }
 
-    // Converts a number to a high-precision scalar
-    // TODO: Make this more efficient as the string conversion has a lot of overhead
+    /**
+     * @brief Convert a value to @ref hpscalar for high-precision representation.
+     * @tparam FT Source scalar type.
+     */
     template <typename FT>
     hpscalar to_high_precision(const FT& value) {
         if constexpr (std::same_as<FT, hpscalar>) {
@@ -77,7 +110,14 @@ namespace BURST::numeric {
         }
     }
 
-    // Converts a number to an fscalar
+    /**
+     * @brief Convert a numeric value to @ref fscalar via high-precision decimal serialization.
+     *
+     * Useful for bringing external or high-precision values into the exact kernel field type in a
+     * controlled way.
+     *
+     * @tparam N Source type streamable with sufficient precision.
+     */
     template <typename N>
     fscalar to_fscalar(const N& value) {
         std::ostringstream str_representation;
@@ -85,7 +125,9 @@ namespace BURST::numeric {
         return fscalar{str_representation.str()};
     }
     
-    // Converts a number of the form a0 + a1 * sqrt(root) to an fscalar
+    /**
+     * @brief Convert a @ref valid_sqrt_type value to @ref fscalar.
+     */
     template <valid_sqrt_type SqrtType>
     inline fscalar sqrt_to_fscalar(const SqrtType& value) {
         // Get exact values of components
@@ -96,7 +138,9 @@ namespace BURST::numeric {
         return a0 + a1 * CGAL::sqrt(root);
     }
 
-    // Converts a number to a string
+    /**
+     * @brief Human-readable decimal string for a scalar at high fixed precision.
+     */
     template <typename N>
     std::string to_string(const N& value) {
         std::ostringstream str_representation;
@@ -104,19 +148,23 @@ namespace BURST::numeric {
         return str_representation.str();
     }
 
-    // -- UTILITY TYPES --------------------------------------------------------
-    
-    /*
-     * Custom random number distribution that generates the same number for every RNG, which is useful for testing
-     * This allows for templating the rotation model and avoiding inheritance
+    /**
+     * @brief Deterministic “distribution” that always returns `1.0` for any RNG draw.
+     *
+     * Satisfies the interface expected by @ref models::RotationModel templates so tests can fix
+     * noise without substituting a different model type. Constructor parameters are ignored and
+     * exist only to mirror `std::uniform_real_distribution`'s shape.
      */
     class flat_distribution {
     public:
-        flat_distribution(double = 0.0, double = 0.0) {} // Dummy constructor to match the interface of std::uniform_real_distribution
+        flat_distribution(double = 0.0, double = 0.0) {}
+        /** @brief Returns `1.0` regardless of `rng`. */
         template <typename RNG> double operator() (RNG&) const {
             return 1.0;
         }
+        /** @brief Lower bound of the (degenerate) range. */
         double min() const { return 1.0; }
+        /** @brief Upper bound of the (degenerate) range. */
         double max() const { return 1.0; }
     };
 
