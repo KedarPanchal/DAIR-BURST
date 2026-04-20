@@ -79,6 +79,13 @@ namespace BURST::geometry {
         }
 
     public:
+        using Polygon = HoledPolygon2D::Polygon_2;
+        using Hole_iterator = HoledPolygon2D::Hole_const_iterator;
+        using Edge = HoledPolygon2D::Polygon_2::Segment_2;
+        using Edge_iterator = HoledPolygon2D::Polygon_2::Edge_const_iterator;
+        using Vertex = HoledPolygon2D::Polygon_2::Point_2;
+        using Vertex_iterator = HoledPolygon2D::Polygon_2::Vertex_const_iterator;
+
         template <valid_geometric_collection<Point2D> C>
         static std::optional<WallSpace> create(C points) {
             auto wall_polygon_opt = construct_polygon(points);  
@@ -186,6 +193,40 @@ namespace BURST::geometry {
             };
             LinearPolygonSet2D wall_set{this->wall_shape.outer_boundary()};
             CGAL::add_to_graphics_scene(wall_set.arrangement(), scene, boundary_options);
+        }
+
+        Hole_iterator holes_begin() const {
+            return this->wall_shape.holes_begin();
+        }
+
+        Hole_iterator holes_end() const {
+            return this->wall_shape.holes_end();
+        }
+
+        Edge_iterator edges_begin() const {
+            return this->wall_shape.outer_boundary().edges_begin();
+        }
+        Edge_iterator edges_end() const {
+            return this->wall_shape.outer_boundary().edges_end();
+        }
+        Edge_iterator edges_begin(Polygon hole) const {
+            return hole.edges_begin();
+        }
+        Edge_iterator edges_end(Polygon hole) const {
+            return hole.edges_end();
+        }
+
+        Vertex_iterator vertices_begin() const {
+            return this->wall_shape.outer_boundary().vertices_begin();
+        }
+        Vertex_iterator vertices_end() const {
+            return this->wall_shape.outer_boundary().vertices_end();
+        }
+        Vertex_iterator vertices_begin(Polygon hole) const {
+            return hole.vertices_begin();
+        }
+        Vertex_iterator vertices_end(Polygon hole) const {
+            return hole.vertices_end();
         }
 
         friend class std::unique_ptr<WallSpace>;
