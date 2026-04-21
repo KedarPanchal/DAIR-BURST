@@ -207,7 +207,7 @@ namespace BURST::geometry {
         /**
          * @brief Draw holes as black-filled regions and the outer boundary as a white face with colored edges.
          */
-        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}) const override {
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}, const std::source_location location = std::source_location::current()) const override {
             using arrangement_t = LinearPolygonSet2D::Arrangement_2;
             using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
             // Render the holes to be black

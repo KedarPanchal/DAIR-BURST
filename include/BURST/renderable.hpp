@@ -4,12 +4,12 @@
 #include <ranges>
 #include <type_traits>
 #include <initializer_list>
+#include <source_location>
 
 #include <CGAL/Arrangement_2.h>
 #include <CGAL/Graphics_scene.h>
 #include <CGAL/Graphics_scene_options.h>
 #include <CGAL/IO/Color.h>
-
 
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
@@ -47,7 +47,7 @@ namespace BURST::renderable {
          * @param scene Target CGAL graphics scene.
          * @param color Override color; implementations may use it for edges, faces, or both.
          */
-        virtual void render(Scene& scene, const Color& color) const = 0;
+        virtual void render(Scene&, const Color&, const std::source_location = std::source_location::current()) const = 0;
         virtual ~Renderable() = default;
     };
 
@@ -66,14 +66,14 @@ namespace BURST::renderable {
         requires std::ranges::bidirectional_range<C> &&
         std::same_as<std::remove_cv_t<std::ranges::range_value_t<C>>, const Renderable*> ||
         std::same_as<C, std::initializer_list<const Renderable*>>
-    void render_all(const C& renderables, Scene& scene) {
+    void render_all(const C& renderables, Scene& scene, const std::source_location location = std::source_location::current()) {
         for (const auto& renderable : renderables | std::views::reverse) {
-            renderable->render(scene, renderable->defaultColor());
+            renderable->render(scene, renderable->defaultColor(), location);
         }
     }
     /** @copydoc render_all */
-    inline void render_all(const std::initializer_list<const Renderable*>& renderables, Scene& scene) {
-        render_all<std::initializer_list<const Renderable*>>(renderables, scene);
+    inline void render_all(const std::initializer_list<const Renderable*>& renderables, Scene& scene, const std::source_location location = std::source_location::current()) {
+        render_all<std::initializer_list<const Renderable*>>(renderables, scene, location);
     }
 
 }

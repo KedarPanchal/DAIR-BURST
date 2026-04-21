@@ -297,7 +297,7 @@ namespace BURST::geometry {
                 return this->color;
             }
 
-            void render(renderable::Scene& scene, const renderable::Color& color) const override {
+            void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location location = std::source_location::current()) const override {
                 using arrangement_t = typename set_t::Arrangement_2;
                 using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
 
@@ -345,7 +345,7 @@ namespace BURST::geometry {
                 return this->color;
             }
             
-            void render(renderable::Scene& scene, const renderable::Color& color) const override {
+            void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location = std::source_location::current()) const override {
                 using arrangement_t = typename set_t::Arrangement_2;
                 using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
 
@@ -415,7 +415,7 @@ namespace BURST::geometry {
             renderable::Color defaultColor() const override {
                 return this->color;
             }
-            void render(renderable::Scene& scene, const renderable::Color& color) const override {
+            void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location location = std::source_location::current()) const override {
                 using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
 
                 graphics_options_t options;
