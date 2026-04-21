@@ -296,7 +296,7 @@ namespace BURST {
         }
 
         /** @brief Draw the robot as a filled circle at the current position. */
-        void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location location) const override {
+        void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location location = std::source_location::current()) const override {
             if (this->radius <= 0) return; // If the robot has a non-positive radius, then there's nothing to render
 
             using arrangement_t = geometry::CurvilinearPolygonSet2D::Arrangement_2;
