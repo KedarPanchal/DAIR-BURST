@@ -112,10 +112,14 @@ namespace BURST::geometry {
          * @return Wall space if construction succeeds, `std::nullopt` otherwise.
          */
         template <valid_geometric_collection<Point2D> C>
-        static std::optional<WallSpace> create(C points) {
-            auto wall_polygon_opt = construct_polygon(points);  
+        static std::optional<WallSpace> create(C points, const std::source_location location = std::source_location::current()) {
+            auto wall_polygon_opt = construct_polygon(points, location);  
             // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
-            return wall_polygon_opt.has_value() ? std::optional<WallSpace>{WallSpace{wall_polygon_opt.value()}} : std::nullopt;
+            if (!wall_polygon_opt) {
+                burst_error("Wall polygon is degenerate, can't create a wall geometry", location);
+                return std::nullopt;
+            }
+            return std::optional<WallSpace>{WallSpace{wall_polygon_opt.value()}};
         }
         /**
          * @brief Create walls with holes from an outer ring and a collection of hole polygons.
@@ -127,9 +131,12 @@ namespace BURST::geometry {
          */
         template <valid_geometric_collection<Point2D> C1, valid_geometric_collection<Polygon2D> C2>
         static std::optional<WallSpace> create(C1 points, C2 holes, const std::source_location location = std::source_location::current()) {
-            auto wall_polygon_opt = construct_polygon(points);
+            auto wall_polygon_opt = construct_polygon(points, location);
             // Degenerate wall polygon, can't create a wall geometry
-            if (!wall_polygon_opt) return std::nullopt; 
+            if (!wall_polygon_opt) {
+                burst_error("Wall polygon is degenerate, can't create a wall geometry", location);
+                return std::nullopt;
+            }
 
             // Create a holed polygon to hold the holes and outer boundary
             HoledPolygon2D wall_shape{wall_polygon_opt.value()};
@@ -161,21 +168,21 @@ namespace BURST::geometry {
             }
         }
         /** @copydoc create */
-        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points) {
-            return create<std::initializer_list<Point2D>>(points);
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, const std::source_location location = std::source_location::current()) {
+            return create<std::initializer_list<Point2D>>(points, location);
         }
         /** @copydoc create(C1 points, C2 holes) */
         template <valid_geometric_collection<Point2D> C>
-        inline static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes) {
-            return create<C, std::initializer_list<Polygon2D>>(points, holes);
+        inline static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes, const std::source_location location = std::source_location::current()) {
+            return create<C, std::initializer_list<Polygon2D>>(points, holes, location);
         }
         /** @copydoc create(C1 points, C2 holes) */
         template <valid_geometric_collection<Polygon2D> C>
-        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes) {
-            return create<std::initializer_list<Point2D>, C>(points, holes);
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes, const std::source_location location = std::source_location::current()) {
+            return create<std::initializer_list<Point2D>, C>(points, holes, location);
         }
-        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes) {
-            return create<std::initializer_list<Point2D>>(points, std::initializer_list<Polygon2D>(holes));
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes, const std::source_location location = std::source_location::current()) {
+            return create<std::initializer_list<Point2D>>(points, std::initializer_list<Polygon2D>{holes}, location);
         }
 
         /**
