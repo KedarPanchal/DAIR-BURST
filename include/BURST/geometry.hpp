@@ -170,8 +170,8 @@ namespace BURST::geometry {
         return polygon;
     }
     /** @copydoc construct_polygon */
-    inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
-        return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation);
+    inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE, const std::source_location location = std::source_location::current()) {
+        return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation, location);
     }
 
     /**
@@ -192,8 +192,8 @@ namespace BURST::geometry {
         return Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)};
     }
     /** @copydoc average */
-    inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
-        return average<std::initializer_list<Point2D>>(points);
+    inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points, const std::source_location location = std::source_location::current()) {
+        return average<std::initializer_list<Point2D>>(points, location);
     }
 
     /**
