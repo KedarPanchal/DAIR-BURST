@@ -168,7 +168,7 @@ namespace BURST::models {
          */
         std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space, const std::source_location location = std::source_location::current()) const noexcept {
             // Identify the endpoint of the path by using the operator() function
-            std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_space);
+            std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_space, location);
 
             // If the endpoint doesn't exist, then the path is invalid, so return nullopt
             if (!maybe_endpoint.has_value()) return std::nullopt;
