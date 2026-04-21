@@ -88,10 +88,10 @@ namespace BURST {
          * @param max_rotation_error Absolute bound passed to @ref models::RotationModel.
          * @return `std::nullopt` if `robot_radius <= 0`.
          */
-        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error) {
+        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, const std::source_location location = std::source_location::current()) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
-                burst_error("Cannot construct a robot with non-positive radius", std::source_location::current());
+                burst_error("Cannot construct a robot with non-positive radius", location);
                 return std::nullopt;
             }
             else return Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error}, models::MovementModel<T, P>{}};
@@ -100,10 +100,10 @@ namespace BURST {
          * @brief Same as @ref create with explicit PRNG seed for reproducible rotation noise.
          * @return `std::nullopt` if `robot_radius <= 0`.
          */
-        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) {
+        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed, const std::source_location location = std::source_location::current()) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
-                burst_error("Cannot construct a robot with non-positive radius", std::source_location::current());
+                burst_error("Cannot construct a robot with non-positive radius", location);
                 return std::nullopt;
             }
             else return Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error, rotation_seed}, models::MovementModel<T, P>{}};
@@ -112,10 +112,10 @@ namespace BURST {
          * @brief Construct a robot with fully custom rotation and movement models.
          * @return `std::nullopt` if `robot_radius <= 0`.
          */
-        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) {
+        static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model, const std::source_location location = std::source_location::current()) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
-                burst_error("Cannot construct a robot with non-positive radius", std::source_location::current());
+                burst_error("Cannot construct a robot with non-positive radius", location);
                 return std::nullopt;
             }
             else return Robot{robot_radius, starting_point, rotation_model, movement_model};
@@ -144,11 +144,11 @@ namespace BURST {
          * If the robot's current position is not on the boundary of the new space, a warning may
          * be logged because subsequent moves assume a boundary start configuration.
          */
-        void setConfigurationEnvironment(std::shared_ptr<BURST::geometry::ConfigurationSpace> config_environment) {
+        void setConfigurationEnvironment(std::shared_ptr<BURST::geometry::ConfigurationSpace> config_environment, const std::source_location location = std::source_location::current()) {
             this->configuration_environment = std::move(config_environment);
             if (!this->configuration_environment->onEdge(this->position)) {
                 std::string warning_string = "Robot's current position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
-                burst_warning(warning_string.c_str(), std::source_location::current());
+                burst_warning(warning_string.c_str(), location);
             }
         }
         /**
@@ -171,11 +171,11 @@ namespace BURST {
          * If a configuration environment is set, may warn when the position is not consistent with
          * expected boundary motion.
          */
-        void setPosition(const geometry::Point2D& new_position) {
+        void setPosition(const geometry::Point2D& new_position, const std::source_location location = std::source_location::current()) {
             this->position = new_position;
             if (!this->configuration_environment->intersection(this->position)) {
                 std::string warning_string = "Robot's new position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
-                burst_warning(warning_string.c_str(), std::source_location::current());
+                burst_warning(warning_string.c_str(), location);
             }
         }
 
@@ -194,10 +194,10 @@ namespace BURST {
          *
          * @return `std::nullopt` if no configuration space is set or the motion is infeasible.
          */
-        std::optional<geometry::Point2D> shootRay(const numeric::fscalar& angle, bool perturbed = false) const {
+        std::optional<geometry::Point2D> shootRay(const numeric::fscalar& angle, bool perturbed = false, const std::source_location location = std::source_location::current()) const {
             // Cannot shoot ray if configuration environment does not exist
             if (!this->configuration_environment) return std::nullopt;
-            return this->movement_model(this->position, perturbed ? this->rotation_model(angle) : angle, *this->configuration_environment);
+            return this->movement_model(this->position, perturbed ? this->rotation_model(angle) : angle, *this->configuration_environment, location);
         }
         /**
          * @brief Minkowski-style “stadium” swept by the disk along the feasible motion for `angle`.
@@ -207,13 +207,13 @@ namespace BURST {
          *
          * @return Covered region if the motion is feasible, `std::nullopt` otherwise.
          */
-        std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(const numeric::fscalar& angle, bool perturbed = false) const {
+        std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(const numeric::fscalar& angle, bool perturbed = false, const std::source_location location = std::source_location::current()) const {
             // Cannot generate a stadium if configuration environment does not exist
             if (!this->configuration_environment) return std::nullopt;
 
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
-            std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment);
+            std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment, location);
             // If the trajectory is nullopt, we can't generate a stadium, so return nullopt
             if (!endpoint.has_value()) return std::nullopt;
 
@@ -273,13 +273,13 @@ namespace BURST {
          *
          * @return `false` when no configuration space is set or the move is invalid.
          */
-        bool move(const numeric::fscalar& angle, bool perturbed = false) {
+        bool move(const numeric::fscalar& angle, bool perturbed = false, const std::source_location location = std::source_location::current()) {
             // Cannot move if configuration environment does not exist
             if (!this->configuration_environment) return false;
 
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
-            std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment);
+            std::optional<geometry::Point2D> endpoint = this->movement_model(this->position, effective_angle, *this->configuration_environment, location);
             // If the trajectory is nullopt, we can't move the robot, so return without changing the robot's position
             if (!endpoint.has_value()) return false;
             // Otherwise, move the robot to the endpoint
@@ -296,7 +296,7 @@ namespace BURST {
         }
 
         /** @brief Draw the robot as a filled circle at the current position. */
-        void render(renderable::Scene& scene, const renderable::Color& color) const override {
+        void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location location) const override {
             if (this->radius <= 0) return; // If the robot has a non-positive radius, then there's nothing to render
 
             using arrangement_t = geometry::CurvilinearPolygonSet2D::Arrangement_2;
@@ -316,7 +316,7 @@ namespace BURST {
             std::optional<geometry::CurvilinearPolygon2D> circle = geometry::construct_circle(this->radius, this->position);
             if (circle) CGAL::insert(arrangement, circle->curves_begin(), circle->curves_end());
             // This should never occur due to earlier checks, but log the error if it does anyway
-            else burst_error("Failed to render robot due to non-positive radius.", std::source_location::current());
+            else burst_error("Failed to render robot due to non-positive radius.", location);
             
             CGAL::add_to_graphics_scene(arrangement, scene, robot_options);
         }

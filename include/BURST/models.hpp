@@ -120,10 +120,10 @@ namespace BURST::models {
          * @param configuration_space Configuration space for the robot.
          * @return Endpoint on the boundary if the motion is valid, `std::nullopt` otherwise.
          */
-        std::optional<geometry::Point2D> operator()(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
+        std::optional<geometry::Point2D> operator()(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space, const std::source_location location = std::source_location::current()) const noexcept {
             // If the origin doesn't lie on the configuration space boundary, then the path is invalid, so return nullopt
             if (!configuration_space.onEdge(origin)) {
-                burst_error("Origin point does not lie on the configuration space boundary, path is invalid", std::source_location::current());
+                burst_error("Origin point does not lie on the configuration space boundary, path is invalid", location);
                 return std::nullopt;
             }
 
@@ -139,7 +139,7 @@ namespace BURST::models {
             size_t intersection_count = configuration_space.intersection<Trajectory, Path>(trajectory, std::back_inserter(intersection_points));
             // If there are no intersections, then the path is invalid, so return nullopt
             if (intersection_count == 0) {
-                burst_error("Trajectory does not intersect with the configuration space boundary, path is invalid", std::source_location::current());
+                burst_error("Trajectory does not intersect with the configuration space boundary, path is invalid", location);
                 return std::nullopt;
             }
             // The closest intersection to the point of origin is the endpoint
@@ -155,7 +155,7 @@ namespace BURST::models {
             if (configuration_space.contains(midpoint)) {
                 return endpoint;
             } else {
-                burst_error("Trajectory points outward from the configuration space, path is invalid", std::source_location::current());
+                burst_error("Trajectory points outward from the configuration space, path is invalid", location);
                 return std::nullopt;
             }
         }
@@ -166,7 +166,7 @@ namespace BURST::models {
          *
          * @return Path from `origin` to endpoint if valid and non-degenerate, `std::nullopt` otherwise.
          */
-        std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space) const noexcept {
+        std::optional<Path> path(const geometry::Point2D& origin, numeric::fscalar angle, const BURST::geometry::ConfigurationSpace& configuration_space, const std::source_location location = std::source_location::current()) const noexcept {
             // Identify the endpoint of the path by using the operator() function
             std::optional<geometry::Point2D> maybe_endpoint = (*this)(origin, angle, configuration_space);
 
@@ -174,7 +174,7 @@ namespace BURST::models {
             if (!maybe_endpoint.has_value()) return std::nullopt;
             // If the origin and endpoint are the same, then the path is invalid, so return nullopt
             if (*maybe_endpoint == origin) {
-                burst_error("Origin and endpoint of the path are the same, path is invalid", std::source_location::current());
+                burst_error("Origin and endpoint of the path are the same, path is invalid", location);
                 return std::nullopt;
             }
             // Otherwise generate a path from the origin to the endpoint and return it

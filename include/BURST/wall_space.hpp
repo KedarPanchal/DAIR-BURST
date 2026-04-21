@@ -56,7 +56,7 @@ namespace BURST::geometry {
          *
          * @return Generated configuration space, or `nullptr` when no free region can be constructed.
          */
-        std::shared_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
+        std::shared_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius, const std::source_location location = std::source_location::current()) const {
             // TODO: Find an actually good epsilon instead of this approximation
             const double EPSILON = 0.000001;
 
@@ -69,7 +69,7 @@ namespace BURST::geometry {
             // TODO: For the above case, check with Dr. Shell if that's something worth allowing in the final sim
             // In both cases, return nullptr
             if (outer_inset_results.size() != 1) {
-                burst_error("Wall polygon is too small for the robot, no configuration space could be generated", std::source_location::current());
+                burst_error("Wall polygon is too small for the robot, no configuration space could be generated", location);
                 return nullptr;
             }
             // Reverse the resulting polygon's rotation if it's not counterclockwise
@@ -126,7 +126,7 @@ namespace BURST::geometry {
          * @return Wall space if construction succeeds, `std::nullopt` otherwise.
          */
         template <valid_geometric_collection<Point2D> C1, valid_geometric_collection<Polygon2D> C2>
-        static std::optional<WallSpace> create(C1 points, C2 holes) {
+        static std::optional<WallSpace> create(C1 points, C2 holes, const std::source_location location = std::source_location::current()) {
             auto wall_polygon_opt = construct_polygon(points);
             // Degenerate wall polygon, can't create a wall geometry
             if (!wall_polygon_opt) return std::nullopt; 
@@ -138,7 +138,7 @@ namespace BURST::geometry {
             for (const Polygon2D& hole : holes) {
                 // Degenerate hole polygon, can't create a wall geometry
                 if (!hole.is_simple()) {
-                    burst_error("Hole polygon is degenerate, can't create a wall geometry", std::source_location::current());
+                    burst_error("Hole polygon is degenerate, can't create a wall geometry", location);
                     return std::nullopt;
                 }
                 // Holes must be oriented clockwise, so reverse the orientation if not
@@ -156,7 +156,7 @@ namespace BURST::geometry {
             if (CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{})) {
                 return WallSpace{wall_shape};
             } else {
-                burst_error("Resulting wall polygon with holes is invalid with one of: degenerate outer boundary, degenerate hole, hole not inside outer boundary, or holes intersecting each other. Can't create a wall geometry", std::source_location::current());
+                burst_error("Resulting wall polygon with holes is invalid with one of: degenerate outer boundary, degenerate hole, hole not inside outer boundary, or holes intersecting each other. Can't create a wall geometry", location);
                 return std::nullopt;
             }
         }
