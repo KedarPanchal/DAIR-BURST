@@ -25,7 +25,7 @@ The current public surface is:
 - `BURST/wall_space.hpp`: environment geometry (`geometry::WallSpace`)
 - `BURST/configuration_space.hpp`: free-space boundary for the robot center (`geometry::ConfigurationSpace`)
 - `BURST/robot.hpp`: the robot (`Robot<...>`)
-- `BURST/logging.hpp`: `BURST_ERROR` / `BURST_WARNING` macros
+- `BURST/logging.hpp`: `burst_error` / `burst_warning` macros
 
 ## Core concepts and data flow
 
@@ -179,7 +179,7 @@ Most “invalid geometry / invalid motion” outcomes are communicated as:
 - `std::nullopt` (for queries like `shootRay` / `coveredArea`)
 - `false` (for actions like `move` / `generateConfigurationSpace`)
 
-Diagnostic messages are emitted through `BURST_ERROR(...)` / `BURST_WARNING(...)` macros (which can be compiled out via `BURST_DISABLE_ERRORS` / `BURST_DISABLE_WARNINGS`).
+Diagnostic messages are emitted through `burst_error(...)` / `burst_warning(...)` logging functions (which can be compiled out via `BURST_DISABLE_ERRORS` / `BURST_DISABLE_WARNINGS`).
 
 ## Notes / constraints
 

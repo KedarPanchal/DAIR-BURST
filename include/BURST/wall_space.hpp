@@ -68,7 +68,7 @@ namespace BURST::geometry {
             // TODO: For the above case, check with Dr. Shell if that's something worth allowing in the final sim
             // In both cases, return nullptr
             if (outer_inset_results.size() != 1) {
-                BURST_ERROR("Wall polygon is too small for the robot, no configuration space could be generated");
+                burst_error("Wall polygon is too small for the robot, no configuration space could be generated");
                 return nullptr;
             }
             // Reverse the resulting polygon's rotation if it's not counterclockwise
@@ -137,7 +137,7 @@ namespace BURST::geometry {
             for (const Polygon2D& hole : holes) {
                 // Degenerate hole polygon, can't create a wall geometry
                 if (!hole.is_simple()) {
-                    BURST_ERROR("Hole polygon is degenerate, can't create a wall geometry");
+                    burst_error("Hole polygon is degenerate, can't create a wall geometry");
                     return std::nullopt;
                 }
                 // Holes must be oriented clockwise, so reverse the orientation if not
@@ -155,7 +155,7 @@ namespace BURST::geometry {
             if (CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{})) {
                 return WallSpace{wall_shape};
             } else {
-                BURST_ERROR("Resulting wall polygon with holes is invalid with one of: degenerate outer boundary, degenerate hole, hole not inside outer boundary, or holes intersecting each other. Can't create a wall geometry");
+                burst_error("Resulting wall polygon with holes is invalid with one of: degenerate outer boundary, degenerate hole, hole not inside outer boundary, or holes intersecting each other. Can't create a wall geometry");
                 return std::nullopt;
             }
         }

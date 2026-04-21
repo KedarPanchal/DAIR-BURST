@@ -12,40 +12,53 @@
  */
 
 #ifndef BURST_DISABLE_WARNINGS
-#include <cstdio>
+#include <string_view>
+#include <source_location>
+#include <iostream>
 
-/** @brief Emit a warning to an arbitrary `FILE*` stream (typically `stderr`). */
-#define BURST_WARNING_TO(msg, stream) do { \
-    ::fprintf(stream, "[BURST] Warning:\t%s\n[BURST] File:\t%s\n[BURST] Line:\t%d\n", (msg), __FILE__, __LINE__); \
-} while(0)
+/** @brief Emit a warning to an arbitrary `std::ostream`. */
+inline void burst_warning_to(const std::string_view& msg, std::ostream& stream, const std::source_location& location = std::source_location::current()) {
+    stream << "[BURST] Warning:\t" << msg << '\n'
+           << "[BURST] File:\t" << location.file_name() << '\n'
+           << "[BURST] Line:\t" << location.line() << '\n';
+}
 
 /** @brief Emit a warning to `stderr`. */
-#define BURST_WARNING(msg) BURST_WARNING_TO(msg, stderr)
+inline void burst_warning(const std::string_view& msg, const std::source_location& location = std::source_location::current()) {
+    burst_warning_to(msg, std::cerr, location);
+}
 
 #else
 
-// Define no-op macros if warnings are disabled to prevent compile errors
-#define BURST_WARNING_TO(msg, stream) do {} while(0)
-#define BURST_WARNING(msg) do {} while(0)
+// Define no-op functions if warnings are disabled to prevent compile errors
+
+inline void burst_warning_to(const std::string_view& msg, std::ostream& stream, const std::source_location& location = std::source_location::current()) {}
+inline void burst_warning(const std::string_view& msg, const std::source_location& location = std::source_location::current()) {}
 
 #endif
 
 #ifndef BURST_DISABLE_ERRORS
-#include <cstdio>
+#include <string_view>
+#include <source_location>
+#include <iostream>
 
-/** @brief Emit an error to an arbitrary `FILE*` stream (typically `stderr`). */
-#define BURST_ERROR_TO(msg, stream) do { \
-    ::fprintf(stream, "[BURST] Error:\t%s\n[BURST] File:\t%s\n[BURST] Line:\t%d\n", (msg), __FILE__, __LINE__); \
-} while(0)
+/** @brief Emit an error to an arbitrary `std::ostream`. */
+inline void burst_error_to(const std::string_view& msg, std::ostream& stream, const std::source_location& location = std::source_location::current()) {
+    stream << "[BURST] Error:\t" << msg << '\n'
+           << "[BURST] File:\t" << location.file_name() << '\n'
+           << "[BURST] Line:\t" << location.line() << '\n';
+}
 
 /** @brief Emit an error to `stderr`. */
-#define BURST_ERROR(msg) BURST_ERROR_TO(msg, stderr)
+inline void burst_error(const std::string_view& msg, const std::source_location& location = std::source_location::current()) {
+    burst_error_to(msg, std::cerr, location);
+}
 
 #else
 
-// Define no-op macros if errors are disabled to prevent compile errors
-#define BURST_ERROR_TO(msg, stream) do {} while(0)
-#define BURST_ERROR(msg) do {} while(0)
+// Define no-op functions if errors are disabled to prevent compile errors
+inline void burst_error_to(const std::string_view& msg, std::ostream& stream, const std::source_location& location = std::source_location::current()) {}
+inline void burst_error(const std::string_view& msg, const std::source_location& location = std::source_location::current()) {}
 
 #endif
 
