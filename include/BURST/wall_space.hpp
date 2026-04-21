@@ -113,7 +113,7 @@ namespace BURST::geometry {
          */
         template <valid_geometric_collection<Point2D> C>
         static std::optional<WallSpace> create(C points, const std::source_location location = std::source_location::current()) {
-            auto wall_polygon_opt = construct_polygon(points, location);  
+            auto wall_polygon_opt = construct_polygon(points, CGAL::COUNTERCLOCKWISE, location);  
             // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
             if (!wall_polygon_opt) {
                 burst_error("Wall polygon is degenerate, can't create a wall geometry", location);
@@ -131,7 +131,7 @@ namespace BURST::geometry {
          */
         template <valid_geometric_collection<Point2D> C1, valid_geometric_collection<Polygon2D> C2>
         static std::optional<WallSpace> create(C1 points, C2 holes, const std::source_location location = std::source_location::current()) {
-            auto wall_polygon_opt = construct_polygon(points, location);
+            auto wall_polygon_opt = construct_polygon(points, CGAL::COUNTERCLOCKWISE, location);
             // Degenerate wall polygon, can't create a wall geometry
             if (!wall_polygon_opt) {
                 burst_error("Wall polygon is degenerate, can't create a wall geometry", location);
@@ -182,7 +182,7 @@ namespace BURST::geometry {
             return create<std::initializer_list<Point2D>, C>(points, holes, location);
         }
         inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes, const std::source_location location = std::source_location::current()) {
-            return create<std::initializer_list<Point2D>>(points, std::initializer_list<Polygon2D>{holes}, location);
+            return create<std::initializer_list<Point2D>>(points, holes, location);
         }
 
         /**
