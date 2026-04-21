@@ -8,6 +8,7 @@
 #include <ranges>
 #include <type_traits>
 #include <memory>
+#include <source_location>
 
 #include <CGAL/Polygon_2.h>
 #include <CGAL/Polygon_with_holes_2.h>
@@ -151,13 +152,13 @@ namespace BURST::geometry {
     std::optional<Polygon2D> construct_polygon(const C& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
         // Can't make a polygon with 2 or fewer points
         if (std::ranges::size(points) <= 2) {
-            burst_error("Cannot construct a polygon with 2 or fewer points, collection is degenerate");
+            burst_error("Cannot construct a polygon with 2 or fewer points, collection is degenerate", std::source_location::current());
             return std::nullopt;
         }
 
         // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
         if (!CGAL::is_simple_2(std::ranges::begin(points), std::ranges::end(points), LinearTraits{})) {
-            burst_error("Cannot construct a polygon from the given collection of points for one of the following reasons: the polygon is self-intersecting, not simple, or degenerate");
+            burst_error("Cannot construct a polygon from the given collection of points for one of the following reasons: the polygon is self-intersecting, not simple, or degenerate", std::source_location::current());
             return std::nullopt;
         }
 
@@ -181,7 +182,7 @@ namespace BURST::geometry {
     std::optional<Point2D> average(const C& points) {
         // Can't compute the average of an empty collection
         if (std::ranges::size(points) == 0) {
-            burst_error("Cannot compute the average of an empty collection of points");
+            burst_error("Cannot compute the average of an empty collection of points", std::source_location::current());
             return std::nullopt;
         }
 
@@ -245,7 +246,7 @@ namespace BURST::geometry {
     inline std::optional<CurvilinearPolygon2D> construct_circle(const numeric::fscalar& radius, const Point2D& center) {
         // Only construct circles with positive radius
         if (radius <= 0) {
-            burst_error("Cannot construct a circle with non-positive radius");
+            burst_error("Cannot construct a circle with non-positive radius", std::source_location::current());
             return std::nullopt;
         }
         CGAL::Circle_2<Kernel> circle = CGAL::Circle_2<Kernel>{center, radius * radius};

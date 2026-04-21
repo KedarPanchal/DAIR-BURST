@@ -6,6 +6,7 @@
 #include <array>
 #include <unordered_map>
 #include <algorithm>
+#include <source_location>
 
 #include <boost/multiprecision/mpfr.hpp>
 #include <boost/functional/hash.hpp>
@@ -90,7 +91,7 @@ namespace BURST {
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
-                burst_error("Cannot construct a robot with non-positive radius");
+                burst_error("Cannot construct a robot with non-positive radius", std::source_location::current());
                 return std::nullopt;
             }
             else return Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error}, models::MovementModel<T, P>{}};
@@ -102,7 +103,7 @@ namespace BURST {
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, numeric::fscalar max_rotation_error, unsigned int rotation_seed) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
-                burst_error("Cannot construct a robot with non-positive radius");
+                burst_error("Cannot construct a robot with non-positive radius", std::source_location::current());
                 return std::nullopt;
             }
             else return Robot{robot_radius, starting_point, models::RotationModel<R, D>{max_rotation_error, rotation_seed}, models::MovementModel<T, P>{}};
@@ -114,7 +115,7 @@ namespace BURST {
         static std::optional<Robot> create(numeric::fscalar robot_radius, geometry::Point2D starting_point, models::RotationModel<R, D> rotation_model, models::MovementModel<T, P> movement_model) {
             // Cannot construct a robot with a non-positive radius
             if (robot_radius <= 0) {
-                burst_error("Cannot construct a robot with non-positive radius");
+                burst_error("Cannot construct a robot with non-positive radius", std::source_location::current());
                 return std::nullopt;
             }
             else return Robot{robot_radius, starting_point, rotation_model, movement_model};
@@ -147,7 +148,7 @@ namespace BURST {
             this->configuration_environment = std::move(config_environment);
             if (!this->configuration_environment->onEdge(this->position)) {
                 std::string warning_string = "Robot's current position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
-                burst_warning(warning_string.c_str());
+                burst_warning(warning_string.c_str(), std::source_location::current());
             }
         }
         /**
@@ -174,7 +175,7 @@ namespace BURST {
             this->position = new_position;
             if (!this->configuration_environment->intersection(this->position)) {
                 std::string warning_string = "Robot's new position (" + BURST::numeric::to_string(this->position.x()) + ", " + BURST::numeric::to_string(this->position.y()) + ") is not on the border of the configuration space. This may lead to unexpected movement behavior.";
-                burst_warning(warning_string.c_str());
+                burst_warning(warning_string.c_str(), std::source_location::current());
             }
         }
 
@@ -315,7 +316,7 @@ namespace BURST {
             std::optional<geometry::CurvilinearPolygon2D> circle = geometry::construct_circle(this->radius, this->position);
             if (circle) CGAL::insert(arrangement, circle->curves_begin(), circle->curves_end());
             // This should never occur due to earlier checks, but log the error if it does anyway
-            else burst_error("Failed to render robot due to non-positive radius.");
+            else burst_error("Failed to render robot due to non-positive radius.", std::source_location::current());
             
             CGAL::add_to_graphics_scene(arrangement, scene, robot_options);
         }
