@@ -231,7 +231,7 @@ namespace BURST::geometry {
          * @param scene Target CGAL graphics scene.
          * @param color Edge color; faces are drawn fully transparent.
          */
-        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 255}, const std::source_location location = std::source_location::current()) const override {
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 255}, const std::source_location = std::source_location::current()) const override {
             if (this->configuration_shape == nullptr) return; // If the configuration shape is null, then there's nothing to render
             
             using arrangement_t = CurvilinearPolygonSet2D::Arrangement_2;
