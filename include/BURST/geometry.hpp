@@ -149,16 +149,16 @@ namespace BURST::geometry {
      * @return The constructed polygon if successful, `std::nullopt` otherwise.
      */
     template <typename C> requires valid_geometric_collection<C, Point2D>
-    std::optional<Polygon2D> construct_polygon(const C& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
+    std::optional<Polygon2D> construct_polygon(const C& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE, const std::source_location location = std::source_location::current()) {
         // Can't make a polygon with 2 or fewer points
         if (std::ranges::size(points) <= 2) {
-            burst_error("Cannot construct a polygon with 2 or fewer points, collection is degenerate", std::source_location::current());
+            burst_error("Cannot construct a polygon with 2 or fewer points, collection is degenerate", location);
             return std::nullopt;
         }
 
         // Check for self-intersection, overall simplicity, and non-degeneracy of the polygon and return nullopt if any of these conditions are violated
         if (!CGAL::is_simple_2(std::ranges::begin(points), std::ranges::end(points), LinearTraits{})) {
-            burst_error("Cannot construct a polygon from the given collection of points for one of the following reasons: the polygon is self-intersecting, not simple, or degenerate", std::source_location::current());
+            burst_error("Cannot construct a polygon from the given collection of points for one of the following reasons: the polygon is self-intersecting, not simple, or degenerate", location);
             return std::nullopt;
         }
 
@@ -170,8 +170,8 @@ namespace BURST::geometry {
         return polygon;
     }
     /** @copydoc construct_polygon */
-    inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE) {
-        return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation);
+    inline std::optional<Polygon2D> construct_polygon(const std::initializer_list<Point2D>& points, CGAL::Orientation expected_orientation = CGAL::COUNTERCLOCKWISE, const std::source_location location = std::source_location::current()) {
+        return construct_polygon<std::initializer_list<Point2D>>(points, expected_orientation, location);
     }
 
     /**
@@ -179,10 +179,10 @@ namespace BURST::geometry {
      * @return `std::nullopt` if the collection is empty.
      */
     template <typename C> requires valid_geometric_collection<C, Point2D>
-    std::optional<Point2D> average(const C& points) {
+    std::optional<Point2D> average(const C& points, const std::source_location location = std::source_location::current()) {
         // Can't compute the average of an empty collection
         if (std::ranges::size(points) == 0) {
-            burst_error("Cannot compute the average of an empty collection of points", std::source_location::current());
+            burst_error("Cannot compute the average of an empty collection of points", location);
             return std::nullopt;
         }
 
@@ -192,8 +192,8 @@ namespace BURST::geometry {
         return Point2D{sum.x() / std::ranges::size(points), sum.y() / std::ranges::size(points)};
     }
     /** @copydoc average */
-    inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points) {
-        return average<std::initializer_list<Point2D>>(points);
+    inline std::optional<Point2D> average(const std::initializer_list<Point2D>& points, const std::source_location location = std::source_location::current()) {
+        return average<std::initializer_list<Point2D>>(points, location);
     }
 
     /**
@@ -243,10 +243,10 @@ namespace BURST::geometry {
      *
      * @return `std::nullopt` if `radius` is non-positive.
      */
-    inline std::optional<CurvilinearPolygon2D> construct_circle(const numeric::fscalar& radius, const Point2D& center) {
+    inline std::optional<CurvilinearPolygon2D> construct_circle(const numeric::fscalar& radius, const Point2D& center, const std::source_location location = std::source_location::current()) {
         // Only construct circles with positive radius
         if (radius <= 0) {
-            burst_error("Cannot construct a circle with non-positive radius", std::source_location::current());
+            burst_error("Cannot construct a circle with non-positive radius", location);
             return std::nullopt;
         }
         CGAL::Circle_2<Kernel> circle = CGAL::Circle_2<Kernel>{center, radius * radius};
@@ -297,7 +297,7 @@ namespace BURST::geometry {
                 return this->color;
             }
 
-            void render(renderable::Scene& scene, const renderable::Color& color) const override {
+            void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location = std::source_location::current()) const override {
                 using arrangement_t = typename set_t::Arrangement_2;
                 using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
 
@@ -345,7 +345,7 @@ namespace BURST::geometry {
                 return this->color;
             }
             
-            void render(renderable::Scene& scene, const renderable::Color& color) const override {
+            void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location = std::source_location::current()) const override {
                 using arrangement_t = typename set_t::Arrangement_2;
                 using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
 
@@ -415,7 +415,7 @@ namespace BURST::geometry {
             renderable::Color defaultColor() const override {
                 return this->color;
             }
-            void render(renderable::Scene& scene, const renderable::Color& color) const override {
+            void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location = std::source_location::current()) const override {
                 using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, typename arrangement_t::Vertex_const_handle, typename arrangement_t::Halfedge_const_handle, typename arrangement_t::Face_const_handle>;
 
                 graphics_options_t options;

@@ -56,7 +56,7 @@ namespace BURST::geometry {
          *
          * @return Generated configuration space, or `nullptr` when no free region can be constructed.
          */
-        std::shared_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius) const {
+        std::shared_ptr<ConfigurationSpace> constructConfigurationSpace(const numeric::fscalar& robot_radius, const std::source_location location = std::source_location::current()) const {
             // TODO: Find an actually good epsilon instead of this approximation
             const double EPSILON = 0.000001;
 
@@ -69,7 +69,7 @@ namespace BURST::geometry {
             // TODO: For the above case, check with Dr. Shell if that's something worth allowing in the final sim
             // In both cases, return nullptr
             if (outer_inset_results.size() != 1) {
-                burst_error("Wall polygon is too small for the robot, no configuration space could be generated", std::source_location::current());
+                burst_error("Wall polygon is too small for the robot, no configuration space could be generated", location);
                 return nullptr;
             }
             // Reverse the resulting polygon's rotation if it's not counterclockwise
@@ -112,10 +112,14 @@ namespace BURST::geometry {
          * @return Wall space if construction succeeds, `std::nullopt` otherwise.
          */
         template <valid_geometric_collection<Point2D> C>
-        static std::optional<WallSpace> create(C points) {
-            auto wall_polygon_opt = construct_polygon(points);  
+        static std::optional<WallSpace> create(C points, const std::source_location location = std::source_location::current()) {
+            auto wall_polygon_opt = construct_polygon(points, location);  
             // If nullopt, then the wall polygon was degenerate and we can't create a wall geometry
-            return wall_polygon_opt.has_value() ? std::optional<WallSpace>{WallSpace{wall_polygon_opt.value()}} : std::nullopt;
+            if (!wall_polygon_opt) {
+                burst_error("Wall polygon is degenerate, can't create a wall geometry", location);
+                return std::nullopt;
+            }
+            return std::optional<WallSpace>{WallSpace{wall_polygon_opt.value()}};
         }
         /**
          * @brief Create walls with holes from an outer ring and a collection of hole polygons.
@@ -126,10 +130,13 @@ namespace BURST::geometry {
          * @return Wall space if construction succeeds, `std::nullopt` otherwise.
          */
         template <valid_geometric_collection<Point2D> C1, valid_geometric_collection<Polygon2D> C2>
-        static std::optional<WallSpace> create(C1 points, C2 holes) {
-            auto wall_polygon_opt = construct_polygon(points);
+        static std::optional<WallSpace> create(C1 points, C2 holes, const std::source_location location = std::source_location::current()) {
+            auto wall_polygon_opt = construct_polygon(points, location);
             // Degenerate wall polygon, can't create a wall geometry
-            if (!wall_polygon_opt) return std::nullopt; 
+            if (!wall_polygon_opt) {
+                burst_error("Wall polygon is degenerate, can't create a wall geometry", location);
+                return std::nullopt;
+            }
 
             // Create a holed polygon to hold the holes and outer boundary
             HoledPolygon2D wall_shape{wall_polygon_opt.value()};
@@ -138,7 +145,7 @@ namespace BURST::geometry {
             for (const Polygon2D& hole : holes) {
                 // Degenerate hole polygon, can't create a wall geometry
                 if (!hole.is_simple()) {
-                    burst_error("Hole polygon is degenerate, can't create a wall geometry", std::source_location::current());
+                    burst_error("Hole polygon is degenerate, can't create a wall geometry", location);
                     return std::nullopt;
                 }
                 // Holes must be oriented clockwise, so reverse the orientation if not
@@ -156,26 +163,26 @@ namespace BURST::geometry {
             if (CGAL::is_valid_polygon_with_holes(wall_shape, LinearTraits{})) {
                 return WallSpace{wall_shape};
             } else {
-                burst_error("Resulting wall polygon with holes is invalid with one of: degenerate outer boundary, degenerate hole, hole not inside outer boundary, or holes intersecting each other. Can't create a wall geometry", std::source_location::current());
+                burst_error("Resulting wall polygon with holes is invalid with one of: degenerate outer boundary, degenerate hole, hole not inside outer boundary, or holes intersecting each other. Can't create a wall geometry", location);
                 return std::nullopt;
             }
         }
         /** @copydoc create */
-        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points) {
-            return create<std::initializer_list<Point2D>>(points);
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, const std::source_location location = std::source_location::current()) {
+            return create<std::initializer_list<Point2D>>(points, location);
         }
         /** @copydoc create(C1 points, C2 holes) */
         template <valid_geometric_collection<Point2D> C>
-        inline static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes) {
-            return create<C, std::initializer_list<Polygon2D>>(points, holes);
+        inline static std::optional<WallSpace> create(C points, std::initializer_list<Polygon2D> holes, const std::source_location location = std::source_location::current()) {
+            return create<C, std::initializer_list<Polygon2D>>(points, holes, location);
         }
         /** @copydoc create(C1 points, C2 holes) */
         template <valid_geometric_collection<Polygon2D> C>
-        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes) {
-            return create<std::initializer_list<Point2D>, C>(points, holes);
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, C holes, const std::source_location location = std::source_location::current()) {
+            return create<std::initializer_list<Point2D>, C>(points, holes, location);
         }
-        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes) {
-            return create<std::initializer_list<Point2D>>(points, std::initializer_list<Polygon2D>(holes));
+        inline static std::optional<WallSpace> create(std::initializer_list<Point2D> points, std::initializer_list<Polygon2D> holes, const std::source_location location = std::source_location::current()) {
+            return create<std::initializer_list<Point2D>>(points, std::initializer_list<Polygon2D>{holes}, location);
         }
 
         /**
@@ -207,7 +214,7 @@ namespace BURST::geometry {
         /**
          * @brief Draw holes as black-filled regions and the outer boundary as a white face with colored edges.
          */
-        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}) const override {
+        void render(renderable::Scene& scene, const renderable::Color& color = renderable::Color{0, 0, 0}, const std::source_location location = std::source_location::current()) const override {
             using arrangement_t = LinearPolygonSet2D::Arrangement_2;
             using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
             // Render the holes to be black
