@@ -196,7 +196,10 @@ namespace BURST {
          */
         std::optional<geometry::Point2D> shootRay(const numeric::fscalar& angle, bool perturbed = false, const std::source_location location = std::source_location::current()) const {
             // Cannot shoot ray if configuration environment does not exist
-            if (!this->configuration_environment) return std::nullopt;
+            if (!this->configuration_environment) {
+                burst_error("Cannot shoot ray without a configuration environment set", location);
+                return std::nullopt;
+            }
             return this->movement_model(this->position, perturbed ? this->rotation_model(angle) : angle, *this->configuration_environment, location);
         }
         /**
@@ -209,7 +212,10 @@ namespace BURST {
          */
         std::optional<geometry::CurvilinearPolygonSet2D> coveredArea(const numeric::fscalar& angle, bool perturbed = false, const std::source_location location = std::source_location::current()) const {
             // Cannot generate a stadium if configuration environment does not exist
-            if (!this->configuration_environment) return std::nullopt;
+            if (!this->configuration_environment) {
+                burst_error("Cannot compute covered area without a configuration environment set", location);
+                return std::nullopt;
+            }
 
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
@@ -275,7 +281,10 @@ namespace BURST {
          */
         bool move(const numeric::fscalar& angle, bool perturbed = false, const std::source_location location = std::source_location::current()) {
             // Cannot move if configuration environment does not exist
-            if (!this->configuration_environment) return false;
+            if (!this->configuration_environment) {
+                burst_error("Cannot move without a configuration environment set", location);
+                return false;
+            }
 
             numeric::fscalar effective_angle = perturbed ? this->rotation_model(angle) : angle;
             // Generate an endpoint for the robot's movement trajectory
@@ -297,7 +306,10 @@ namespace BURST {
 
         /** @brief Draw the robot as a filled circle at the current position. */
         void render(renderable::Scene& scene, const renderable::Color& color, const std::source_location location = std::source_location::current()) const override {
-            if (this->radius <= 0) return; // If the robot has a non-positive radius, then there's nothing to render
+            if (this->radius <= 0) {
+                burst_error("Cannot render robot with non-positive radius", location);
+                return;
+            }
 
             using arrangement_t = geometry::CurvilinearPolygonSet2D::Arrangement_2;
             using graphics_options_t = CGAL::Graphics_scene_options<arrangement_t, arrangement_t::Vertex_const_handle, arrangement_t::Halfedge_const_handle, arrangement_t::Face_const_handle>;
@@ -316,7 +328,10 @@ namespace BURST {
             std::optional<geometry::CurvilinearPolygon2D> circle = geometry::construct_circle(this->radius, this->position);
             if (circle) CGAL::insert(arrangement, circle->curves_begin(), circle->curves_end());
             // This should never occur due to earlier checks, but log the error if it does anyway
-            else burst_error("Failed to render robot due to non-positive radius.", location);
+            else {
+                burst_error("Failed to render robot due to non-positive radius.", location);
+                return;
+            }
             
             CGAL::add_to_graphics_scene(arrangement, scene, robot_options);
         }
