@@ -1,4 +1,4 @@
-include(CheckCCompilerFlag)
+include(CheckCXXCompilerFlag)
 include(FetchContent)
 
 FetchContent_Declare(
@@ -17,7 +17,7 @@ else()
 endif()
 
 # Check if address sanitizer is supported
-check_c_compiler_flag(${ASAN_FLAG} ASAN_SUPPORTED)
+check_cxx_compiler_flag(${ASAN_FLAG} ASAN_SUPPORTED)
 
 if (TEST_SCOPE STREQUAL "all")
     # All tests
