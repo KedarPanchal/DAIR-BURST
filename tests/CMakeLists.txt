@@ -1,5 +1,6 @@
 include(CheckCXXCompilerFlag)
 include(FetchContent)
+include(GoogleTest)
 
 FetchContent_Declare(
     googletest
@@ -41,6 +42,8 @@ if (TEST_SCOPE STREQUAL "all")
         target_compile_options(test_all PRIVATE -g ${ASAN_FLAG})
         target_link_options(test_all PRIVATE ${ASAN_FLAG})
     endif()
+
+    gtest_discover_tests(test_all)
 elseif(TEST_SCOPE STREQUAL "categorized")
     # Build only space-related tests
     add_executable(test_space
@@ -95,6 +98,11 @@ elseif(TEST_SCOPE STREQUAL "categorized")
         target_compile_options(test_robot PRIVATE -g ${ASAN_FLAG})
         target_link_options(test_robot PRIVATE ${ASAN_FLAG})
     endif()
+
+    gtest_discover_tests(test_space)
+    gtest_discover_tests(test_rendering)
+    gtest_discover_tests(test_models)
+    gtest_discover_tests(test_robot)
 else()
     # Build individual test executables for each test file
 
@@ -207,5 +215,18 @@ else()
         target_link_options(test_robot PRIVATE ${ASAN_FLAG})
         target_compile_options(test_robot_rendering PRIVATE -g ${ASAN_FLAG})
         target_link_options(test_robot_rendering PRIVATE ${ASAN_FLAG})
+        target_compile_options(test_miscellaneous_rendering PRIVATE -g ${ASAN_FLAG})
+        target_link_options(test_miscellaneous_rendering PRIVATE ${ASAN_FLAG})
     endif()
+
+    gtest_discover_tests(test_wallspace_construction)
+    gtest_discover_tests(test_configurationspace_construction)
+    gtest_discover_tests(test_configurationspace_intersections)
+    gtest_discover_tests(test_wallspace_rendering)
+    gtest_discover_tests(test_configurationspace_rendering)
+    gtest_discover_tests(test_rotationmodel)
+    gtest_discover_tests(test_movementmodel)
+    gtest_discover_tests(test_robot)
+    gtest_discover_tests(test_robot_rendering)
+    gtest_discover_tests(test_miscellaneous_rendering)
 endif()
